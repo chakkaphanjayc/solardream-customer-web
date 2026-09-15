@@ -23,7 +23,9 @@ Open <http://localhost:3100/th>. Set the Supabase and server-only variables in
 ```bash
 npm run verify:standalone
 npm run typecheck
+npm run security:client-env
 npm run i18n:check
+npm run test:worker-contract
 npm run build
 npm run start:local
 ```
@@ -41,6 +43,15 @@ docker run --rm --env-file .env -p 3100:3100 solardream-customer-web:local
 
 The image exposes the Customer surface only. Production routing for
 `solar-dream.org` must be changed separately after staging verification.
+
+If a legacy Technician PWA was installed from the Customer origin, the
+temporary recovery bridge remains disabled by default. Enable
+`LEGACY_TECH_COMPAT_ENABLED=true` only during the documented cross-origin
+recovery window and configure `STAFF_SYNC_INTERNAL_URL` to the Staff sync
+endpoint.
+
+Customer lifecycle routes may enqueue shared outbox jobs, but worker processes
+are owned by the Staff repository. See [`docs/WORKERS.md`](docs/WORKERS.md).
 
 ## Shared code
 

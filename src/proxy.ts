@@ -52,6 +52,22 @@ function redirectLegacyTechPortal(request: NextRequest) {
   return NextResponse.redirect(target, 307);
 }
 
+/**
+ * Older DiscourseConnect configurations may still point at the public site
+ * root. Keep that signed request compatible while the callback setting is
+ * migrated to the explicit Customer endpoint.
+ */
+function redirectLegacyDiscourseConnectRoot(request: NextRequest) {
+  const { pathname, searchParams } = request.nextUrl;
+  if (pathname !== "/" || !searchParams.has("sso") || !searchParams.has("sig")) return null;
+
+  const target = request.nextUrl.clone();
+  target.pathname = "/api/auth/discourse-sso";
+  const response = NextResponse.redirect(target, 307);
+  response.headers.set("Cache-Control", "no-store");
+  return response;
+}
+
 function redirectDisabledStorefrontRoute(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (pathname.startsWith("/_next") || pathname.startsWith("/api") || pathname.includes(".")) return null;
@@ -90,6 +106,9 @@ export async function proxy(request: NextRequest) {
   if (["/robots.txt", "/sitemap.xml", "/manifest.webmanifest"].includes(request.nextUrl.pathname)) {
     return NextResponse.next();
   }
+
+  const legacyDiscourseConnectRedirect = redirectLegacyDiscourseConnectRoot(request);
+  if (legacyDiscourseConnectRedirect) return legacyDiscourseConnectRedirect;
 
   const techRedirect = redirectLegacyTechPortal(request);
   if (techRedirect) return techRedirect;

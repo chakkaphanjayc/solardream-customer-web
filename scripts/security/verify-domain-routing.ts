@@ -49,57 +49,32 @@ async function main() {
     "no-store",
   );
 
-  const publicAdminRedirect = await proxy(request("https://solar-dream.org/en/admin/crm?tab=leads"));
+  const legacyTechPortalRedirect = await proxy(request("https://solar-dream.org/tech-portal?from=legacy"));
   assert.equal(
-    await locationFor(publicAdminRedirect),
-    "https://admin.solar-dream.org/en/admin/crm?tab=leads",
+    legacyTechPortalRedirect.status,
+    307,
+  );
+  assert.equal(
+    legacyTechPortalRedirect.headers.get("location"),
+    "https://admin.solar-dream.org/th/tech-portal?from=legacy",
   );
 
+  const staffHostRejection = await proxy(
+    request("https://admin.solar-dream.org/en/admin/crm"),
+  );
+  assert.equal(staffHostRejection.status, 421);
+
   const directPublicHostWins = await proxy(
-    request("https://solar-dream.org/en/admin/crm", undefined, {
+    request("https://solar-dream.org/en", undefined, {
       host: "solar-dream.org",
       "x-forwarded-host": "admin.solar-dream.org",
     }),
   );
   assert.equal(
-    await locationFor(directPublicHostWins),
-    "https://admin.solar-dream.org/en/admin/crm",
+    directPublicHostWins.status,
+    200,
+    "the direct Host header must win over an untrusted forwarded host",
   );
-
-  const directAdminHostWins = await proxy(
-    request("https://admin.solar-dream.org/", undefined, {
-      host: "admin.solar-dream.org",
-      "x-forwarded-host": "solar-dream.org",
-    }),
-  );
-  assert.equal(
-    await locationFor(directAdminHostWins),
-    "https://admin.solar-dream.org/th/admin",
-  );
-
-  const adminPageResponse = await proxy(request("https://admin.solar-dream.org/en/admin"));
-  assert.equal(adminPageResponse.status, 200);
-  assert.equal(
-    adminPageResponse.headers.get("link"),
-    null,
-    "locale middleware must not emit an oversized alternate-links header",
-  );
-
-  process.env.SOLARDREAM_RUNTIME_ROLE = "public";
-  assert.equal(
-    (await proxy(request("https://admin.solar-dream.org/en/admin"))).status,
-    421,
-    "public runtime must reject admin-host page traffic",
-  );
-
-  process.env.SOLARDREAM_RUNTIME_ROLE = "admin";
-  assert.equal(
-    (await proxy(request("https://solar-dream.org/en"))).status,
-    421,
-    "admin runtime must reject public-host page traffic",
-  );
-
-  process.env.SOLARDREAM_RUNTIME_ROLE = "all";
 
   assert.equal(
     getRequestOrigin(
@@ -112,21 +87,7 @@ async function main() {
     "https://admin.solar-dream.org",
   );
 
-  const adminRootRedirect = await proxy(request("https://admin.solar-dream.org/"));
-  assert.equal(await locationFor(adminRootRedirect), "https://admin.solar-dream.org/th/admin");
-
-  const adminLocaleRedirect = await proxy(request("https://admin.solar-dream.org/en"));
-  assert.equal(await locationFor(adminLocaleRedirect), "https://admin.solar-dream.org/en/admin");
-
-  const adminBareRouteRedirect = await proxy(
-    request("https://admin.solar-dream.org/admin/projects", { NEXT_LOCALE: "en" }),
-  );
-  assert.equal(
-    await locationFor(adminBareRouteRedirect),
-    "https://admin.solar-dream.org/en/admin/projects",
-  );
-
-  assert.equal((await proxy(request("https://admin.solar-dream.org/robots.txt"))).status, 200);
+  assert.equal((await proxy(request("https://solar-dream.org/robots.txt"))).status, 200);
   assert.equal((await proxy(request("https://solar-dream.org/sitemap.xml"))).status, 200);
 
   const publicSitemap = sitemap();

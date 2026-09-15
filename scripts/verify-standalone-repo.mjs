@@ -43,10 +43,12 @@ walk(routeRoot, (absolutePath, entry) => {
   if (!entry.isDirectory()) return;
 
   const relativePath = path.relative(routeRoot, absolutePath);
+  const isLegacyTechCompatibilityDirectory = surface === "customer"
+    && (relativePath === path.join("api", "tech") || relativePath === path.join("api", "tech", "sync"));
   for (const segment of relativePath.split(path.sep)) {
     if (!segment || segment.startsWith("(") || segment.startsWith("[")) continue;
     observedRouteSegments.add(segment);
-    if (forbiddenRouteSegments.has(segment)) {
+    if (forbiddenRouteSegments.has(segment) && !isLegacyTechCompatibilityDirectory) {
       failures.push(`forbidden ${surface} route segment: ${relativePath}`);
     }
   }
@@ -69,6 +71,24 @@ if (!packageJson.name?.includes(surface)) failures.push(`package name does not i
 for (const requiredPath of ["src/app", "src/server/elysia", "next.config.ts", "Dockerfile", "package-lock.json"]) {
   if (!fs.existsSync(path.join(projectRoot, requiredPath))) {
     failures.push(`missing ${requiredPath}`);
+  }
+}
+
+const generatedSurfacePath = path.join(projectRoot, "src", "server", "elysia", `${surface}-routes.ts`);
+if (!fs.existsSync(generatedSurfacePath)) {
+  failures.push(`missing generated ${surface} API surface`);
+} else {
+  const generatedSurface = fs.readFileSync(generatedSurfacePath, "utf8");
+  const routeLine = (pathname) => generatedSurface.split("\n").some((line) => line.includes(`(\"${pathname}`));
+  if (surface === "customer") {
+    for (const forbiddenPath of ["/admin", "/tech", "/v1/admin", "/v2/assets", "/v2/field", "/v2/integrations", "/v2/materials", "/v2/projects", "/v2/schedule", "/v2/service-cases", "/v2/visits", "/catalog/webhook", "/create-richmenu", "/documents", "/crm/webhook", "/cron", "/erpnext", "/installations/amend", "/installations/checklist", "/installations/evidence", "/installations/review", "/installations/tasks", "/lifecycle", "/listmonk", "/richmenu", "/tickets", "/webhooks"]) {
+      if (routeLine(forbiddenPath)) failures.push(`customer API surface contains forbidden ${forbiddenPath}`);
+    }
+    if (!routeLine("/installations/projects/:proposalId/snapshot")) failures.push("customer API surface is missing the read-only installation snapshot");
+  } else {
+    for (const requiredPath of ["/tech/sync", "/installations/amend", "/installations/checklist/:itemId/complete", "/installations/evidence", "/installations/review", "/installations/tasks/:taskId/complete"]) {
+      if (!routeLine(requiredPath)) failures.push(`staff API surface is missing ${requiredPath}`);
+    }
   }
 }
 
