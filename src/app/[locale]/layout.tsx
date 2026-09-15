@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { Suspense } from "react";
 // Keep the customer-facing type system intentionally simple: Roboto carries
 // the Material You rhythm while Noto Sans Thai keeps Thai copy readable.
@@ -166,6 +167,11 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }>) {
+  // Keep locale routes request-time rendered when the Cloudflare build uses
+  // the legacy Next cache model. This prevents build-time data access while
+  // retaining the same runtime data boundary used by Cache Components.
+  await connection();
+
   const { locale } = await params;
   const activeLocale = isLocale(locale) ? locale : "th";
 

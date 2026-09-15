@@ -8,7 +8,6 @@ import { eq } from "drizzle-orm";
 import AccountSetupClient from "./AccountSetupClient";
 import { PageShell } from "@/components/ui/page-shell";
 
-export const instant = false;
 
 
 type AccountSetupPageProps = {

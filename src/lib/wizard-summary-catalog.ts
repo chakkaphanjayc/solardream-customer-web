@@ -1,6 +1,6 @@
 import "server-only";
 
-import { cacheLife, cacheTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import {
   listCatalogProducts,
   type ErpnextCatalogCategory,
@@ -26,12 +26,7 @@ function isAbortLikeError(error: unknown): boolean {
  * it out of the request path after the first successful read and gracefully
  * fall back to the local recommendation package when ERPNext is unavailable.
  */
-export async function getCachedWizardSummaryCatalog(): Promise<WizardSummaryCatalog> {
-  "use cache";
-
-  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
-  cacheTag(WIZARD_SUMMARY_CATALOG_CACHE_TAG);
-
+async function loadWizardSummaryCatalog(): Promise<WizardSummaryCatalog> {
   try {
     const result = await listCatalogProducts({ take: 100 });
     const categories = Array.from(
@@ -52,3 +47,9 @@ export async function getCachedWizardSummaryCatalog(): Promise<WizardSummaryCata
     return { categories: [], products: [] };
   }
 }
+
+export const getCachedWizardSummaryCatalog = unstable_cache(
+  loadWizardSummaryCatalog,
+  ["wizard-summary-catalog-v1"],
+  { revalidate: 300, tags: [WIZARD_SUMMARY_CATALOG_CACHE_TAG] },
+);

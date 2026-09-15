@@ -13,7 +13,6 @@ import { getCachedPublicBuildConfig } from "@/lib/public-build-config-cache";
 import type { Metadata } from "next";
 import type { WizardDefinition } from "@/types/wizard";
 
-export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getCachedPageSeo("wizard");

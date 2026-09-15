@@ -1,6 +1,6 @@
 import "server-only";
 
-import { cacheLife, cacheTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 
 import { getPublicBuildConfig } from "@/lib/publicBuildConfig";
 import type { Locale } from "@/i18n/locales";
@@ -12,11 +12,8 @@ export const BUILD_CONFIG_CACHE_TAG = "build-config";
  * Cache the normalized, locale-specific result and invalidate it from the
  * admin save action when the published configuration changes.
  */
-export async function getCachedPublicBuildConfig(locale: Locale) {
-  "use cache";
-
-  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
-  cacheTag(BUILD_CONFIG_CACHE_TAG);
-
-  return getPublicBuildConfig(locale);
-}
+export const getCachedPublicBuildConfig = unstable_cache(
+  getPublicBuildConfig,
+  ["public-build-config-v1"],
+  { revalidate: 300, tags: [BUILD_CONFIG_CACHE_TAG] },
+);

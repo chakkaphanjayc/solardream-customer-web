@@ -29,7 +29,6 @@ import { cn } from "@/lib/utils";
 // Support copy combines request-scoped messages with editable admin content.
 // Keep the route blocking while the editable config is served from its tag
 // cache.
-export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getCachedPageSeo("support");

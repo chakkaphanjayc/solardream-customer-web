@@ -1,6 +1,5 @@
 import PortalSessionExchange from "./PortalSessionExchange";
 
-export const instant = false;
 
 export default async function PortalAccessPage({
   params,

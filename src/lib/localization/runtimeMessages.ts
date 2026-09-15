@@ -1,6 +1,6 @@
 import "server-only";
 
-import { cacheLife, cacheTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { systemSettingsKeyValue } from "@/db/schema";
@@ -46,12 +46,7 @@ export function parseRuntimeMessageOverrides(value: unknown): RuntimeMessageOver
   ) as RuntimeMessageOverrides;
 }
 
-export async function getRuntimeMessageOverrides(): Promise<RuntimeMessageOverrides> {
-  "use cache";
-
-  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
-  cacheTag(RUNTIME_MESSAGES_CACHE_TAG);
-
+async function loadRuntimeMessageOverrides(): Promise<RuntimeMessageOverrides> {
   try {
     const row = await db.query.systemSettingsKeyValue.findFirst({
       where: eq(systemSettingsKeyValue.key, RUNTIME_MESSAGE_OVERRIDES_KEY),
@@ -65,6 +60,12 @@ export async function getRuntimeMessageOverrides(): Promise<RuntimeMessageOverri
     return {};
   }
 }
+
+export const getRuntimeMessageOverrides = unstable_cache(
+  loadRuntimeMessageOverrides,
+  ["runtime-message-overrides-v1"],
+  { revalidate: 300, tags: [RUNTIME_MESSAGES_CACHE_TAG] },
+);
 
 export function mergeRuntimeMessageOverrides(
   messages: MessageTree,

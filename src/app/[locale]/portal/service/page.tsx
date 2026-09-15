@@ -1,7 +1,6 @@
 import { isOpsV2FeatureEnabled } from "@/lib/featureFlags";
 import CustomerServiceClient from "./CustomerServiceClient";
 
-export const instant = false;
 
 export default async function CustomerServicePage() {
   const [enabled, afterSalesEnabled] = await Promise.all([

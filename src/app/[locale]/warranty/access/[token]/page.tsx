@@ -1,7 +1,6 @@
 import { isOpsV2FeatureEnabled } from "@/lib/featureFlags";
 import GuestWarrantyAccessClient from "./GuestWarrantyAccessClient";
 
-export const instant = false;
 export const metadata = {
   robots: { index: false, follow: false },
   referrer: "no-referrer",

@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import AuthFlowPage from "@/components/auth/AuthFlowPage";
 
-export const instant = false;
 
 export default function LoginPage() {
   return (

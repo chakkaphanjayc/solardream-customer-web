@@ -10,7 +10,6 @@ import { getCatalogProduct, type ErpnextCatalogProduct } from "@/lib/erpnextCata
 
 // Product details are backed by live inventory and pricing, so this route
 // remains request-time even though the catalog index uses public caching.
-export const instant = false;
 
 interface PageProps {
   params: Promise<{ id: string; locale: string }>;

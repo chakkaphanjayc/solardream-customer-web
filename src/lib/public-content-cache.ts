@@ -1,4 +1,4 @@
-import { cacheLife, cacheTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { db } from "@/db";
 import { navigationItems, systemSettingsKeyValue } from "@/db/schema";
 import { asc, eq, inArray, isNull } from "drizzle-orm";
@@ -120,12 +120,7 @@ function parseNavigationTemplates(value: string | null): NavigationTemplates {
   }
 }
 
-export async function getCachedAnalyticsConfig(): Promise<AnalyticsConfig> {
-  "use cache";
-
-  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
-  cacheTag(ANALYTICS_CONFIG_CACHE_TAG);
-
+async function loadAnalyticsConfig(): Promise<AnalyticsConfig> {
   const settings = await readSystemSettings([
     ...ANALYTICS_CONFIG_SETTING_KEYS,
   ]);
@@ -151,12 +146,7 @@ export async function getCachedAnalyticsConfig(): Promise<AnalyticsConfig> {
   };
 }
 
-export async function getCachedLocalizationConfig(): Promise<LocalizationConfig> {
-  "use cache";
-
-  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
-  cacheTag(LOCALIZATION_CONFIG_CACHE_TAG);
-
+async function loadLocalizationConfig(): Promise<LocalizationConfig> {
   const settings = await readSystemSettings(["localization_config"]);
   const value = settings.get("localization_config");
   if (!value) return DEFAULT_LOCALIZATION_CONFIG;
@@ -168,12 +158,7 @@ export async function getCachedLocalizationConfig(): Promise<LocalizationConfig>
   }
 }
 
-export async function getCachedNavigationItems(locale: Locale) {
-  "use cache";
-
-  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
-  cacheTag(NAVIGATION_CACHE_TAG);
-
+async function loadNavigationItems(locale: Locale) {
   const [items, settings] = await Promise.all([
     db.query.navigationItems.findMany({
       where: isNull(navigationItems.parentId),
@@ -269,12 +254,7 @@ export async function getCachedNavigationItems(locale: Locale) {
   ];
 }
 
-export async function getCachedSupportConfig(): Promise<SupportConfig> {
-  "use cache";
-
-  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
-  cacheTag(SUPPORT_CONFIG_CACHE_TAG);
-
+async function loadSupportConfig(): Promise<SupportConfig> {
   try {
     const row = await db.query.systemSettingsKeyValue.findFirst({
       where: eq(systemSettingsKeyValue.key, SUPPORT_CONFIG_KEY),
@@ -290,12 +270,7 @@ export async function getCachedSupportConfig(): Promise<SupportConfig> {
   }
 }
 
-export async function getCachedKnowledgeBaseConfig(): Promise<KnowledgeBaseConfig> {
-  "use cache";
-
-  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
-  cacheTag(SUPPORT_KB_CACHE_TAG);
-
+async function loadKnowledgeBaseConfig(): Promise<KnowledgeBaseConfig> {
   try {
     const row = await db.query.systemSettingsKeyValue.findFirst({
       where: eq(systemSettingsKeyValue.key, SUPPORT_KB_KEY),
@@ -310,3 +285,33 @@ export async function getCachedKnowledgeBaseConfig(): Promise<KnowledgeBaseConfi
     return DEFAULT_KB_CONFIG;
   }
 }
+
+export const getCachedAnalyticsConfig = unstable_cache(
+  loadAnalyticsConfig,
+  ["analytics-config-v1"],
+  { revalidate: 300, tags: [ANALYTICS_CONFIG_CACHE_TAG] },
+);
+
+export const getCachedLocalizationConfig = unstable_cache(
+  loadLocalizationConfig,
+  ["localization-config-v1"],
+  { revalidate: 300, tags: [LOCALIZATION_CONFIG_CACHE_TAG] },
+);
+
+export const getCachedNavigationItems = unstable_cache(
+  loadNavigationItems,
+  ["navigation-items-v1"],
+  { revalidate: 300, tags: [NAVIGATION_CACHE_TAG] },
+);
+
+export const getCachedSupportConfig = unstable_cache(
+  loadSupportConfig,
+  ["support-config-v1"],
+  { revalidate: 300, tags: [SUPPORT_CONFIG_CACHE_TAG] },
+);
+
+export const getCachedKnowledgeBaseConfig = unstable_cache(
+  loadKnowledgeBaseConfig,
+  ["support-kb-config-v1"],
+  { revalidate: 300, tags: [SUPPORT_KB_CACHE_TAG] },
+);

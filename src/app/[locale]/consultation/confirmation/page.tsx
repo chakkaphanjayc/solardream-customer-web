@@ -5,7 +5,6 @@ import { createClient } from "@/utils/supabase/server";
 import BentoConfirmationFlow from "./BentoConfirmationFlow";
 import { PageShell } from "@/components/ui/page-shell";
 
-export const instant = false;
 
 interface ConsultationConfirmationPageProps {
   params: Promise<{ locale: string }>;

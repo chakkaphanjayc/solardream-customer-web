@@ -9,7 +9,6 @@ import type { ProfileUser } from "@/types/profile";
 import { PageShell } from "@/components/ui/page-shell";
 import { getSystemSetting } from "@/app/actions/systemSettings";
 
-export const instant = false;
 
 export default async function ProfilePage() {
   const supabaseUser = await getUser();

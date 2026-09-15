@@ -29,7 +29,6 @@ import { isLocale } from "@/i18n/locales";
 import { getCachedKnowledgeBaseConfig } from "@/lib/public-content-cache";
 import { getConfiguredPublicSiteUrl } from "@/lib/siteUrl";
 
-export const instant = false;
 
 interface KnowledgePageProps {
   params: Promise<{ locale: string }>;

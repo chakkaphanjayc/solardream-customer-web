@@ -53,8 +53,20 @@ OpenNext build when Workers Builds provides `WORKERS_CI=1`) or explicitly use
 `npm run build:cloudflare`, and set the deploy command to `npx wrangler deploy`.
 Keep the checked-in `wrangler.jsonc` in this repository so Wrangler targets
 `.open-next/worker.js` instead of trying to auto-detect the original workspace.
-Set the required build-time and runtime variables from `.env.example` in
-Cloudflare; never commit `.env` or secrets.
+Configure the following in the Cloudflare Workers Builds environment (they are
+needed while `next build` inlines the browser bundle):
+
+- `NEXT_PUBLIC_SITE_URL`
+- `NEXT_PUBLIC_ADMIN_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`
+- `NEXT_DEPLOYMENT_ID`
+
+Configure server-only values such as `DATABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY` as Worker runtime secrets as well. A value added
+only to the Worker runtime is not available when Next.js inlines a
+`NEXT_PUBLIC_*` variable during the build. Never commit `.env` or secrets.
 
 ## Container
 

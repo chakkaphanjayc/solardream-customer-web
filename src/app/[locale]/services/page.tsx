@@ -14,7 +14,6 @@ import { Card } from "@/components/ui/card";
 import { AlertCircle } from "@/components/ui/icons";
 import { PageShell } from "@/components/ui/page-shell";
 
-export const instant = false;
 
 export default async function ServicesPage({
   params,

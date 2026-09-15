@@ -18,7 +18,6 @@ interface PublicTrackerPageProps {
   }>;
 }
 
-export const instant = false;
 
 function referenceWithoutKnownPrefix(value: string) {
   return value

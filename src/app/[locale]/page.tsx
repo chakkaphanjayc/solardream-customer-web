@@ -17,7 +17,6 @@ import { getCachedNavigationItems } from "@/lib/public-content-cache";
 import { getDiscourseSsoStartUrl } from "@/lib/discourseConnect";
 import type { Metadata } from "next";
 
-export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getCachedPageSeo("home");

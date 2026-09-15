@@ -190,6 +190,38 @@ async function requestJson(
   return parseDocument(payload);
 }
 
+async function requestActionJson(
+  config: DocumentServiceConfig,
+  path: string,
+  actorId: string,
+  body: string,
+  idempotencyKey: string,
+): Promise<void> {
+  const timestamp = Math.floor(Date.now() / 1_000).toString();
+  const response = await fetch(`${config.baseUrl}${path}`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "X-Document-Actor-Id": actorId,
+      "X-Document-Actor-Type": "customer",
+      "X-Document-Organization-Id": config.organizationId,
+      "X-Document-Auth-Timestamp": timestamp,
+      "X-Document-Auth-Signature": serviceSignature(config, { actorId, method: "POST", body, idempotencyKey }, path, timestamp),
+      "Idempotency-Key": idempotencyKey,
+    },
+    body,
+    cache: "no-store",
+    signal: AbortSignal.timeout(35_000),
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null) as unknown;
+    const root = payload && typeof payload === "object" && !Array.isArray(payload) ? payload as Record<string, unknown> : {};
+    const error = root.error && typeof root.error === "object" && !Array.isArray(root.error) ? root.error as Record<string, unknown> : {};
+    throw new DocumentServiceError(response.status, text(error.code) || "RECIPIENT_ACTION_FAILED", text(error.message) || "The recipient action could not be recorded.");
+  }
+}
+
 async function requestPdf(
   config: DocumentServiceConfig,
   path: string,
@@ -250,6 +282,9 @@ export async function signQuotationWithDocumentService(input: {
   signatureDataUrl: string;
   signerName: string;
   actorId: string;
+  recipientEmail?: string | null;
+  verificationMethod?: string;
+  consentTextVersion?: string;
 }): Promise<DocumentServiceSignatureResult | null> {
   if (!isDocumentServiceEnabled()) return null;
   const config = configured();
@@ -299,6 +334,30 @@ export async function signQuotationWithDocumentService(input: {
     method: "POST",
     body: JSON.stringify({ expectedVersionId: document.currentVersionId, fields }),
   });
+  const consentTextVersion = input.consentTextVersion || process.env.PROPOSAL_SIGNATURE_CONSENT_VERSION?.trim() || "quotation-acceptance-v1";
+  const recipientActionKey = `recipient-${sha256Hex(`${document.id}:${prepared.currentVersionId}:${input.revisionId}`).slice(0, 64)}`;
+  await requestActionJson(
+    config,
+    `/v1/documents/${encodeURIComponent(document.id)}/recipient-actions`,
+    input.actorId,
+    JSON.stringify({
+      expectedVersionId: prepared.currentVersionId,
+      recipientOrdinal: 1,
+      role: "customer",
+      displayName: input.signerName,
+      email: input.recipientEmail || null,
+      actionType: "signed",
+      preparedPdfHash: prepared.currentVersion.preparedPdfHash,
+      consentTextVersion,
+      consentTextHash: sha256Hex(consentTextVersion),
+      verificationMethod: input.verificationMethod || "customer-portal-session",
+      evidence: {
+        source: "customer-web",
+        signerName: input.signerName,
+      },
+    }),
+    recipientActionKey,
+  );
   const profile = text(process.env.DOCUMENT_SERVICE_SIGNATURE_PROFILE) || "pades-b-basic";
   const signed = await requestJson(config, `/v1/documents/${encodeURIComponent(document.id)}/sign`, {
     actorId: input.actorId,

@@ -10,7 +10,6 @@ export const metadata = {
 
 // The server-side message lookup is request-scoped; keep this form route
 // blocking while its submission remains an uncached mutation path.
-export const instant = false;
 
 export default async function ContactPage() {
   const t = await getTranslations("ContactPage");

@@ -1,4 +1,4 @@
-import { cacheLife, cacheTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { and, asc, desc, eq, gt, isNull, lte, or } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -31,12 +31,7 @@ export type LayoutComplianceSettings = {
   updatedAt: Date | null;
 } | null;
 
-export async function getCachedGlobalBanner(): Promise<LayoutBannerItem[]> {
-  "use cache";
-
-  cacheLife({ stale: 10, revalidate: 30, expire: 3600 });
-  cacheTag(BANNER_CACHE_TAG);
-
+async function loadGlobalBanner(): Promise<LayoutBannerItem[]> {
   try {
     const now = new Date();
     const banners = await db.query.globalBanners.findMany({
@@ -66,12 +61,7 @@ export async function getCachedGlobalBanner(): Promise<LayoutBannerItem[]> {
   }
 }
 
-export async function getCachedComplianceSettings(): Promise<LayoutComplianceSettings> {
-  "use cache";
-
-  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
-  cacheTag(SITE_SETTINGS_CACHE_TAG);
-
+async function loadComplianceSettings(): Promise<LayoutComplianceSettings> {
   try {
     let config = await db.query.siteSettings.findFirst({
       where: eq(siteSettings.id, "default"),
@@ -99,5 +89,17 @@ export async function getCachedComplianceSettings(): Promise<LayoutComplianceSet
     };
   }
 }
+
+export const getCachedGlobalBanner = unstable_cache(
+  loadGlobalBanner,
+  ["global-banner-v1"],
+  { revalidate: 30, tags: [BANNER_CACHE_TAG] },
+);
+
+export const getCachedComplianceSettings = unstable_cache(
+  loadComplianceSettings,
+  ["site-settings-default-v1"],
+  { revalidate: 300, tags: [SITE_SETTINGS_CACHE_TAG] },
+);
 
 export { BANNER_CACHE_TAG, SITE_SETTINGS_CACHE_TAG };

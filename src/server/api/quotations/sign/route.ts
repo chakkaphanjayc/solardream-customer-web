@@ -245,6 +245,11 @@ export async function POST(request: NextRequest) {
     }
     const actorId = user?.id
       || (guestEmail ? `guest:${createHash("sha256").update(guestEmail).digest("hex").slice(0, 32)}` : `portal:${proposal.id}`);
+    const verificationMethod = user?.id === proposal.userId
+      ? "AUTHENTICATED_USER"
+      : portalAccess
+        ? "PORTAL_TOKEN"
+        : "VERIFIED_EMAIL";
     const documentServiceResult = await signQuotationWithDocumentService({
       pdfBytes: originalPdf.bytes,
       quotationId,
@@ -253,6 +258,9 @@ export async function POST(request: NextRequest) {
       signatureDataUrl: input.signature,
       signerName,
       actorId,
+      recipientEmail: proposalEmail,
+      verificationMethod,
+      consentTextVersion: process.env.PROPOSAL_SIGNATURE_CONSENT_VERSION?.trim() || "2026-08-28",
     });
     if (documentServiceResult?.signedAt) {
       const serviceSignedAt = new Date(documentServiceResult.signedAt);

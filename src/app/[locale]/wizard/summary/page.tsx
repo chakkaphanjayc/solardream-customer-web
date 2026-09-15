@@ -17,7 +17,6 @@ import { getCachedPublicBuildConfig } from "@/lib/public-build-config-cache";
 import { SolarRouteShell } from "@/components/ui/solar-route-shell";
 import { getCachedWizardSummaryCatalog } from "@/lib/wizard-summary-catalog";
 
-export const instant = false;
 
 export default async function WizardSummaryPage({
   params,

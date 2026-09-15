@@ -44,7 +44,12 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   productionBrowserSourceMaps: false,
   output: "standalone",
-  cacheComponents: true,
+  // Next's Cache Components runtime uses timer-backed cache signals that can
+  // outlive the request in Cloudflare Workers. That makes a later request try
+  // to perform I/O in the previous request's IoContext and results in a 1101.
+  // Keep the feature enabled for the Node.js runtime, while using the stable
+  // Next cache API (unstable_cache) in the Worker build.
+  cacheComponents: !isCloudflareBuild,
   outputFileTracingRoot: projectRoot,
   outputFileTracingIncludes: {
     "/*": ["./node_modules/@opentelemetry/api/build/**/*"],
@@ -83,6 +88,7 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      { source: "/favicon.ico", destination: "/asset/sd-logo.png", permanent: true },
       { source: "/:locale/my-proposals", destination: "/:locale/proposals", permanent: true },
       { source: "/my-proposals", destination: "/th/proposals", permanent: true },
     ];

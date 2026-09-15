@@ -11,7 +11,6 @@ export const metadata = {
 // next-intl resolves the request-scoped message catalog here. Keep this
 // lightweight editorial index request-bound while data-backed public surfaces
 // use explicit cache helpers.
-export const instant = false;
 
 type Article = Readonly<{
   slug: string;
