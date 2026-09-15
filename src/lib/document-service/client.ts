@@ -268,7 +268,7 @@ export async function signQuotationWithDocumentService(input: {
     actorId: input.actorId,
     method: "POST",
     body,
-    idempotencyKey: `quotation-${input.quotationId}-${input.revisionId}`,
+    idempotencyKey: `quotation-${sha256Hex(`${input.quotationId}:${input.revisionId}`).slice(0, 64)}`,
   });
 
   const fields = [

@@ -304,7 +304,7 @@ export async function POST(request: NextRequest) {
       documentServiceFinalObject: documentServiceResult?.document.currentVersion.finalObject || null,
       signingRuntime: documentServiceResult ? "solardream-document-service" : "legacy-customer-web",
       verificationUrl: quotationVerificationUrl,
-      source: "stored_quotation_signature_field",
+      source: documentServiceResult ? "document_service_pades" : "stored_quotation_signature_field",
     };
 
     const [updatedProposal] = await db.transaction(async (tx) => {
