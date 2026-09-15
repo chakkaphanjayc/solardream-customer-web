@@ -26,6 +26,7 @@ import { enqueueIntegrationEvent } from "@/lib/integrationOutbox";
 import { enqueueLifecycleNotification } from "@/server/services/communications/lifecycle-notifications";
 import { processOutboxBestEffort } from "@/lib/outboxProcessor";
 import { SALES_NOTIFICATION_TOPICS } from "@/lib/salesNotificationConfig";
+import { signQuotationWithDocumentService } from "@/lib/document-service/client";
 
 
 const signQuotationSchema = z.object({
@@ -221,7 +222,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "The ERPNext quotation must be created before signing." }, { status: 409 });
     }
 
-    const signedAt = new Date();
+    let signedAt = new Date();
     const signerIpAddress = clientIp(request);
     const signerUserAgent = request.headers.get("user-agent") || "unknown";
     const signerName = input.signer_name || proposal.user?.fullName || proposal.user?.name || "Customer";
@@ -242,16 +243,33 @@ export async function POST(request: NextRequest) {
     if (!currentRevision.documentHash || currentRevision.documentHash !== sourceDocumentHash) {
       return NextResponse.json({ error: "The stored document does not match the revision that was sent. Create and send a new revision." }, { status: 409 });
     }
-    const signedDocument = await stampQuotationPdf({
+    const actorId = user?.id
+      || (guestEmail ? `guest:${createHash("sha256").update(guestEmail).digest("hex").slice(0, 32)}` : `portal:${proposal.id}`);
+    const documentServiceResult = await signQuotationWithDocumentService({
       pdfBytes: originalPdf.bytes,
+      quotationId,
+      revisionId: currentRevision.id,
+      revisionReference: currentRevision.erpQuotationReference,
       signatureDataUrl: input.signature,
-      signedAt,
-      signerIpAddress,
-      signerUserAgent,
-      verificationUrl: quotationVerificationUrl,
       signerName,
-      requireSignatureAnchor: true,
+      actorId,
     });
+    if (documentServiceResult?.signedAt) {
+      const serviceSignedAt = new Date(documentServiceResult.signedAt);
+      if (!Number.isNaN(serviceSignedAt.getTime())) signedAt = serviceSignedAt;
+    }
+    const signedDocument = documentServiceResult
+      ? { pdfBytes: documentServiceResult.finalPdf, sha256Hash: documentServiceResult.finalHash }
+      : await stampQuotationPdf({
+        pdfBytes: originalPdf.bytes,
+        signatureDataUrl: input.signature,
+        signedAt,
+        signerIpAddress,
+        signerUserAgent,
+        verificationUrl: quotationVerificationUrl,
+        signerName,
+        requireSignatureAnchor: true,
+      });
     const signedDriveDocument = await uploadSignedDrivePdf({
       source: originalPdf,
       signedPdf: Buffer.from(signedDocument.pdfBytes),
@@ -281,6 +299,10 @@ export async function POST(request: NextRequest) {
       signedSourceFileName: originalPdf.fileName,
       signedPdfStorage: "GOOGLE_DRIVE",
       sha256Hash: signedDocument.sha256Hash,
+      documentServiceDocumentId: documentServiceResult?.document.id || null,
+      documentServiceVersionId: documentServiceResult?.document.currentVersionId || null,
+      documentServiceFinalObject: documentServiceResult?.document.currentVersion.finalObject || null,
+      signingRuntime: documentServiceResult ? "solardream-document-service" : "legacy-customer-web",
       verificationUrl: quotationVerificationUrl,
       source: "stored_quotation_signature_field",
     };
@@ -331,6 +353,9 @@ export async function POST(request: NextRequest) {
           sourceDocumentId: sourceDocumentId || undefined,
           verificationUrl: quotationVerificationUrl,
           signedDocumentHash: signedDocument.sha256Hash,
+          documentServiceDocumentId: documentServiceResult?.document.id || undefined,
+          documentServiceVersionId: documentServiceResult?.document.currentVersionId || undefined,
+          signingRuntime: documentServiceResult ? "solardream-document-service" : "legacy-customer-web",
         },
       });
       const [acceptedRevision] = await tx.update(proposalRevisions).set({ status: "ACCEPTED", acceptedAt: signedAt })

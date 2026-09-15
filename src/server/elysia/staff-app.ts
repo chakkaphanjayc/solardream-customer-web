@@ -4,10 +4,13 @@ import { createApiErrorResponse } from "./error-response";
 import { createSurfaceMismatchResponse, isSurfaceRequestAllowed } from "./surface-policy";
 import { staffApiRoutes } from "./staff-routes";
 
+const isCloudflareWorker =
+  typeof globalThis !== "undefined" && "WebSocketPair" in globalThis;
+
 export const staffApiApp = new Elysia({
   name: "solardream-staff-api",
   strictPath: true,
-  precompile: process.env.NODE_ENV === "production",
+  precompile: process.env.NODE_ENV === "production" && !isCloudflareWorker,
   abortSignal: true,
 })
   .request(({ request }) =>
