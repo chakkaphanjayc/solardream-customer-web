@@ -2503,9 +2503,9 @@ export default function SummaryClient({
       data-solar-motion="summary"
       className="wizard-manga solar-summary min-h-dvh"
     >
-      <div className="grid w-full grid-cols-1 lg:grid-cols-[minmax(0,7fr)_minmax(19rem,3fr)] lg:items-start lg:gap-7">
-        <div className="order-last min-w-0 lg:order-first">
-          <div className="sd-safe-pb-46-add mx-auto flex w-full min-w-0 max-w-none flex-col p-3.5 sm:p-4 md:p-6 lg:pb-14">
+      <div className="grid w-full grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,30rem)] xl:items-start xl:gap-7">
+        <div className="order-last min-w-0 xl:order-first">
+          <div className="sd-safe-pb-46-add mx-auto flex w-full min-w-0 max-w-none flex-col p-3.5 sm:p-4 md:p-6 xl:pb-14">
             {/* Header Ribbon */}
             <div
               data-solar-reveal

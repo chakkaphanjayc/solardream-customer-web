@@ -13,7 +13,7 @@ import EditorialEnergyStudio from "./editorial-energy-studio";
 import EditorialHeroMotion from "./editorial-hero-motion";
 import EditorialImpactCalculator from "./editorial-impact-calculator";
 import EditorialProjects from "./editorial-projects";
-import EditorialSoliaMoment from "./editorial-solia-moment";
+import EditorialRhythmNavigator from "./editorial-rhythm-navigator";
 import EditorialWorkflow from "./editorial-workflow";
 import type { SolarEditorialHomeProps } from "./editorial-home.types";
 import styles from "./solar-editorial-home.module.css";
@@ -118,33 +118,48 @@ export default async function SolarEditorialHome({
               system: t("hero.visual.system"),
               tracking: t("hero.visual.tracking"),
               note: t("hero.visual.note"),
+              badgeClean: t("hero.visual.badgeClean"),
+              badgeStep: t("hero.visual.badgeStep"),
               mascotAlt: t("hero.visual.mascotAlt"),
             },
           }}
         />
 
-        <section id="about" className={styles.statement} aria-labelledby="statement-title">
-          <span id="concept" className={styles.anchorAlias} aria-hidden="true" />
-          <div>
-            <p className={styles.sectionMarker}>{t("statement.eyebrow")}</p>
-            <SignatureMotif />
-          </div>
-          <div>
-            <h2 id="statement-title">{t("statement.title")}</h2>
-            <p>{t("statement.body")}</p>
-          </div>
-          <div className={styles.statementSignals} role="group" aria-label={t("statement.signalsLabel")}>
-            {(["one", "two", "three"] as const).map((signal, index) => (
-              <article className={styles.statementSignal} key={signal}>
-                <span className={styles.statementSignalIndex}>{String(index + 1).padStart(2, "0")}</span>
-                <div>
-                  <h3>{t(`statement.signal${signal === "one" ? "One" : signal === "two" ? "Two" : "Three"}Title`)}</h3>
-                  <p>{t(`statement.signal${signal === "one" ? "One" : signal === "two" ? "Two" : "Three"}Body`)}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+        <EditorialRhythmNavigator
+          labels={{
+            eyebrow: t("statement.eyebrow"),
+            title: t("statement.title"),
+            body: t("statement.body"),
+            signalsLabel: t("statement.signalsLabel"),
+            navigatorLabel: t("statement.navigatorLabel"),
+            navigatorKicker: t("statement.navigatorKicker"),
+            navigatorStatus: t("statement.navigatorStatus"),
+            navigatorNote: t("statement.navigatorNote"),
+            signals: [
+              {
+                id: "life",
+                index: "01",
+                nodeLabel: t("statement.signalOneTitle"),
+                title: t("statement.signalOneTitle"),
+                body: t("statement.signalOneBody"),
+              },
+              {
+                id: "vision",
+                index: "02",
+                nodeLabel: t("statement.signalTwoTitle"),
+                title: t("statement.signalTwoTitle"),
+                body: t("statement.signalTwoBody"),
+              },
+              {
+                id: "confidence",
+                index: "03",
+                nodeLabel: t("statement.signalThreeTitle"),
+                title: t("statement.signalThreeTitle"),
+                body: t("statement.signalThreeBody"),
+              },
+            ],
+          }}
+        />
 
         <section id="solutions" className={styles.lifestyle} aria-labelledby="lifestyle-title">
           <EditorialEnergyStudio
@@ -280,6 +295,9 @@ export default async function SolarEditorialHome({
                 href={path === "wizard" ? wizardHref : buildHref}
                 className={styles.pathway}
               >
+                <span className={styles.pathwayPortal} aria-hidden="true">
+                  <span>{t(`pathways.${path}.label`)}</span>
+                </span>
                 <span className={styles.pathwayIndex}>{t(`pathways.${path}.index`)}</span>
                 <div>
                   <p>{t(`pathways.${path}.label`)}</p>
@@ -308,26 +326,6 @@ export default async function SolarEditorialHome({
           </div>
         </section>
 
-        <EditorialSoliaMoment
-          href={wizardHref}
-          labels={{
-            eyebrow: t("soliaMoment.eyebrow"),
-            title: t("soliaMoment.title"),
-            description: t("soliaMoment.description"),
-            callout: t("soliaMoment.callout"),
-            cta: t("soliaMoment.cta"),
-            alt: t("soliaMoment.alt"),
-            nodeLabel: t("soliaMoment.nodeLabel"),
-            nodes: [
-              { icon: "bill", label: t("soliaMoment.nodes.bill") },
-              { icon: "home", label: t("soliaMoment.nodes.roof") },
-              { icon: "habit", label: t("soliaMoment.nodes.habits") },
-              { icon: "budget", label: t("soliaMoment.nodes.budget") },
-              { icon: "system", label: t("soliaMoment.nodes.system") },
-            ],
-          }}
-        />
-
         {projects.length > 0 ? (
           <section id="projects" className={styles.projects} aria-labelledby="projects-title">
             <div className={styles.sectionHeading}>
@@ -345,6 +343,9 @@ export default async function SolarEditorialHome({
                 systemSize: t("projects.systemSize"),
                 location: t("projects.location"),
                 completed: t("projects.completed"),
+                telemetry: t("projects.telemetry"),
+                telemetryReady: t("projects.telemetryReady"),
+                monthlySavings: t("projects.monthlySavings"),
                 dialog: {
                   close: t("projects.dialog.close"),
                   error: t("projects.dialog.error"),

@@ -1,6 +1,6 @@
 # SolarDream customer UI implementation plan
 
-Status: active migration plan — current checkpoint: Phase 11 (final verification; canonical proposal fixture verified, broader private-route fixtures and legacy CSS cleanup remain)
+Status: active migration plan — current checkpoint: Phase 11 (final verification; Home reference-parity pass completed, broader private-route fixtures and legacy CSS cleanup remain)
 
 Verification checkpoint (2026-09-18): representative Thai and English journeys
 have been checked at 1440px and 430px, with the representative 390px pass
@@ -128,6 +128,24 @@ empty counts.
 The hardcoded UI audit reports 378 candidates across 93 files; the remaining
 matches are primarily admin/staff surfaces, technical labels, data/API values,
 or JSX-handler false positives outside this customer migration scope.
+
+Home reference-parity pass (2026-09-18): the latest Home brief and reference
+image were applied section by section. The hero now uses the generated Solar
+Journey cosmic scene with the existing pointing Solia pose; Real-Life Rhythm is
+an interactive constellation navigator; Energy Studio keeps the existing Solia
+studio asset and tab interaction; Journey uses the generated waypoint scene;
+Before/After uses real roof photography with the semantic bare-roof → solar
+comparison; Calculator uses the generated cosmic impact scene; the two portal
+choices use guided/custom rings; and Projects uses a responsive bento grid with
+real project photography plus hover telemetry. The generated assets are
+`public/asset/home-editorial/solar-journey-cosmic-hero.png`,
+`public/asset/home-editorial/solar-journey-waypoints.png`, and
+`public/asset/home-editorial/solar-impact-cosmic.png`. Existing Solia assets
+were sufficient for brand consistency, so no new mascot variant was required.
+The Thai Home route was rechecked at 1710×930 and 430×900: the nine rendered
+sections (the eight brief sections plus the existing closing CTA) have no
+horizontal overflow, the constellation/studio interactions update state, and
+the project telemetry reveals on keyboard focus/hover.
 
 Direction: **SolarDream Anime-Tech Product System** — a calm, premium solar
 atelier where clean UI carries the task, Solar technology carries evidence,
@@ -296,6 +314,10 @@ animates.
 
 ### Phase 11 — Visual regression and cleanup
 
+- [x] Align the Home page to the latest section brief and reference composition;
+  generated purposeful cosmic/waypoint assets, retained real installation
+  photography as proof, and verified the responsive project bento/telemetry
+  treatment at desktop and mobile widths.
 - [~] Capture representative screenshots at 1440×900, 1024×768, and 430×932
   for every route family; marketing and primary guided surfaces are captured,
   and the canonical proposal portal now has a real open-proposal fixture pass;

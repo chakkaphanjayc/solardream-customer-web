@@ -22,6 +22,9 @@ export type EditorialProjectsLabels = Readonly<{
   systemSize: string;
   location: string;
   completed: string;
+  telemetry: string;
+  telemetryReady: string;
+  monthlySavings: string;
   dialog: Readonly<{
     close: string;
     error: string;
@@ -42,13 +45,24 @@ function getImageAlt(template: string, title: string) {
   return template.includes("{title}") ? template.replace("{title}", title) : `${template}: ${title}`;
 }
 
-function ProjectImage({ project, alt }: Readonly<{ project: PortfolioProjectListItem; alt: string }>) {
+function ProjectImage({
+  project,
+  alt,
+  fallbackSrc,
+}: Readonly<{ project: PortfolioProjectListItem; alt: string; fallbackSrc: string }>) {
   const [hasError, setHasError] = useState(false);
+  const [source, setSource] = useState(project.heroImage.trim() || fallbackSrc);
 
   if (hasError || !project.heroImage.trim()) {
     return (
-      <span className={styles.projectMediaFallback} role="img" aria-label={alt}>
-        <span aria-hidden="true" />
+      <span className={styles.projectMedia} role="img" aria-label={alt}>
+        <Image
+          src={fallbackSrc}
+          alt=""
+          fill
+          sizes="(max-width: 767px) 90vw, 44vw"
+          className={styles.coverImage}
+        />
       </span>
     );
   }
@@ -56,21 +70,38 @@ function ProjectImage({ project, alt }: Readonly<{ project: PortfolioProjectList
   return (
     <span className={styles.projectMedia}>
       <Image
-        src={project.heroImage}
+        src={source}
         alt={alt}
         fill
         sizes="(max-width: 767px) 90vw, 44vw"
         className={styles.coverImage}
-        onError={() => setHasError(true)}
+        onError={() => {
+          if (source !== fallbackSrc) {
+            setSource(fallbackSrc);
+            return;
+          }
+          setHasError(true);
+        }}
       />
     </span>
   );
 }
 
+const PROJECT_FALLBACK_IMAGES = [
+  "/asset/home-manga/hero-solar-journey-realistic.webp",
+  "/asset/home-editorial/lifestyle-home.webp",
+  "/asset/home-editorial/roof-detail.webp",
+  "/asset/home-editorial/hero-rooftop.webp",
+] as const;
+
 export default function EditorialProjects({ locale, projects, labels }: EditorialProjectsProps) {
   const [selectedProject, setSelectedProject] = useState<ProjectCaseStudy | null>(null);
   const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const formatMoney = (value: number) =>
+    new Intl.NumberFormat(locale === "th" ? "th-TH" : "en-US", {
+      maximumFractionDigits: 0,
+    }).format(value);
 
   const handleSelect = async (project: PortfolioProjectListItem) => {
     if (loadingProjectId) return;
@@ -116,7 +147,27 @@ export default function EditorialProjects({ locale, projects, labels }: Editoria
                 aria-busy={isLoading}
                 aria-label={`${labels.viewProject}: ${project.title}`}
               >
-                <ProjectImage project={project} alt={imageAlt} />
+                <ProjectImage
+                  project={project}
+                  alt={imageAlt}
+                  fallbackSrc={PROJECT_FALLBACK_IMAGES[index % PROJECT_FALLBACK_IMAGES.length]}
+                />
+                <span className={styles.projectTelemetry} aria-hidden="true">
+                  <span>
+                    <small>{labels.systemSize}</small>
+                    <strong>{project.solarSizeKw} kW</strong>
+                  </span>
+                  {project.showFinancials ? (
+                    <span>
+                      <small>{labels.monthlySavings}</small>
+                      <strong>฿{formatMoney(project.monthlySavingsThb)}</strong>
+                    </span>
+                  ) : null}
+                  <span>
+                    <small>{labels.telemetry}</small>
+                    <strong>{labels.telemetryReady}</strong>
+                  </span>
+                </span>
                 <span className={styles.projectCopy}>
                   <span className={styles.projectTopline}>
                     <span>{String(index + 1).padStart(2, "0")}</span>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, useId } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useId, useRef } from "react";
 import { useTranslations } from "next-intl";
 import {
   calculateSolarOutput,
@@ -217,6 +217,95 @@ type EnergyTableRow = {
   gridConsumption?: number;
 };
 
+function useAnimatedNumericSeries<T extends object>(
+  target: readonly T[],
+  duration = 520,
+) {
+  const [displayData, setDisplayData] = useState<T[]>(() => [...target]);
+  const displayDataRef = useRef<T[]>([...target]);
+  const frameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const previousData = displayDataRef.current;
+    const nextData = [...target];
+
+    const commit = (value: T[]) => {
+      displayDataRef.current = value;
+      setDisplayData(value);
+    };
+
+    if (previousData.length !== nextData.length) {
+      commit(nextData);
+      return;
+    }
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (prefersReducedMotion || duration <= 0) {
+      commit(nextData);
+      return;
+    }
+
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+    }
+
+    const startTime = performance.now();
+    const tick = (now: number) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      const interpolated = nextData.map((targetPoint, index) => {
+        const previousPoint = previousData[index] ?? targetPoint;
+        const previousRecord = previousPoint as Record<string, unknown>;
+        const targetRecord = targetPoint as Record<string, unknown>;
+        const nextRecord: Record<string, unknown> = { ...targetRecord };
+
+        for (const key of Object.keys(targetRecord)) {
+          const previousValue = previousRecord[key];
+          const targetValue = targetRecord[key];
+
+          if (
+            typeof previousValue === "number" &&
+            typeof targetValue === "number" &&
+            Number.isFinite(previousValue) &&
+            Number.isFinite(targetValue)
+          ) {
+            nextRecord[key] =
+              previousValue +
+              (targetValue - previousValue) * easedProgress;
+          }
+        }
+
+        return nextRecord as T;
+      });
+
+      displayDataRef.current = interpolated;
+      setDisplayData(interpolated);
+
+      if (progress < 1) {
+        frameRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      displayDataRef.current = nextData;
+      frameRef.current = null;
+    };
+
+    frameRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+    };
+  }, [duration, target]);
+
+  return displayData;
+}
+
 // ── Visx 24-Hour Manga Neo-Brutalist Reactor Chart ──
 function Visx24HourChart({
   data,
@@ -240,6 +329,7 @@ function Visx24HourChart({
     hideTooltip,
   } = useTooltip<{ item: HourlyData; index: number }>();
 
+  const animatedData = useAnimatedNumericSeries(data);
   const isSmallMobile = width < 420;
   const isTablet = width < 640;
   const margin = {
@@ -260,7 +350,7 @@ function Visx24HourChart({
 
   const yScale = useMemo(() => {
     const maxVal = Math.max(
-      ...data.map((d) =>
+      ...animatedData.map((d) =>
         Math.max(
           d.load,
           d.solarGeneration,
@@ -275,7 +365,7 @@ function Visx24HourChart({
       range: [innerHeight, 0],
       nice: true,
     });
-  }, [data, activeBatteryCapacityKwh, innerHeight]);
+  }, [animatedData, activeBatteryCapacityKwh, innerHeight]);
 
   const getX = useCallback((_: HourlyData, index: number) => xScale(index) ?? 0, [xScale]);
   const getYLoad = useCallback((d: HourlyData) => yScale(d.load) ?? 0, [yScale]);
@@ -290,7 +380,7 @@ function Visx24HourChart({
       const x = point.x - margin.left;
       const hourFloat = xScale.invert(x);
       const index = Math.max(0, Math.min(23, Math.round(hourFloat)));
-      const item = data[index];
+      const item = animatedData[index];
       if (item) {
         showTooltip({
           tooltipData: { item, index },
@@ -299,7 +389,7 @@ function Visx24HourChart({
         });
       }
     },
-    [data, margin.left, margin.top, showTooltip, xScale, yScale],
+    [animatedData, margin.left, margin.top, showTooltip, xScale, yScale],
   );
 
   if (width < 10 || height < 10) return null;
@@ -341,7 +431,7 @@ function Visx24HourChart({
 
           {/* Series 1: Load Curve (Home Demand) */}
           <AreaClosed<HourlyData>
-            data={data}
+            data={animatedData}
             x={getX}
             y={getYLoad}
             yScale={yScale}
@@ -349,7 +439,7 @@ function Visx24HourChart({
             fill="url(#load-glow-gradient)"
           />
           <LinePath<HourlyData>
-            data={data}
+            data={animatedData}
             x={getX}
             y={getYLoad}
             curve={curveMonotoneX}
@@ -359,7 +449,7 @@ function Visx24HourChart({
 
           {/* Series 2: Solar Production Curve (Primary #B7D1EA) */}
           <AreaClosed<HourlyData>
-            data={data}
+                data={animatedData}
             x={getX}
             y={getYSolar}
             yScale={yScale}
@@ -367,7 +457,7 @@ function Visx24HourChart({
             fill="url(#solar-glow-gradient)"
           />
           <LinePath<HourlyData>
-            data={data}
+                data={animatedData}
             x={getX}
             y={getYSolar}
             curve={curveMonotoneX}
@@ -379,7 +469,7 @@ function Visx24HourChart({
           {activeBatteryCapacityKwh > 0 && (
             <>
               <AreaClosed<HourlyData>
-                data={data}
+                data={animatedData}
                 x={getX}
                 y={getYBattery}
                 yScale={yScale}
@@ -387,7 +477,7 @@ function Visx24HourChart({
                 fill="url(#battery-glow-gradient)"
               />
               <LinePath<HourlyData>
-                data={data}
+                data={animatedData}
                 x={getX}
                 y={getYBattery}
                 curve={curveMonotoneX}
@@ -399,7 +489,7 @@ function Visx24HourChart({
 
           {/* Series 4: Grid Consumption Curve (Soft copper) */}
           <AreaClosed<HourlyData>
-            data={data}
+            data={animatedData}
             x={getX}
             y={getYGrid}
             yScale={yScale}
@@ -407,7 +497,7 @@ function Visx24HourChart({
             fill="url(#grid-glow-gradient)"
           />
           <LinePath<HourlyData>
-            data={data}
+            data={animatedData}
             x={getX}
             y={getYGrid}
             curve={curveMonotoneX}
@@ -604,6 +694,7 @@ function VisxBarChart({
     hideTooltip,
   } = useTooltip<{ item: { name: string; load: number; solarGeneration: number }; index: number }>();
 
+  const animatedData = useAnimatedNumericSeries(data);
   const isSmallMobile = width < 420;
   const margin = {
     top: 18,
@@ -616,22 +707,22 @@ function VisxBarChart({
 
   const xScale = useMemo(() => {
     return scaleBand<string>({
-      domain: data.map((d) => d.name),
+      domain: animatedData.map((d) => d.name),
       range: [0, innerWidth],
       padding: 0.28,
     });
-  }, [data, innerWidth]);
+  }, [animatedData, innerWidth]);
 
   const yScale = useMemo(() => {
     const maxVal = Math.max(
-      ...data.map((d) => Math.max(d.load, d.solarGeneration, 1)),
+      ...animatedData.map((d) => Math.max(d.load, d.solarGeneration, 1)),
     );
     return scaleLinear<number>({
       domain: [0, maxVal * 1.15],
       range: [innerHeight, 0],
       nice: true,
     });
-  }, [data, innerHeight]);
+  }, [animatedData, innerHeight]);
 
   if (width < 10 || height < 10) return null;
 
@@ -651,7 +742,7 @@ function VisxBarChart({
             strokeOpacity={0.35}
           />
 
-          {data.map((d, i) => {
+          {animatedData.map((d, i) => {
             const x0 = xScale(d.name) ?? 0;
             const loadY = yScale(d.load) ?? 0;
             const loadH = Math.max(0, innerHeight - loadY);
@@ -705,7 +796,7 @@ function VisxBarChart({
             tickStroke="#000000"
             tickLabelProps={() => ({
               fill: "#000000",
-              fontSize: data.length > 20 ? (isSmallMobile ? 7 : 8) : (isSmallMobile ? 8.5 : 10),
+              fontSize: animatedData.length > 20 ? (isSmallMobile ? 7 : 8) : (isSmallMobile ? 8.5 : 10),
               fontWeight: 900,
               textAnchor: "middle",
               dy: 6,

@@ -1,10 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useId, useState } from "react";
 
 import { EnergyLine } from "@/components/brand/energy-line";
 
-import SolarRoofIllustration from "./solar-roof-illustration";
 import styles from "./solar-editorial-home.module.css";
 
 export type EditorialBeforeAfterLabels = Readonly<{
@@ -35,9 +35,23 @@ export default function EditorialBeforeAfter({ labels }: EditorialBeforeAfterPro
         <p>{labels.description}</p>
       </div>
       <div className={styles.beforeAfterStage} role="group" aria-labelledby={descriptionId}>
-        <SolarRoofIllustration variant="before" />
+        <div className={styles.beforeAfterImageLayer}>
+          <Image
+            src="/asset/home-editorial/roof-detail.webp"
+            alt=""
+            fill
+            sizes="(max-width: 900px) 100vw, 62vw"
+            className={styles.beforeAfterImage}
+          />
+        </div>
         <div className={styles.beforeAfterAfter} style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}>
-          <SolarRoofIllustration variant="after" />
+          <Image
+            src="/asset/home-editorial/roof-before.webp"
+            alt=""
+            fill
+            sizes="(max-width: 900px) 100vw, 62vw"
+            className={styles.beforeAfterImage}
+          />
         </div>
         <div className={styles.beforeAfterDivider} style={{ left: `${position}%` }} aria-hidden="true">
           <EnergyLine className={styles.beforeAfterEnergyLine} orientation="vertical" />

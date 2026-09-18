@@ -740,9 +740,7 @@
   z-index: 2;
   border: 2px solid rgb(255 255 255 / 70%);
   border-radius: 24px 0 24px 0;
-  background:
-    radial-gradient(circle at 78% 16%, rgb(77 220 255 / 18%), transparent 22%),
-    linear-gradient(145deg, #123c78 0%, #071b3d 72%);
+  background: #071329;
   box-shadow: var(--fm-shadow-floating);
 }
 
@@ -750,10 +748,17 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, transparent 42%, rgb(7 27 61 / 42%)),
-    linear-gradient(90deg, rgb(7 27 61 / 12%), transparent 28%, rgb(77 220 255 / 8%));
+    linear-gradient(180deg, rgb(4 11 24 / 4%) 34%, rgb(4 11 24 / 30%) 100%),
+    linear-gradient(90deg, rgb(4 11 24 / 52%), transparent 34%, rgb(4 11 24 / 10%));
   content: "";
   pointer-events: none;
+}
+
+.heroJourneyImage {
+  z-index: 0;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .heroSolarGraphic {
@@ -935,6 +940,10 @@
   transform: scale(1.025);
 }
 
+.heroMedia:hover .heroCardPrimary .heroJourneyImage {
+  transform: scale(1.025);
+}
+
 .heroUiPanel {
   position: absolute;
   top: 5%;
@@ -1099,6 +1108,9 @@
 .heroAnalysisLabel {
   position: absolute;
   z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   padding: 0.38rem 0.55rem;
   border: 1px solid rgb(77 220 255 / 46%);
   border-radius: 7px;
@@ -1107,6 +1119,25 @@
   font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: 0.05em;
+}
+
+.heroAnalysisLabel > span {
+  width: 0.42rem;
+  height: 0.42rem;
+  flex: none;
+  border-radius: 50%;
+  background: var(--fm-cyan);
+  box-shadow: 0 0 0 0.18rem rgb(77 220 255 / 14%);
+}
+
+.heroAnalysisLabelAccent {
+  border-color: rgb(255 216 77 / 56%);
+  color: var(--fm-yellow);
+}
+
+.heroAnalysisLabelAccent > span {
+  background: var(--fm-yellow);
+  box-shadow: 0 0 0 0.18rem rgb(255 216 77 / 14%);
 }
 
 .heroAnalysisLabel:first-child {
@@ -1178,10 +1209,11 @@
 
 .statement {
   display: grid;
-  grid-template-columns: minmax(170px, 0.42fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  align-items: center;
   gap: clamp(2rem, 6vw, 7rem);
   padding-block: clamp(5rem, 11vw, 10rem);
-  background: var(--fm-white);
+  background: var(--fm-surface);
 }
 
 .statement h2,
@@ -1199,12 +1231,276 @@
   text-wrap: balance;
 }
 
-.statement div > p:not(.sectionMarker) {
+.statementContent > p:not(.sectionMarker) {
   max-width: 66ch;
   margin-top: 1.6rem;
   color: var(--fm-muted);
   font-size: 1.08rem;
   line-height: 1.75;
+}
+
+.statementContent {
+  min-width: 0;
+}
+
+.statementNavigator {
+  min-width: 0;
+  padding: clamp(1rem, 2.2vw, 1.5rem);
+  border: 1px solid rgb(38 140 255 / 28%);
+  background: var(--fm-navy);
+  color: var(--fm-white);
+  box-shadow: 12px 12px 0 rgb(16 24 40 / 8%);
+}
+
+.statementNavigatorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--fm-cyan);
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.statementNavigatorStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgb(255 255 255 / 62%);
+  font-size: 0.58rem;
+  white-space: nowrap;
+}
+
+.statementNavigatorStatus > span {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: var(--fm-yellow);
+  box-shadow: 0 0 0 0.2rem rgb(255 216 77 / 13%);
+}
+
+.constellationStage {
+  position: relative;
+  min-height: clamp(360px, 38vw, 520px);
+  margin-top: 1rem;
+  overflow: hidden;
+  border: 1px solid rgb(77 220 255 / 30%);
+  background:
+    radial-gradient(circle at 48% 49%, rgb(250 204 21 / 16%), transparent 12%),
+    radial-gradient(circle at 18% 12%, rgb(56 189 248 / 15%), transparent 28%),
+    linear-gradient(145deg, #0b2855, #040b18 75%);
+}
+
+.constellationStage::before,
+.constellationStage::after {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgb(255 255 255 / 56%) 1px, transparent 1.5px);
+  background-size: 46px 46px;
+  content: "";
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+.constellationStage::after {
+  inset: auto -22% -44% auto;
+  width: 75%;
+  height: 75%;
+  border: 1px solid rgb(77 220 255 / 20%);
+  border-radius: 50%;
+  background: none;
+  box-shadow: 0 0 0 2rem rgb(77 220 255 / 4%), 0 0 0 5rem rgb(77 220 255 / 3%);
+  opacity: 1;
+}
+
+.constellationMap {
+  position: absolute;
+  inset: 8% 7% 20%;
+  width: 86%;
+  height: 72%;
+  overflow: visible;
+}
+
+.constellationMap path {
+  fill: none;
+  stroke: rgb(77 220 255 / 46%);
+  stroke-dasharray: 2 12;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.constellationMap circle {
+  fill: var(--fm-yellow);
+  stroke: var(--fm-navy);
+  stroke-width: 5;
+}
+
+.constellationOrbit,
+.constellationOrbitSmall {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  width: 12rem;
+  height: 12rem;
+  border: 1px solid rgb(255 216 77 / 38%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(-22deg);
+  box-shadow: 0 0 0 1.5rem rgb(255 216 77 / 5%);
+}
+
+.constellationOrbitSmall {
+  width: 8rem;
+  height: 8rem;
+  border-color: rgb(77 220 255 / 40%);
+  transform: translate(-50%, -50%) rotate(35deg) scaleX(1.7);
+}
+
+.constellationSun {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  width: 3.25rem;
+  height: 3.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgb(255 216 77 / 80%);
+  border-radius: 50%;
+  background: rgb(255 216 77 / 20%);
+  box-shadow: 0 0 0 0.6rem rgb(255 216 77 / 8%), 0 0 2.5rem rgb(255 216 77 / 34%);
+  transform: translate(-50%, -50%);
+}
+
+.constellationSun::before,
+.constellationSun::after,
+.constellationSun > span {
+  position: absolute;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--fm-yellow);
+  box-shadow: 0 0 0 0.18rem rgb(255 216 77 / 12%);
+  content: "";
+}
+
+.constellationSun::before {
+  top: -1rem;
+}
+
+.constellationSun::after {
+  right: -1rem;
+}
+
+.constellationSun > span {
+  bottom: -1rem;
+}
+
+.constellationNode {
+  position: absolute;
+  z-index: 2;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgb(77 220 255 / 58%);
+  border-radius: 50%;
+  background: rgb(7 27 61 / 90%);
+  color: var(--fm-cyan);
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.constellationNode:hover,
+.constellationNode:focus-visible,
+.constellationNode[data-active="true"] {
+  border-color: var(--fm-yellow);
+  background: rgb(255 216 77 / 18%);
+  color: var(--fm-yellow);
+  box-shadow: 0 0 0 0.35rem rgb(255 216 77 / 9%);
+  transform: scale(1.08);
+}
+
+.constellationNode svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.constellationNode span {
+  position: absolute;
+  right: -0.2rem;
+  bottom: -0.15rem;
+  min-width: 1.25rem;
+  min-height: 1.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--fm-navy);
+  border-radius: 50%;
+  background: var(--fm-cyan);
+  color: var(--fm-navy);
+  font-size: 0.55rem;
+  font-weight: 850;
+}
+
+.constellationNode1 {
+  top: 20%;
+  left: 13%;
+}
+
+.constellationNode2 {
+  top: 22%;
+  right: 13%;
+}
+
+.constellationNode3 {
+  bottom: 27%;
+  left: 32%;
+}
+
+.constellationReadout {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.65rem;
+  align-items: center;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgb(77 220 255 / 34%);
+  background: rgb(4 11 24 / 78%);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.constellationReadout > span {
+  grid-row: 1 / span 2;
+  color: var(--fm-yellow);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.constellationReadout strong {
+  color: var(--fm-white);
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.constellationReadout p {
+  grid-column: 2;
+  margin: 0.22rem 0 0;
+  color: rgb(255 255 255 / 62%);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.statementNavigatorNote {
+  max-width: 42ch;
+  margin: 0.85rem 0 0;
+  color: rgb(255 255 255 / 58%);
+  font-size: 0.7rem;
+  line-height: 1.55;
 }
 
 .signatureMotif {
@@ -1253,18 +1549,36 @@
 }
 
 .statementSignals {
-  grid-column: 2;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(1rem, 2.4vw, 2.5rem);
-  margin-top: 0.5rem;
+  gap: 0.7rem;
+  margin-top: clamp(2rem, 4vw, 3.5rem);
 }
 
 .statementSignal {
+  min-width: 0;
   display: grid;
-  gap: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid var(--fm-navy);
+  align-content: start;
+  gap: 0.65rem;
+  min-height: 172px;
+  padding: 0.85rem 0.85rem 0.95rem;
+  border: 1px solid var(--fm-line);
+  border-top: 3px solid var(--fm-navy);
+  background: var(--fm-white);
+  color: var(--fm-text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background-color 180ms ease;
+}
+
+.statementSignal:hover,
+.statementSignal:focus-visible,
+.statementSignal[data-active="true"] {
+  border-color: var(--fm-blue);
+  border-top-color: var(--fm-yellow);
+  background: var(--fm-soft-cyan);
+  box-shadow: 0 10px 24px rgb(18 107 255 / 11%);
+  transform: translateY(-3px);
 }
 
 .statementSignalIndex {
@@ -1274,15 +1588,37 @@
   letter-spacing: 0.08em;
 }
 
-.statementSignal h3 {
+.statementSignalIcon {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--fm-soft-cyan);
+  color: var(--fm-blue-strong);
+}
+
+.statementSignal[data-active="true"] .statementSignalIcon {
+  background: var(--fm-yellow);
+  color: var(--fm-navy);
+}
+
+.statementSignalIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.statementSignal strong {
+  display: block;
   color: var(--fm-text);
   font-size: 1rem;
   font-weight: 800;
   line-height: 1.3;
 }
 
-.statementSignal p {
-  margin-top: 0.45rem;
+.statementSignal > span:last-child > span {
+  display: block;
+  margin-top: 0.4rem;
   color: var(--fm-muted);
   font-size: 0.88rem;
   line-height: 1.65;
@@ -1293,8 +1629,9 @@
   grid-template-columns: minmax(0, 1.32fr) minmax(280px, 0.68fr);
   gap: clamp(2rem, 6vw, 7rem);
   align-items: end;
-  padding-block: 0 clamp(5rem, 11vw, 10rem);
-  background: var(--fm-white);
+  padding-block: clamp(5rem, 11vw, 10rem);
+  background: var(--fm-navy);
+  color: var(--fm-white);
 }
 
 .lifestyleMedia {
@@ -1765,26 +2102,29 @@
   padding-bottom: 1rem;
 }
 
+.lifestyleCopy .sectionMarker {
+  color: var(--fm-cyan);
+}
+
 .lifestyleCopy h2 {
   max-width: 13ch;
+  color: var(--fm-white);
 }
 
 .lifestyleCopy > p:last-child {
   max-width: 54ch;
   margin-top: 1.5rem;
-  color: var(--fm-muted);
+  color: rgb(255 255 255 / 68%);
   line-height: 1.75;
 }
 
 .workflow {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(220px, 0.52fr) minmax(0, 1.48fr);
-  gap: clamp(2rem, 7vw, 8rem);
-  align-items: center;
+  display: block;
   overflow: hidden;
   padding-block: clamp(5rem, 11vw, 10rem);
-  background: var(--fm-cool);
+  background: #040b18;
+  color: var(--fm-white);
 }
 
 .workflow::before {
@@ -1800,29 +2140,58 @@
   pointer-events: none;
 }
 
+.workflow::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(4 11 24 / 34%), rgb(4 11 24 / 70%));
+  content: "";
+  pointer-events: none;
+}
+
+.workflowBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.workflowBackdrop img {
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.86;
+}
+
 .workflowIntro,
 .workflowPanel {
   position: relative;
   z-index: 1;
 }
 
+.workflowIntro {
+  max-width: 40rem;
+}
+
 .workflowIntro h2 {
   max-width: 12ch;
+  color: var(--fm-white);
 }
 
 .workflowIntro > p:last-child {
   max-width: 34ch;
   margin-top: 1.4rem;
-  color: var(--fm-muted);
+  color: rgb(255 255 255 / 74%);
   line-height: 1.75;
 }
 
 .workflowPanel {
   min-width: 0;
+  max-width: 86rem;
+  margin-top: clamp(2.5rem, 6vw, 5rem);
   padding: clamp(1.25rem, 3vw, 2rem);
-  border-color: var(--fm-ink);
+  border: 1px solid rgb(77 220 255 / 34%);
   border-radius: 20px;
-  background: var(--fm-navy);
+  background: rgb(4 11 24 / 78%);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   box-shadow: 8px 8px 0 rgb(16 24 40 / 14%);
 }
 
@@ -1925,15 +2294,15 @@
 }
 
 .workflowEnergyLine [data-energy-line-track] {
-  stroke: rgb(77 220 255 / 26%);
+  stroke: rgb(255 216 77 / 42%);
   stroke-width: 1.1;
 }
 
 .workflowEnergyLine [data-energy-line-progress] {
-  stroke: var(--fm-cyan);
+  stroke: var(--fm-yellow);
   stroke-width: 1.6;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 5px rgb(77 220 255 / 44%));
+  filter: drop-shadow(0 0 5px rgb(255 216 77 / 52%));
 }
 
 .workflowEnergyLine [data-energy-line-node] {
@@ -2056,8 +2425,14 @@
   isolation: isolate;
 }
 
+.beforeAfterImageLayer {
+  position: absolute;
+  inset: 0;
+}
+
 .beforeAfterImage {
   object-fit: cover;
+  object-position: center;
 }
 
 .beforeAfterIllustration {
@@ -2293,23 +2668,42 @@
 }
 
 .calculator {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(220px, 0.56fr) minmax(0, 1.44fr);
   gap: clamp(2rem, 7vw, 8rem);
   align-items: start;
   padding-block: clamp(5rem, 11vw, 10rem);
-  background: var(--fm-cool);
+  overflow: hidden;
+  background: #040b18;
+  color: var(--fm-white);
+}
+
+.calculator::before {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgb(4 11 24 / 90%) 0%, rgb(4 11 24 / 78%) 44%, rgb(4 11 24 / 36%) 100%),
+    url("/asset/home-editorial/solar-impact-cosmic.png") center / cover no-repeat;
+  content: "";
+  opacity: 0.92;
+  pointer-events: none;
 }
 
 .calculatorIntro {
   position: sticky;
   top: 7rem;
+  z-index: 1;
+}
+
+.calculatorIntro .sectionMarker {
+  color: var(--fm-cyan);
 }
 
 .calculatorIntro h2 {
   max-width: 13ch;
   margin-top: 1.2rem;
-  color: var(--fm-text);
+  color: var(--fm-white);
   font-size: clamp(2.1rem, 4.6vw, 4.5rem);
   font-weight: 800;
   line-height: 1.02;
@@ -2320,7 +2714,7 @@
 .calculatorIntro > p:not(.sectionMarker) {
   max-width: 32ch;
   margin-top: 1.4rem;
-  color: var(--fm-muted);
+  color: rgb(255 255 255 / 72%);
   line-height: 1.7;
 }
 
@@ -2329,7 +2723,7 @@
   align-items: center;
   gap: 0.45rem;
   margin-top: 1.6rem;
-  color: var(--fm-blue-strong);
+  color: var(--fm-cyan);
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -2718,7 +3112,40 @@
 }
 
 .projects {
-  background: var(--fm-cool);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 84% 12%, rgb(37 99 235 / 18%), transparent 26%),
+    radial-gradient(circle at 18% 88%, rgb(56 189 248 / 11%), transparent 24%),
+    #040b18;
+  color: var(--fm-white);
+}
+
+.projects::before {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgb(77 220 255 / 35%) 1px, transparent 1.5px);
+  background-size: 16px 16px;
+  content: "";
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+.projects > * {
+  position: relative;
+  z-index: 1;
+}
+
+.projects .sectionHeading h2 {
+  color: var(--fm-white);
+}
+
+.projects .sectionHeading .sectionMarker {
+  color: var(--fm-cyan);
+}
+
+.projects .sectionHeading > p:last-child {
+  color: rgb(255 255 255 / 68%);
 }
 
 .sectionHeading {
@@ -2774,6 +3201,78 @@
   pointer-events: none;
 }
 
+.pathwayPortal {
+  position: absolute;
+  top: 50%;
+  right: clamp(1rem, 4vw, 3rem);
+  z-index: 0;
+  width: clamp(9rem, 18vw, 14rem);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgb(37 99 235 / 58%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgb(255 255 255 / 88%) 0 22%, transparent 23%),
+    radial-gradient(circle, rgb(56 189 248 / 28%), rgb(37 99 235 / 7%) 55%, transparent 68%);
+  box-shadow:
+    0 0 0 0.55rem rgb(37 99 235 / 10%),
+    0 0 0 1.3rem rgb(56 189 248 / 8%),
+    inset 0 0 2.5rem rgb(37 99 235 / 16%);
+  transform: translateY(-50%);
+  transition: transform 260ms ease, box-shadow 260ms ease;
+}
+
+.pathwayPortal::before,
+.pathwayPortal::after {
+  position: absolute;
+  inset: 13%;
+  border: 1px solid rgb(56 189 248 / 56%);
+  border-radius: 50%;
+  content: "";
+}
+
+.pathwayPortal::after {
+  inset: 24%;
+  border-color: rgb(250 204 21 / 46%);
+  transform: rotate(34deg) scaleX(1.5);
+}
+
+.pathwayPortal > span {
+  position: relative;
+  z-index: 1;
+  max-width: 7rem;
+  color: var(--fm-blue-strong);
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.pathway:last-child .pathwayPortal {
+  border-color: rgb(56 189 248 / 64%);
+  background:
+    radial-gradient(circle, rgb(7 27 61 / 96%) 0 22%, transparent 23%),
+    radial-gradient(circle, rgb(37 99 235 / 28%), rgb(4 11 24 / 45%) 62%, transparent 70%);
+  box-shadow:
+    0 0 0 0.55rem rgb(37 99 235 / 16%),
+    0 0 0 1.3rem rgb(250 204 21 / 7%),
+    inset 0 0 2.8rem rgb(56 189 248 / 18%);
+}
+
+.pathway:last-child .pathwayPortal > span {
+  color: var(--fm-soft-cyan);
+}
+
+.pathway:hover .pathwayPortal {
+  box-shadow:
+    0 0 0 0.8rem rgb(37 99 235 / 12%),
+    0 0 0 1.7rem rgb(56 189 248 / 9%),
+    inset 0 0 3rem rgb(37 99 235 / 22%);
+  transform: translateY(-50%) scale(1.04);
+}
+
 .pathway:last-child {
   border-color: var(--fm-navy);
   background: var(--fm-navy);
@@ -2787,6 +3286,8 @@
 }
 
 .pathwayIndex {
+  position: relative;
+  z-index: 1;
   color: var(--fm-blue-strong);
   font-size: 0.76rem;
   font-weight: 800;
@@ -2798,6 +3299,8 @@
 }
 
 .pathway div > p {
+  position: relative;
+  z-index: 1;
   color: var(--fm-muted);
   font-size: 0.75rem;
   font-weight: 750;
@@ -2808,6 +3311,8 @@
 }
 
 .pathway h3 {
+  position: relative;
+  z-index: 1;
   max-width: 18ch;
   margin-top: 0.65rem;
   color: var(--fm-text);
@@ -2823,6 +3328,8 @@
 }
 
 .pathway div > span {
+  position: relative;
+  z-index: 1;
   display: block;
   max-width: 52ch;
   margin-top: 1.25rem;
@@ -2886,6 +3393,7 @@
 }
 
 .pathway > strong {
+  position: relative;
   z-index: 1;
   grid-column: 2;
   min-height: 44px;
@@ -3168,17 +3676,33 @@
 
 .projectGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(2rem, 4vw, 4rem) 1rem;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 1rem;
   margin-top: clamp(2.5rem, 6vw, 5rem);
 }
 
-.project:nth-child(even) {
-  margin-top: 12%;
+.project {
+  min-width: 0;
+}
+
+.project:first-child {
+  grid-column: span 6;
+  grid-row: span 2;
+}
+
+.project:nth-child(2) {
+  grid-column: span 4;
+}
+
+.project:nth-child(3),
+.project:nth-child(4) {
+  grid-column: span 2;
 }
 
 .projectButton {
+  position: relative;
   width: 100%;
+  height: 100%;
   display: block;
   padding: 0;
   border: 0;
@@ -3196,15 +3720,78 @@
   transform: scale(1.035);
 }
 
+.projectTelemetry {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  padding: 0.55rem;
+  border: 1px solid rgb(77 220 255 / 34%);
+  background: rgb(4 11 24 / 78%);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transform: translateY(0.6rem);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.projectTelemetry > span {
+  min-width: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.projectTelemetry small {
+  overflow: hidden;
+  color: rgb(255 255 255 / 58%);
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.projectTelemetry strong {
+  overflow: hidden;
+  color: var(--fm-cyan);
+  font-size: 0.68rem;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectButton:hover .projectTelemetry,
+.projectButton:focus-visible .projectTelemetry {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .projectMedia,
 .projectMediaFallback {
   position: relative;
   display: block;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  border: 1px solid var(--fm-line);
-  border-radius: 16px;
-  background: var(--fm-white);
+  border: 1px solid rgb(77 220 255 / 26%);
+  border-radius: 14px;
+  background: #0b2855;
+}
+
+.project:first-child .projectMedia {
+  aspect-ratio: 1.35 / 1;
+}
+
+.projectMedia::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 42%, rgb(4 11 24 / 70%));
+  content: "";
+  pointer-events: none;
 }
 
 .projectMediaFallback {
@@ -3229,14 +3816,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--fm-muted);
+  color: rgb(255 255 255 / 56%);
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
 }
 
 .projectTitle {
   display: block;
-  color: var(--fm-text);
+  color: var(--fm-white);
   font-size: clamp(1.25rem, 2.5vw, 2rem);
   font-weight: 800;
   letter-spacing: -0.025em;
@@ -3252,13 +3839,13 @@
 .projectDetail {
   display: grid;
   gap: 0.15rem;
-  color: var(--fm-text);
+  color: var(--fm-white);
   font-size: 0.85rem;
   font-weight: 700;
 }
 
 .projectDetailLabel {
-  color: var(--fm-muted);
+  color: rgb(255 255 255 / 56%);
   font-size: 0.7rem;
   font-weight: 500;
 }
@@ -3270,7 +3857,7 @@
   align-items: center;
   gap: 0.5rem;
   width: fit-content;
-  color: var(--fm-blue-strong);
+  color: var(--fm-cyan);
   font-size: 0.8rem;
   font-weight: 800;
   text-decoration: none;
@@ -3278,7 +3865,7 @@
 
 .projectOpen {
   padding-bottom: 0.2rem;
-  border-bottom: 1px solid var(--fm-blue-strong);
+  border-bottom: 1px solid var(--fm-cyan);
 }
 
 .projectOpen svg,
@@ -3623,6 +4210,21 @@
     grid-column: auto;
   }
 
+  .projectGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .project:first-child {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .project:nth-child(2),
+  .project:nth-child(3),
+  .project:nth-child(4) {
+    grid-column: span 1;
+  }
+
   .statement,
   .lifestyle,
   .beforeAfter,
@@ -3691,6 +4293,22 @@
 
   .statementSignalIndex {
     padding-top: 0.15rem;
+  }
+
+  .projectGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .project:first-child,
+  .project:nth-child(2),
+  .project:nth-child(3),
+  .project:nth-child(4) {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .project:first-child .projectMedia {
+    aspect-ratio: 4 / 3;
   }
 
   .workflowSteps {
@@ -4023,6 +4641,7 @@
   }
 
   .heroCardPrimary .heroCardImage,
+  .heroCardPrimary .heroJourneyImage,
   .coverImage {
     transform: none !important;
   }

@@ -1,18 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useLayoutEffect, useRef } from "react";
-import { FiArrowUpRight, FiHome, FiSun, FiZap } from "react-icons/fi";
+import { FiArrowUpRight } from "react-icons/fi";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { EnergyLine } from "@/components/brand/energy-line";
-import {
-  HalftonePattern,
-  ImpactHeadline,
-  SpeechBubble,
-  SpeedLines,
-} from "@/components/brand/manga-primitives";
+import { HalftonePattern, ImpactHeadline, SpeedLines } from "@/components/brand/manga-primitives";
 import { SoliaScene } from "@/components/brand/solia-scenes";
 
 import styles from "./solar-editorial-home.module.css";
@@ -39,6 +35,8 @@ export type EditorialHeroLabels = Readonly<{
     system: string;
     tracking: string;
     note: string;
+    badgeClean: string;
+    badgeStep: string;
     mascotAlt: string;
   }>;
 }>;
@@ -50,40 +48,6 @@ type EditorialHeroMotionProps = Readonly<{
 
 function EditorialArrow() {
   return <FiArrowUpRight aria-hidden="true" className={styles.arrow} />;
-}
-
-function SolarSignalGraphic({
-  labels,
-}: Readonly<{ labels: EditorialHeroLabels["visual"] }>) {
-  return (
-    <div className={styles.heroSolarGraphic} aria-hidden="true">
-      <div className={styles.heroSolarSun}>
-        <FiSun />
-      </div>
-      <svg className={styles.heroSolarDiagram} viewBox="0 0 720 520" fill="none">
-        <path className={styles.heroSolarTrack} d="M96 104c126 16 144 144 270 144s160-150 280-112" />
-        <path className={styles.heroSolarProgress} d="M96 104c126 16 144 144 270 144s160-150 280-112" />
-        <path className={styles.heroSolarRoof} d="m190 320 170-142 178 142-26 34H216Z" />
-        <path className={styles.heroSolarHouse} d="M230 322h260v142H230Z" />
-        <path className={styles.heroSolarPanel} d="m276 302 80-66 84 66-80 64Z" />
-        <path className={styles.heroSolarWindows} d="M268 360h42v44h-42zM394 360h42v44h-42z" />
-        <path className={styles.heroSolarSystem} d="M548 266h86v74h-86z" />
-        <path className={styles.heroSolarSystemLine} d="M570 284h42M570 302h42M570 320h28" />
-        <circle className={styles.heroSolarNode} cx="96" cy="104" r="11" />
-        <circle className={styles.heroSolarNode} cx="366" cy="248" r="11" />
-        <circle className={styles.heroSolarNode} cx="646" cy="136" r="11" />
-      </svg>
-      <span className={`${styles.heroSolarTag} ${styles.heroSolarTagHome}`}>
-        <FiHome />
-        {labels.home}
-      </span>
-      <span className={`${styles.heroSolarTag} ${styles.heroSolarTagUsage}`}>
-        <FiZap />
-        {labels.usage}
-      </span>
-      <span className={styles.heroSolarFootnote}>{labels.tracking}</span>
-    </div>
-  );
 }
 
 /**
@@ -209,12 +173,25 @@ export default function EditorialHeroMotion({ locale, labels }: EditorialHeroMot
         <HalftonePattern className={styles.heroHalftone} />
         <SpeedLines className={styles.heroSpeedLines} />
         <div className={`${styles.heroCard} ${styles.heroCardPrimary}`} data-hero-card data-hero-parallax="up">
-          <SolarSignalGraphic labels={labels.visual} />
+          <Image
+            className={styles.heroJourneyImage}
+            src="/asset/home-editorial/solar-journey-cosmic-hero.png"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 900px) 100vw, 60vw"
+          />
           <span className={styles.heroImageLabel} aria-hidden="true">{labels.visual.imageLabel}</span>
         </div>
         <div className={styles.heroAnalysis} aria-hidden="true">
-          <span className={styles.heroAnalysisLabel}>{labels.visual.roof}</span>
-          <span className={styles.heroAnalysisLabel}>{labels.visual.usage}</span>
+          <span className={`${styles.heroAnalysisLabel} ${styles.heroAnalysisLabelAccent}`}>
+            <span aria-hidden="true" />
+            {labels.visual.badgeClean}
+          </span>
+          <span className={styles.heroAnalysisLabel}>
+            <span aria-hidden="true" />
+            {labels.visual.badgeStep}
+          </span>
           <EnergyLine className={styles.heroEnergyLine} />
         </div>
         <SoliaScene
@@ -225,7 +202,7 @@ export default function EditorialHeroMotion({ locale, labels }: EditorialHeroMot
           imageClassName={styles.heroMascotImage}
           imageSizes="(max-width: 900px) 52vw, 25rem"
           layer="foreground"
-          pose="energyStudio"
+          pose="pointing"
           position="right"
           loading="eager"
           priority
@@ -233,34 +210,6 @@ export default function EditorialHeroMotion({ locale, labels }: EditorialHeroMot
           state="presenting"
           alt={labels.visual.mascotAlt}
         />
-        <SpeechBubble
-          className={styles.heroUiPanel}
-          data-hero-card
-          role="group"
-          aria-label={labels.visual.kicker}
-        >
-          <div className={styles.heroUiHeader}>
-            <div>
-              <span>{labels.visual.kicker}</span>
-              <strong>{labels.visual.note}</strong>
-            </div>
-            <span className={styles.heroUiStatus}>
-              <span aria-hidden="true" />
-              {labels.visual.status}
-            </span>
-          </div>
-          <div className={styles.heroUiFlow}>
-            <span className={styles.heroUiNode}>{labels.visual.home}</span>
-            <span className={styles.heroUiConnector} aria-hidden="true" />
-            <span className={styles.heroUiNode}>{labels.visual.usage}</span>
-            <span className={styles.heroUiConnector} aria-hidden="true" />
-            <span className={`${styles.heroUiNode} ${styles.heroUiNodeActive}`}>{labels.visual.system}</span>
-          </div>
-          <div className={styles.heroUiFooter}>
-            <span>{labels.visual.roof}</span>
-            <strong>{labels.visual.tracking}</strong>
-          </div>
-        </SpeechBubble>
         <figcaption className={styles.heroMediaCaption}>{labels.mediaLabel}</figcaption>
       </figure>
     </section>

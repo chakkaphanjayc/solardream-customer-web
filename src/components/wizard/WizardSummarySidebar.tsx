@@ -45,7 +45,7 @@ export function WizardSummarySidebar({
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const mediaQuery = window.matchMedia("(min-width: 1280px)");
     const syncViewport = () => setIsDesktop(mediaQuery.matches);
 
     syncViewport();
@@ -111,7 +111,7 @@ export function WizardSummarySidebar({
           type="button"
           aria-label={closeDetailsLabel}
           onClick={() => setIsMobileOpen(false)}
-          className="solar-summary-sidebar-backdrop fixed inset-0 z-[55] lg:hidden"
+          className="solar-summary-sidebar-backdrop fixed inset-0 z-[55] xl:hidden"
         />
       ) : null}
 
@@ -126,7 +126,7 @@ export function WizardSummarySidebar({
           isMobileOpen
             ? "translate-y-0 pointer-events-auto"
             : "translate-y-full pointer-events-none"
-        } lg:order-last lg:z-auto lg:sticky lg:top-[72px] lg:h-[calc(100dvh-72px)] lg:max-h-[calc(100dvh-72px)] lg:w-full lg:max-w-none lg:translate-y-0 lg:pointer-events-auto`}
+        } xl:order-last xl:z-auto xl:sticky xl:top-[88px] xl:h-[calc(100dvh-88px)] xl:max-h-[calc(100dvh-88px)] xl:w-full xl:max-w-none xl:translate-y-0 xl:pointer-events-auto`}
       >
         <header className="solar-summary-sidebar-header sticky top-0 z-10 flex shrink-0 items-start justify-between gap-3 border-b border-[var(--sd-line)] bg-[var(--sd-raised)] px-4 py-3.5 sm:px-6 sm:py-4">
           <div className="min-w-0">
@@ -160,7 +160,7 @@ export function WizardSummarySidebar({
               type="button"
               onClick={() => setIsMobileOpen(false)}
               aria-label={closeDetailsLabel}
-              className="solar-summary-sidebar-close inline-flex size-10 items-center justify-center rounded-full text-[var(--sd-muted)] transition-colors hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)] active:scale-95 sm:size-11 lg:hidden"
+              className="solar-summary-sidebar-close inline-flex size-10 items-center justify-center rounded-full text-[var(--sd-muted)] transition-colors hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)] active:scale-95 sm:size-11 xl:hidden"
             >
               <X className="size-5" aria-hidden="true" />
             </button>
@@ -188,7 +188,7 @@ export function WizardSummarySidebar({
         </footer>
       </aside>
 
-      <div className="solar-summary-mobile-bar sd-safe-pb-2-max fixed inset-x-0 bottom-0 z-50 border-t border-[var(--sd-line)] bg-[var(--sd-raised)] px-3 pt-2 shadow-[var(--sd-shadow-3)] lg:hidden">
+      <div className="solar-summary-mobile-bar sd-safe-pb-2-max fixed inset-x-0 bottom-0 z-50 border-t border-[var(--sd-line)] bg-[var(--sd-raised)] px-3 pt-2 shadow-[var(--sd-shadow-3)] xl:hidden">
         <div className="mx-auto w-full max-w-7xl">
           <div className="grid grid-cols-3 gap-1.5">
             {summaryMetrics}

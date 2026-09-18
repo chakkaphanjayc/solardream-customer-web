@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { FiActivity, FiArrowRight, FiCheckCircle, FiCompass, FiHome, FiSun } from "react-icons/fi";
 import type { IconType } from "react-icons";
 
@@ -51,6 +52,14 @@ export default function EditorialWorkflow({ labels }: EditorialWorkflowProps) {
 
   return (
     <section className={styles.workflow} id="journey" aria-labelledby="workflow-title">
+      <div className={styles.workflowBackdrop} aria-hidden="true">
+        <Image
+          src="/asset/home-editorial/solar-journey-waypoints.png"
+          alt=""
+          fill
+          sizes="100vw"
+        />
+      </div>
       <div className={styles.workflowIntro}>
         <p className={styles.sectionMarker}>{labels.eyebrow}</p>
         <h2 id="workflow-title">{labels.title}</h2>
