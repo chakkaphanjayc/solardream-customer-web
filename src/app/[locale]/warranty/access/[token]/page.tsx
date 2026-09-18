@@ -6,6 +6,8 @@ export const metadata = {
   referrer: "no-referrer",
 };
 
+export const instant = false;
+
 export default async function GuestWarrantyAccessPage({
   params,
 }: {

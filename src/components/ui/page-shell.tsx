@@ -19,7 +19,7 @@ export function PageShell({ children, className, as = "div", surface = "atelier"
       data-solar-surface={surface}
       className={cn(
         "bagui-page sd-page-shell solar-route-page min-h-dvh",
-        isDark ? "bg-[#0F172A] text-white" : "bg-transparent text-[#1C1C1A]",
+        isDark ? "bg-[var(--sd-technical)] text-white" : "bg-[var(--sd-page)] text-[var(--sd-ink)]",
         className,
       )}
     >
@@ -40,11 +40,11 @@ export function PageHeader({ title, description, eyebrow, actions, className }: 
   return (
     <header className={cn("sd-page-header flex min-w-0 flex-col gap-6 lg:flex-row lg:items-end lg:justify-between", className)}>
       <div className="min-w-0 max-w-3xl space-y-3">
-        {eyebrow ? <p className="text-xs font-bold uppercase tracking-wider text-[#4F7FA8]">{eyebrow}</p> : null}
-        <h1 className="text-balance text-3xl font-bold leading-[1.12] tracking-tight text-[#1C1C1A] sm:text-4xl lg:text-5xl">
+        {eyebrow ? <p className="solar-route-kicker text-xs font-bold uppercase tracking-wider text-[var(--sd-blue-600)]">{eyebrow}</p> : null}
+        <h1 className="text-balance text-3xl font-extrabold leading-[1.12] tracking-tight text-[var(--sd-ink)] sm:text-4xl lg:text-5xl">
           {title}
         </h1>
-        {description ? <p className="sd-readable text-pretty text-base leading-7 text-[#4E4B44]">{description}</p> : null}
+        {description ? <p className="sd-readable text-pretty text-base leading-7 text-[var(--sd-text)]">{description}</p> : null}
       </div>
       {actions ? <div className="sd-stack-actions w-full shrink-0 lg:w-auto">{actions}</div> : null}
     </header>

@@ -4,12 +4,15 @@ import { isLocale } from "@/i18n/locales";
 import { createClient } from "@/utils/supabase/server";
 import BentoConfirmationFlow from "./BentoConfirmationFlow";
 import { PageShell } from "@/components/ui/page-shell";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 
 
 interface ConsultationConfirmationPageProps {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ from?: string; ref?: string }>;
 }
+
+export const instant = false;
 
 export default async function ConsultationConfirmationPage({
   params,
@@ -31,6 +34,12 @@ export default async function ConsultationConfirmationPage({
         
         {/* HERO SECTION - MANGA NEO-BRUTALISM */}
         <div className="space-y-4 max-w-2xl mx-auto">
+          <SoliaGuide
+            alt={locale === "th" ? "Solia ฉลองการส่งคำขอออกแบบโซลาร์สำเร็จ" : "Solia celebrating your solar design request"}
+            pose="greeting"
+            className="mx-auto h-28 w-24"
+            imageSizes="96px"
+          />
           {/* Visual Success Indicator */}
           <div className="inline-flex items-center justify-center mb-2">
             <div className="relative flex items-center justify-center w-20 h-20 rounded-2xl bg-[#4AA382] border-2 border-[#000000] shadow-[3px_3px_0_#000000]">

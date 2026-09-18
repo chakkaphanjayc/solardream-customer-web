@@ -38,6 +38,8 @@ type LandingPageProps = Readonly<{
   params: Promise<{ locale: string }>;
 }>;
 
+export const instant = false;
+
 export default async function LandingPage({ params }: LandingPageProps) {
   // With Next 16 cacheComponents enabled, connection() is the supported
   // request-time boundary for this homepage instead of dynamic/revalidate.

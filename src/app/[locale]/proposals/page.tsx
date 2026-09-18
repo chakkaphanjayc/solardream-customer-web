@@ -9,6 +9,8 @@ import { proposals as proposalsTable } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { PageShell } from "@/components/ui/page-shell";
 
+export const instant = false;
+
 type ProposalsPageProps = Readonly<{
   params: Promise<{ locale: string }>;
 }>;

@@ -39,6 +39,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { GsapPulse, GsapSpinner } from "@/components/ui/GsapMotion";
 import { trackProductEvent } from "@/lib/productAnalytics";
 import VisxSunArc from "@/components/charts/VisxSunArc";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 
 function MapLoading() {
   const t = useTranslations("VisualizerClient");
@@ -48,6 +49,13 @@ function MapLoading() {
     </GsapPulse>
   );
 }
+
+type RoofAnalysisPayload = {
+  success?: boolean;
+  roofAreaSqm?: number;
+  pitchDegrees?: number;
+  confidence?: number;
+};
 
 const MapRoofSelector = dynamic(() => import("@/components/MapRoofSelector"), {
   ssr: false,
@@ -67,7 +75,15 @@ const getOrientationLabel = (deg: number, t: ReturnType<typeof useTranslations>)
   else return t("orientation.diagonal", { deg });
 };
 
-const CompassSlider = ({ value, onChange }: { value: number; onChange: (val: number) => void }) => {
+const CompassSlider = ({
+  value,
+  onChange,
+  ariaLabel,
+}: {
+  value: number;
+  onChange: (val: number) => void;
+  ariaLabel: string;
+}) => {
   const ticks = [];
   for (let i = 0; i <= 360; i += 15) {
     ticks.push(i);
@@ -122,6 +138,7 @@ const CompassSlider = ({ value, onChange }: { value: number; onChange: (val: num
           max="360"
           step="1"
           value={value}
+          aria-label={ariaLabel}
           onChange={(e) => onChange(Number(e.target.value))}
           className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#1CBBBB] focus:outline-none"
         />
@@ -201,8 +218,8 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ address: addressSearch || "Bangkok, Thailand", bounds: null })
       });
-      const data = await response.json();
-      if (data.success) {
+      const data = await response.json() as RoofAnalysisPayload;
+      if (data.success && typeof data.roofAreaSqm === "number" && typeof data.pitchDegrees === "number" && typeof data.confidence === "number") {
         setAiAnalysisResult({ area: data.roofAreaSqm, pitch: data.pitchDegrees, confidence: data.confidence });
         const calculatedWidth = Math.round(Math.sqrt(data.roofAreaSqm) * 1.2 * 10) / 10;
         const calculatedHeight = Math.round((data.roofAreaSqm / calculatedWidth) * 10) / 10;
@@ -217,11 +234,11 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
         });
         toast.success(t("toast.aiComplete", { area: data.roofAreaSqm, pitch: data.pitchDegrees }));
       } else {
-        toast.error("AI Analysis failed. Please try again.");
+        toast.error(t("toast.aiFailed"));
       }
     } catch (e) {
       console.error(e);
-      toast.error("Network error during AI analysis.");
+      toast.error(t("toast.networkError"));
     } finally {
       setIsAiAnalyzing(false);
     }
@@ -332,9 +349,9 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
           </div>
           <div className="min-w-0">
             <h1 className="text-sm font-black tracking-wider text-white uppercase flex items-center gap-2">
-              <span className="truncate">Clean Tech Planner</span>
+              <span className="truncate">{t("header.title")}</span>
               <span className="hidden text-[9px] font-black bg-slate-800 text-[#1CBBBB] px-2 py-0.5 rounded border border-slate-700/60 uppercase tracking-widest min-[420px]:inline">
-                v2D CAD
+                {t("header.version")}
               </span>
             </h1>
             <p className="hidden text-[9px] font-bold uppercase tracking-wider text-slate-400 sm:block">
@@ -362,10 +379,10 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
             {isConfigOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             <span>{t("actions.config")}</span>
           </button>
-          <Link href="/" className="hidden rounded-xl border border-slate-850 bg-slate-950/40 px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-300 transition-all hover:border-slate-700 hover:bg-slate-900/60 hover:text-white sm:inline-flex">
-            Home
+          <Link href={`/${locale}`} className="hidden rounded-xl border border-slate-850 bg-slate-950/40 px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-300 transition-all hover:border-slate-700 hover:bg-slate-900/60 hover:text-white sm:inline-flex">
+            {t("actions.home")}
           </Link>
-          <Link href="/build" className="hidden rounded-xl bg-[#1CBBBB] px-4 py-2 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-[#1CBBBB]/10 transition-all hover:bg-[#159999] md:inline-flex">
+          <Link href={`/${locale}/build`} className="hidden rounded-xl bg-[#1CBBBB] px-4 py-2 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-[#1CBBBB]/10 transition-all hover:bg-[#159999] md:inline-flex">
             {t("actions.backToBuild")}
           </Link>
         </div>
@@ -384,22 +401,43 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
         {/* Sticky Tab Header */}
         <div className="sticky top-0 z-50 bg-white border-b border-slate-100 pb-3 flex flex-col gap-3 shrink-0">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-700">System Configuration</h2>
-            <span className="text-[8px] font-black uppercase tracking-widest text-[#1CBBBB] border border-[#1CBBBB]/30 bg-[#1CBBBB]/5 px-2 py-0.5 rounded">Solar Planner</span>
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-700">{t("sections.configuration")}</h2>
+            <span className="text-[8px] font-black uppercase tracking-widest text-[#1CBBBB] border border-[#1CBBBB]/30 bg-[#1CBBBB]/5 px-2 py-0.5 rounded">{t("sections.plannerBadge")}</span>
           </div>
-          <div className="flex gap-5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                  <div className="flex gap-5 overflow-x-auto" role="tablist" aria-label={locale === "th" ? "ส่วนตั้งค่าเครื่องมือวางแผง" : "Planner configuration sections"} style={{ scrollbarWidth: 'none' }}>
             {([
               { key: 'roof', label: t("tabs.roof") },
               { key: 'shading', label: t("tabs.shading") },
               { key: 'electrical', label: t("tabs.electrical") },
             ] as { key: 'roof' | 'shading' | 'electrical'; label: string }[]).map(tab => (
-              <button key={tab.key}
+              <button key={tab.key} type="button"
                 onClick={() => setActiveTab(tab.key)}
+                role="tab"
+                aria-selected={activeTab === tab.key}
                 className={`pb-3 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors border-b-2 ${activeTab === tab.key ? 'border-[#1CBBBB] text-[#1CBBBB]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
               >
                 {tab.label}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="solar-ui-soft-panel mt-4 flex items-center gap-3 p-3">
+          <SoliaGuide
+            pose="blueprint"
+            alt={locale === "th" ? "โซเลียกำลังแนะนำการวางแผงบนหลังคา" : "Solia guiding the roof panel layout"}
+            className="h-20 w-16 shrink-0"
+            imageSizes="80px"
+          />
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--sd-navy-900)]">
+              {locale === "th" ? "Solia ช่วยวางแผน" : "Solia planning note"}
+            </p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-slate-700">
+              {locale === "th"
+                ? "เริ่มจากขนาดหลังคาและทิศทางรับแดด แล้วค่อยวางแผงให้พอดีกับพื้นที่จริง"
+                : "Start with roof size and sun direction, then place panels inside the real usable area."}
+            </p>
           </div>
         </div>
 
@@ -417,7 +455,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                 </button>
                 <button onClick={() => setPlannerMode('maps')}
                   className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${plannerMode === 'maps' ? 'bg-white text-[#1CBBBB] shadow-sm border border-slate-100 rounded-lg' : 'text-slate-500 hover:text-slate-700'}`}>
-                  <Layers className="w-3 h-3" /><span>Satellite</span>
+                  <Layers className="w-3 h-3" /><span>{t("actions.satelliteMode")}</span>
                 </button>
               </div>
 
@@ -433,9 +471,9 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex justify-between">
                       <span>{t("fields.product")}</span>
-                      <span className="text-[#1CBBBB] lowercase">specifications</span>
+                      <span className="text-[#1CBBBB] lowercase">{t("fields.specifications")}</span>
                     </label>
-                    <select value={selectedProductId} onChange={(e) => {
+                    <select id="visualizer-panel-product" aria-label={t("fields.product")} value={selectedProductId} onChange={(e) => {
                       const nextProductId = e.target.value;
                       setSelectedProductId(nextProductId);
                     }}
@@ -444,16 +482,16 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                         <option key={p.id} value={p.id}>{p.name} ({p.power}W) — {formatPrice(p.price)}</option>
                       ))}
                     </select>
-                    <p className="text-[9px] text-slate-400 font-semibold pl-1">
+                    <p className="text-[9px] text-slate-600 font-semibold pl-1">
                       {selectedProduct.desc} • {t("fields.panelSize", { width: selectedProduct.width, height: selectedProduct.height })}
                       {` • ${selectedProduct.source} catalog`}
                     </p>
 
                     {/* Panel Rotation */}
                     <div className="mt-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 shrink-0">Rotation:</span>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 shrink-0">{t("fields.rotation")}:</span>
                       <div className="flex items-center gap-2 flex-1">
-                        <input type="range" min="0" max="360" step="1"
+                        <input type="range" min="0" max="360" step="1" aria-label={locale === "th" ? "การหมุนแผงโซลาร์" : "Panel rotation"}
                           value={activeRoof?.panelRotation ?? 0}
                           onChange={(e) => updateActiveRoof('panelRotation', Number(e.target.value))}
                           className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#1CBBBB]" />
@@ -478,6 +516,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                           type="text"
                           readOnly
                           value={activeRoof?.panels?.length ?? 0}
+                          aria-label={t("fields.quantity")}
                           className="text-xs font-black text-slate-900 font-mono w-8 text-center bg-transparent border-none outline-none focus:ring-0 focus:outline-none pointer-events-none"
                         />
                         <button type="button" onClick={(e) => {
@@ -494,7 +533,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                   <div className="space-y-2 pt-2 border-t border-slate-100">
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex justify-between">
                       <span>{t("fields.selectRoof")}</span>
-                      <span className="text-[#1CBBBB] lowercase">tabs</span>
+                      <span className="text-[#1CBBBB] lowercase">{t("fields.tabsLabel")}</span>
                     </label>
                     <div className="flex flex-wrap gap-1.5">
                       {roofs.map(r => (
@@ -503,7 +542,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                             r.id === activeRoofId ? "bg-[#1CBBBB]/10 text-[#1CBBBB] border-[#1CBBBB]/20 shadow-sm" : "bg-brand-surface text-slate-500 border-slate-200 hover:text-slate-700")}>
                           <span>{r.name}</span>
                           {roofs.length > 1 && (
-                            <button onClick={(e) => { e.stopPropagation(); handleDeleteRoof(r.id); }}
+                            <button type="button" aria-label={locale === "th" ? `ลบ${r.name}` : `Delete ${r.name}`} onClick={(e) => { e.stopPropagation(); handleDeleteRoof(r.id); }}
                               className="p-0.5 rounded hover:bg-slate-200 text-slate-400 hover:text-rose-500">
                               <Trash2 className="w-3 h-3 stroke-[2.5]" />
                             </button>
@@ -520,7 +559,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                   {/* Roof Name Editor */}
                   <div className="pt-2 border-t border-slate-100">
                     <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/60 rounded-xl px-3 py-2 focus-within:border-[#1CBBBB] group/title">
-                      <input type="text" value={activeRoof.name}
+                      <input type="text" aria-label={t("placeholders.roofName")} value={activeRoof.name}
                         onChange={(e) => updateRoofName(activeRoof.id, e.target.value)}
                         className="w-full text-sm font-bold text-slate-900 bg-transparent border-none outline-none"
                         placeholder={t("placeholders.roofName")} />
@@ -532,28 +571,29 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                   <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.width")} <span className="text-[#1CBBBB] font-mono">{t("units.meters", { value: activeRoof.width })}</span></label>
-                      <input type="range" min="4" max="30" step="0.5" value={activeRoof.width} onChange={(e) => updateActiveRoof('width', Number(e.target.value))}
+                      <input type="range" min="4" max="30" step="0.5" aria-label={t("fields.width")} value={activeRoof.width} onChange={(e) => updateActiveRoof('width', Number(e.target.value))}
                         className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#1CBBBB]" />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.length")} <span className="text-[#1CBBBB] font-mono">{t("units.meters", { value: activeRoof.height })}</span></label>
-                      <input type="range" min="3" max="20" step="0.5" value={activeRoof.height} onChange={(e) => updateActiveRoof('height', Number(e.target.value))}
+                      <input type="range" min="3" max="20" step="0.5" aria-label={t("fields.length")} value={activeRoof.height} onChange={(e) => updateActiveRoof('height', Number(e.target.value))}
                         className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#1CBBBB]" />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.pitch")} <span className="text-[#D8A87B] font-mono">{activeRoof.pitch}°</span></label>
-                      <input type="range" min="0" max="45" step="1" value={activeRoof.pitch} onChange={(e) => updateActiveRoof('pitch', Number(e.target.value))}
+                      <input type="range" min="0" max="45" step="1" aria-label={t("fields.pitch")} value={activeRoof.pitch} onChange={(e) => updateActiveRoof('pitch', Number(e.target.value))}
                         className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#D8A87B]" />
                     </div>
                     <div className="space-y-1.5 col-span-2">
                       <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.roofAzimuth")} <span className="text-[#D8A87B] font-mono">{activeRoof.roofOrientation}°</span></label>
                       <CompassSlider
                         value={activeRoof.roofOrientation}
+                        ariaLabel={t("fields.roofAzimuth")}
                         onChange={(val) => updateActiveRoof('roofOrientation', val)}
                       />
                     </div>
                   </div>
-                  <p className="text-[9px] text-slate-400 font-semibold pl-1 -mt-1">{getOrientationLabel(activeRoof.roofOrientation, t)}</p>
+                  <p className="text-[9px] text-slate-600 font-semibold pl-1 -mt-1">{getOrientationLabel(activeRoof.roofOrientation, t)}</p>
 
                   {/* Roof Type Selection */}
                   <div className="space-y-2 pt-2 border-t border-slate-100">
@@ -594,7 +634,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                       <span>{t("fields.setback")}</span>
                       <span className="text-[#1CBBBB] font-mono">{t("units.meters", { value: setbackMargin })}</span>
                     </label>
-                    <input type="range" min="0" max="2" step="0.1" value={setbackMargin} onChange={(e) => setSetbackMargin(Number(e.target.value))}
+                    <input type="range" min="0" max="2" step="0.1" aria-label={t("fields.setback")} value={setbackMargin} onChange={(e) => setSetbackMargin(Number(e.target.value))}
                       className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#1CBBBB]" />
                   </div>
 
@@ -635,7 +675,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                   <div className="space-y-3 pt-2 border-t border-slate-100">
                     {!financialInputsReady && (
                       <div className="p-3 rounded-xl border border-amber-100 bg-amber-50 text-amber-800">
-                        <p className="text-[10px] font-black uppercase tracking-wider">ROI locked until tariff inputs are confirmed</p>
+                        <p className="text-[10px] font-black uppercase tracking-wider">{t("warnings.roiLockedTitle")}</p>
                         <p className="text-[9px] font-semibold mt-1">{t("warnings.roiLockedDescription")}</p>
                       </div>
                     )}
@@ -644,31 +684,31 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                         <span>{t("fields.daytimeUsage")}</span>
                         <span className="text-[#1CBBBB] font-mono">{daytimeUsagePercent}%</span>
                       </div>
-                      <input type="range" min="10" max="100" step="5" value={daytimeUsagePercent} onChange={(e) => setDaytimeUsagePercent(Number(e.target.value))}
+                      <input type="range" min="10" max="100" step="5" aria-label={t("fields.daytimeUsage")} value={daytimeUsagePercent} onChange={(e) => setDaytimeUsagePercent(Number(e.target.value))}
                         className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#1CBBBB]" />
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-slate-500">
                         <span>{t("fields.monthlyBill")}</span>
-                        <span className="text-[#D8A87B] font-mono">{currencyFormatter.format(monthlyBill)}</span>
+                      <span className="text-[var(--sd-navy-900)] font-mono">{currencyFormatter.format(monthlyBill)}</span>
                       </div>
-                      <input type="range" min="1000" max="50000" step="500" value={monthlyBill} onChange={(e) => setMonthlyBill(Number(e.target.value))}
+                      <input type="range" min="1000" max="50000" step="500" aria-label={t("fields.monthlyBill")} value={monthlyBill} onChange={(e) => setMonthlyBill(Number(e.target.value))}
                         className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#D8A87B]" />
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-slate-500">
                         <span>{t("fields.electricityRate")}</span>
-                        <span className="text-[#D8A87B] font-mono">{t("units.thbPerKwh", { value: electricityRate })}</span>
+                      <span className="text-[var(--sd-navy-900)] font-mono">{t("units.thbPerKwh", { value: electricityRate })}</span>
                       </div>
-                      <input type="range" min="2" max="8" step="0.1" value={electricityRate} onChange={(e) => setElectricityRate(Number(e.target.value))}
+                      <input type="range" min="2" max="8" step="0.1" aria-label={t("fields.electricityRate")} value={electricityRate} onChange={(e) => setElectricityRate(Number(e.target.value))}
                         className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#D8A87B]" />
                     </div>
                     <button
                       type="button"
                       onClick={() => setFinancialInputsReady(true)}
-                      className="w-full py-2.5 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-colors"
-                    >
-                      Confirm Tariff Inputs
+                        className="w-full py-2.5 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-colors"
+                      >
+                      {t("actions.confirmTariff")}
                     </button>
                   </div>
                 </div>
@@ -682,11 +722,11 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.addressSearch")}</label>
                     <div className="flex gap-2">
-                      <input type="text" value={addressSearch} onChange={(e) => setAddressSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                      <input type="text" aria-label={t("fields.addressSearch")} value={addressSearch} onChange={(e) => setAddressSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         placeholder={t("placeholders.addressSearch")}
                         className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 focus:border-[#1CBBBB] rounded-xl px-3 py-2.5 outline-none" />
                       <button type="button" onClick={handleSearch}
-                        className="px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer transition-colors">Search</button>
+                        className="px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer transition-colors">{t("actions.search")}</button>
                     </div>
                   </div>
                   <ul className="text-xs text-slate-500 font-semibold space-y-1.5 list-disc pl-4 leading-relaxed">
@@ -699,14 +739,14 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                     {isAiAnalyzing ? (
                       <>
                         <GsapSpinner className="w-3.5 h-3.5" />
-                        <span>AI Sizing...</span>
+                        <span>{t("ai.sizing")}</span>
                       </>
                     ) : (
                       <>
                         <GsapPulse scale={1.08}>
                           <Sparkles className="w-3.5 h-3.5" />
                         </GsapPulse>
-                        <span>Auto-Analyze Roof (AI Vision)</span>
+                        <span>{t("ai.analyzeRoof")}</span>
                       </>
                     )}
                   </button>
@@ -716,7 +756,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         {drawnArea !== null && (
                           <div className="bg-brand-surface p-2.5 border border-slate-200 rounded-xl col-span-2">
-                            <span className="text-[8px] font-black uppercase text-slate-400 block">Manual Polygon Area</span>
+                            <span className="text-[8px] font-black uppercase text-slate-400 block">{t("ai.manualPolygonArea")}</span>
                             <span className="text-sm font-black text-slate-900 font-mono">{t("units.squareMeters", { value: drawnArea })}</span>
                           </div>
                         )}
@@ -795,6 +835,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                     max="18"
                     step="1"
                     value={shadingTimeHour}
+                    aria-label={t("fields.timeOfDay")}
                     onChange={(e) => setShadingTimeHour(Number(e.target.value))}
                     className="w-full h-2.5 rounded-full appearance-none cursor-pointer accent-orange-500 bg-slate-200"
                   />
@@ -822,6 +863,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                     max="11"
                     step="1"
                     value={shadingMonth}
+                    aria-label={t("fields.month")}
                     onChange={(e) => setShadingMonth(Number(e.target.value))}
                     className="w-full h-2.5 rounded-full appearance-none cursor-pointer accent-orange-500 bg-slate-200"
                   />
@@ -864,22 +906,22 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
               </h3>
               <button onClick={() => setStringingModeActive(!stringingModeActive)}
                 className={`w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${stringingModeActive ? "bg-amber-50 text-amber-600 border-amber-200 shadow-inner" : "bg-brand-surface text-slate-500 border-slate-200 hover:bg-slate-50"}`}>
-                {stringingModeActive ? "Stringing Mode: ON" : "Stringing Mode: OFF"}
+                {stringingModeActive ? t("electrical.stringingOn") : t("electrical.stringingOff")}
               </button>
               {stringingModeActive && (
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={() => setActiveStringId("string-a")}
                     className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-wider border ${activeStringId === "string-a" ? "bg-indigo-500 text-white border-indigo-600" : "bg-slate-50 text-slate-500 border-slate-200"}`}>
-                    String 1A (MPPT 1)
+                    {t("electrical.stringOneA")}
                   </button>
                   <button onClick={() => setActiveStringId("string-b")}
                     className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-wider border ${activeStringId === "string-b" ? "bg-emerald-500 text-white border-emerald-600" : "bg-slate-50 text-slate-500 border-slate-200"}`}>
-                    String 1B (MPPT 1)
+                    {t("electrical.stringOneB")}
                   </button>
                 </div>
               )}
               <p className="text-[9px] text-amber-600 font-bold pt-1">
-                <span className="font-black uppercase tracking-wider block">Max System Voltage: 1000V DC</span>
+                <span className="font-black uppercase tracking-wider block">{t("electrical.maxVoltage")}</span>
                 {t("help.stringing")}
               </p>
             </div>
@@ -897,27 +939,27 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
               </div>
               <div className="p-3 bg-[#1CBBBB]/5 border border-[#1CBBBB]/10 rounded-xl">
                 <p className="text-[9px] font-black uppercase tracking-widest text-[#1CBBBB]">{t("analytics.totalCapacity")}</p>
-                <p className="text-xl font-black text-slate-800 font-mono"><AnimatedNumber value={totalPowerAll / 1000} decimals={2} /> <span className="text-[10px] text-slate-500">kWp</span></p>
+                <p className="text-xl font-black text-slate-800 font-mono"><AnimatedNumber value={totalPowerAll / 1000} decimals={2} /> <span className="text-[10px] text-slate-500">{t("units.kwp")}</span></p>
               </div>
               <div className="p-3 bg-[#1CBBBB]/5 border border-[#1CBBBB]/10 rounded-xl">
                 <p className="text-[9px] font-black uppercase tracking-widest text-[#1CBBBB]">{t("analytics.monthlySavings")}</p>
-                <p className="text-xl font-black text-[#1CBBBB] font-mono">{financialInputsReady ? <AnimatedNumber value={estimatedSavingsMonthly} formatter={(amount) => formatPrice(Math.round(amount))} /> : "LOCKED"}</p>
+                <p className="text-xl font-black text-[#1CBBBB] font-mono">{financialInputsReady ? <AnimatedNumber value={estimatedSavingsMonthly} formatter={(amount) => formatPrice(Math.round(amount))} /> : t("analytics.locked")}</p>
               </div>
               <div className="p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t("analytics.paybackPeriod")}</p>
-                <p className="text-xl font-black text-[#D8A87B] font-mono">{financialInputsReady && paybackPeriodYears > 0 ? <AnimatedNumber value={paybackPeriodYears} decimals={1} suffix=" yrs" /> : "N/A"}</p>
+                <p className="text-xl font-black text-[#D8A87B] font-mono">{financialInputsReady && paybackPeriodYears > 0 ? <AnimatedNumber value={paybackPeriodYears} decimals={1} suffix={` ${t("analytics.yearShort")}`} /> : t("analytics.notAvailable")}</p>
               </div>
               <div className="p-3 bg-brand-surface border border-slate-200 rounded-xl col-span-2 grid grid-cols-3 gap-2">
                 <div>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Thailand PSH</p>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t("analytics.thailandPsh")}</p>
                   <p className="text-sm font-black text-slate-800 font-mono"><AnimatedNumber value={thailandYield.peakSunHours} decimals={2} suffix="h" /></p>
                 </div>
                 <div>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Quality Factor</p>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t("analytics.qualityFactor")}</p>
                   <p className="text-sm font-black text-slate-800 font-mono"><AnimatedNumber value={thailandYield.performanceRatio * 100} suffix="%" /></p>
                 </div>
                 <div>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Annual Yield</p>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t("analytics.annualYield")}</p>
                   <p className="text-sm font-black text-slate-800 font-mono"><AnimatedNumber value={thailandYield.annualKwh} suffix=" kWh" /></p>
                 </div>
               </div>
@@ -956,9 +998,9 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                   <Maximize2 className="w-3.5 h-3.5 text-[#1CBBBB]" size={14} />
                   {t("canvas.multiRoofPlanner")}
                 </h3>
-                <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Freeform drag-and-drop solar panel placement</p>
+                <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">{t("canvas.freeformPlacement")}</p>
               </div>
-              <span className="text-[8px] font-black uppercase tracking-widest text-white bg-[#1CBBBB] px-3 py-1.5 rounded-full shadow-sm">Live Renderer</span>
+              <span className="text-[8px] font-black uppercase tracking-widest text-white bg-[#1CBBBB] px-3 py-1.5 rounded-full shadow-sm">{t("canvas.liveRenderer")}</span>
             </div>
             <SimulatorOverlay
               activeRoof={activeRoof}
@@ -982,9 +1024,9 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                   <Layers className="w-3.5 h-3.5 text-[#1CBBBB]" size={14} />
                   {t("canvas.satellitePlanner")}
                 </h3>
-                <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Use polygon tools to trace roof boundary</p>
+                <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">{t("canvas.traceBoundary")}</p>
               </div>
-              <span className="text-[8px] font-black uppercase tracking-widest text-white bg-[#1CBBBB] px-3 py-1.5 rounded-full shadow-sm pointer-events-auto">Satellite Mode</span>
+              <span className="text-[8px] font-black uppercase tracking-widest text-white bg-[#1CBBBB] px-3 py-1.5 rounded-full shadow-sm pointer-events-auto">{t("actions.satelliteMode")}</span>
             </div>
             <div className="flex-1 w-full h-full relative z-0">
               <MapRoofSelector
@@ -1013,7 +1055,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
             <div className="absolute bottom-5 left-5 right-5 z-[400] bg-brand-surface/95 backdrop-blur-md border border-slate-200 shadow-xl rounded-2xl p-3.5 flex justify-between items-center pointer-events-auto">
               <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold">
                 <GsapPulse className="w-2.5 h-2.5 rounded-full bg-[#1CBBBB] shrink-0" scale={1.16}>
-                  <span className="sr-only">Ready</span>
+                  <span className="sr-only">{t("actions.ready")}</span>
                 </GsapPulse>
                 <span>{t("canvas.traceRoofBoundary")}</span>
               </div>

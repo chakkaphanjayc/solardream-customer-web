@@ -1,24 +1,14 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Card } from "@/components/ui/card";
 import { PageShell } from "@/components/ui/page-shell";
-
-export const metadata = {
-  title: "Insights | SolarDream",
-  description: "SolarDream notes on residential solar sizing, savings, installation, and support.",
-};
+import { BLOG_ARTICLE_DEFINITIONS } from "@/lib/blogArticles";
 
 // next-intl resolves the request-scoped message catalog here. Keep this
 // lightweight editorial index request-bound while data-backed public surfaces
 // use explicit cache helpers.
-
-type Article = Readonly<{
-  slug: string;
-  title: string;
-  date: string;
-  category: string;
-  excerpt: string;
-}>;
+export const instant = false;
 
 function formatArticleDate(value: string, locale: string) {
   return new Intl.DateTimeFormat(locale === "th" ? "th-TH" : "en-US", {
@@ -32,45 +22,31 @@ type BlogPageProps = Readonly<{
   params: Promise<{ locale: string }>;
 }>;
 
+export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "BlogPage" });
+
+  return {
+    title: t("title"),
+    description: t("metaDesc"),
+  };
+}
+
 export default async function BlogPage({ params }: BlogPageProps) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "BlogPage" });
 
-  const articles: readonly Article[] = [
-    {
-      slug: "homepage-feel-expensive",
-      title: t("articles.homepage-feel-expensive.title"),
-      date: "2026-05-14",
-      category: t("articles.homepage-feel-expensive.category"),
-      excerpt: t("articles.homepage-feel-expensive.excerpt"),
-    },
-    {
-      slug: "brand-system-vs-assets",
-      title: t("articles.brand-system-vs-assets.title"),
-      date: "2026-04-28",
-      category: t("articles.brand-system-vs-assets.category"),
-      excerpt: t("articles.brand-system-vs-assets.excerpt"),
-    },
-    {
-      slug: "pre-launch-checks",
-      title: t("articles.pre-launch-checks.title"),
-      date: "2026-03-09",
-      category: t("articles.pre-launch-checks.category"),
-      excerpt: t("articles.pre-launch-checks.excerpt"),
-    },
-    {
-      slug: "motion-that-clarifies",
-      title: t("articles.motion-that-clarifies.title"),
-      date: "2026-02-18",
-      category: t("articles.motion-that-clarifies.category"),
-      excerpt: t("articles.motion-that-clarifies.excerpt"),
-    },
-  ];
+  const articles = BLOG_ARTICLE_DEFINITIONS.map((article) => ({
+    ...article,
+    title: t(`articles.${article.slug}.title`),
+    category: t(`articles.${article.slug}.category`),
+    excerpt: t(`articles.${article.slug}.excerpt`),
+  }));
 
   return (
     <PageShell as="div" className="bg-[#F0EEE9] px-5 pb-24 pt-32 text-[#1C1C1A] sm:px-8 sm:pb-32 sm:pt-40">
       <header className="mx-auto max-w-7xl">
-        <p className="text-sm font-medium text-[#4F7FA8]">{t("subtitle")}</p>
+        <p className="text-sm font-medium text-[var(--sd-navy-900)]">{t("subtitle")}</p>
         <h1 className="mt-6 max-w-5xl text-balance text-[clamp(2.75rem,7vw,5rem)] font-bold leading-[1.02] tracking-tight text-[#1C1C1A]">
           {t("headerTitle")}
         </h1>

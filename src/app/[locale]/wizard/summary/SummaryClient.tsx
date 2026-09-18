@@ -13,6 +13,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ComponentPropsWithoutRef,
   type ReactNode,
 } from "react";
@@ -27,7 +28,6 @@ import {
   Package,
   Layers,
   Zap,
-  FileText,
   Leaf,
   Calendar,
   LogIn,
@@ -48,8 +48,6 @@ import {
   Globe,
 } from "@/components/ui/icons";
 import { toast } from "sonner";
-import LoadingProgress from "@/components/ui/loading-progress";
-import { GsapPulse } from "@/components/ui/GsapMotion";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -104,6 +102,8 @@ import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { EnergyMetricCard } from "@/components/wizard/SummaryMetrics";
 import { SolarDecisionCard } from "@/components/wizard/solar-decision-card";
 import { SolarNextSteps } from "@/components/wizard/solar-next-steps";
+import { SolarStatePanel } from "@/components/ui/solar-system";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 import type { ServiceLocation } from "@/components/services/ServiceLocationPicker";
 import type {
   WizardElectricityTariff as ElectricityTariffType,
@@ -137,7 +137,6 @@ const SolarProfileFeatureGrid = dynamic(() =>
     default: module.SolarProfileFeatureGrid,
   })),
 );
-const LeadCaptureModal = dynamic(() => import("@/components/LeadCaptureModal"));
 const ProductDetailModal = dynamic(
   () => import("@/components/wizard/ProductDetailModal"),
 );
@@ -352,20 +351,15 @@ export default function SummaryClient({
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>(() =>
     parseSolarAddonSelection(wizardAnswers.smartAddOns),
   );
-  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [selectedFinancingId, setSelectedFinancingId] = useState<string | null>(
     null,
   );
   const [downPaymentPct, setDownPaymentPct] = useState<number>(10);
   const [loanTermMonths, setLoanTermMonths] = useState<number>(60);
 
-  // Custom states for manual size simulator, tabbed financial table, and LINE modallogin simulation
+  // Custom states for manual size simulator and tabbed financial table.
   const [isManualSize, setIsManualSize] = useState(false);
   const [manualSolarKwp, setManualSolarKwp] = useState<number>(5.0);
-  const [isLineLoginModalOpen, setIsLineLoginModalOpen] = useState(false);
-  const [isMemberQuoteModalOpen, setIsMemberQuoteModalOpen] = useState(false);
-  const [isSimulatedMember, setIsSimulatedMember] = useState(false);
-  const [isPushingLine, setIsPushingLine] = useState(false);
   const [activeDashboardTab, setActiveDashboardTab] = useState<
     "package" | "energy" | "financial" | "impact"
   >("package");
@@ -389,8 +383,6 @@ export default function SummaryClient({
   const pendingDraftHandledRef = useRef(false);
   const proposalFormRef = useRef<HTMLFormElement | null>(null);
   const inquiryPanelRef = useRef<HTMLDivElement | null>(null);
-
-  const isMember = Boolean(authUser) || isSimulatedMember;
 
   const [restoredSummary, setRestoredSummary] = useState(false);
   const [hasInitializedBattery, setHasInitializedBattery] = useState(false);
@@ -461,7 +453,6 @@ export default function SummaryClient({
     : selectedBatteryAddonId
       ? Number(selectedBatteryAddonId.replace(/[^\d]/g, "")) || 5
       : 0;
-  const [, setQuoteSubmitting] = useState(false);
   const [consultationName, setConsultationName] = useState("");
   const [consultationEmail, setConsultationEmail] = useState("");
   const [consultationPhone, setConsultationPhone] = useState("");
@@ -818,8 +809,9 @@ export default function SummaryClient({
     return () => window.cancelAnimationFrame(frame);
   }, [activeAddonsCatalog, defaultBatteryKwh, hasInitializedBattery]);
 
-  const addonsTotalPrice = useMemo(() => {
+  const addonPricing = useMemo(() => {
     let total = 0;
+    let hasUnknownPrice = false;
     activeAddonsCatalog.forEach((addon) => {
       const allOptionIds = new Set<string>();
       allOptionIds.add(addon.id);
@@ -842,13 +834,23 @@ export default function SummaryClient({
         const price = matchedOpt
           ? matchedOpt.price
           : addon.optionsList[0].price;
-        total += typeof price === "number" ? price : 0;
+        if (typeof price === "number" && Number.isFinite(price)) {
+          total += price;
+        } else {
+          hasUnknownPrice = true;
+        }
       } else {
-        total += typeof addon.price === "number" ? addon.price : 0;
+        if (typeof addon.price === "number" && Number.isFinite(addon.price)) {
+          total += addon.price;
+        } else {
+          hasUnknownPrice = true;
+        }
       }
     });
-    return total;
+    return { total, hasUnknownPrice };
   }, [selectedAddonIds, activeAddonsCatalog]);
+
+  const addonsTotalPrice = addonPricing.total;
 
   const baseSunHours = BASE_PEAK_SUN_HOURS;
   const adjustedSunHours =
@@ -905,7 +907,8 @@ export default function SummaryClient({
     chartSolarKwp,
     pricingPhase,
   );
-  const isMatrixContactPrice = matrixSystemPrice === null;
+  const isMatrixContactPrice =
+    matrixSystemPrice === null || addonPricing.hasUnknownPrice;
   const totalInstallCost = isMatrixContactPrice
     ? 0
     : Math.round(matrixSystemPrice + addonsTotalPrice);
@@ -1053,6 +1056,13 @@ export default function SummaryClient({
       systemType,
     };
   }, [chartSolarKwp, systemGoal]);
+
+  const localizedTierLabel = t(`profileTiers.${selectedTier}`);
+  const localizedTierEquipment = t(`profileTierEquipment.${selectedTier}`);
+  const localizedPackageLabel = t(`systemPackages.${activeSystemPackage.sizeKwp}.label`);
+  const localizedSystemType = genericDesignProfile.systemType === "Hybrid"
+    ? t("systemTypes.hybrid")
+    : t("systemTypes.onGrid");
 
   const getBatteryModeForChart = () => {
     if (chartBatteryKwh === 0) return "self-consumption";
@@ -1588,6 +1598,8 @@ export default function SummaryClient({
   };
 
   const handleFinancialReport = async () => {
+    if (isMatrixContactPrice) return;
+
     void trackProductEvent("financial_report_requested", {
       authenticated: Boolean(authUser),
     });
@@ -1967,97 +1979,33 @@ export default function SummaryClient({
     }
   };
 
-  const handleMemberQuotation = async () => {
-    setQuoteSubmitting(true);
-    persistSummaryExport();
-    try {
-      if (!isMember) {
-        setIsLineLoginModalOpen(true);
-        return;
-      }
-
-      const erpNextPayload = {
-        doctype: "Quotation",
-        quotation_to: "Customer",
-        source: "SolarDream Wizard Summary Dashboard",
-        pricingModel: "SYSTEM_PACKAGE",
-        systemPackageId: activeSystemPackage.packageId,
-        packageItemCode: activeSystemPackage.packageId,
-        packageLabel: activeSystemPackage.label,
-        systemSizeKwp: summaryExport.summary.systemSizeKwp,
-        panelCount: summaryExport.summary.panelCount,
-        inverterSpec: genericDesignProfile.inverterProfile,
-        totalPrice: summaryExport.summary.totalPrice,
-        items: [
-          {
-            item_code: activeSystemPackage.packageId,
-            item_name: activeSystemPackage.label,
-            qty: 1,
-            rate: activeSystemPackage.standardPrice,
-            amount: activeSystemPackage.standardPrice,
-          },
-        ],
-        packageContents: activeSystemPackage.contents,
-        monthlySavings: summaryExport.summary.monthlySavings,
-        paybackPeriod: summaryExport.summary.paybackPeriod,
-        environmentalImpact: ecoImpact,
-        energySimulation: {
-          adjustedSunHours,
-          daytimeDemandKwh,
-          selfConsumedDailyKwh,
-          wastedExcessDailyKwh,
-        },
-        configurationData: summaryExport.configurationData,
-      };
-
-      await new Promise((resolve) => window.setTimeout(resolve, 900));
-      console.info(
-        "[SolarDream] Simulated ERPNext quotation payload",
-        erpNextPayload,
-      );
-      void trackProductEvent("quotation_requested", {
-        surface: "member_summary",
-        authenticated: true,
-        kw_size: chartSolarKwp,
-        proposal_tier: selectedTier,
-      });
-      toast.success("Quotation payload sent to ERPNext simulation.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to create quotation.",
-      );
-    } finally {
-      setQuoteSubmitting(false);
-    }
-  };
-
   const simulatorControls = (
     <div className="space-y-4">
       {/* Mode Switcher */}
-      <div className="flex items-center gap-1 rounded-xl border-2 border-black bg-[#F0EEE9] p-1 text-xs font-medium">
+      <div className="flex items-center gap-1 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-1 text-xs font-medium">
         <button
           type="button"
           onClick={() => setIsManualSize(false)}
           className={cn(
-            "flex-1 rounded-lg py-2 transition-all duration-200 font-extrabold cursor-pointer",
+            "min-h-10 flex-1 rounded-[var(--sd-radius-sm)] py-2 font-extrabold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-focus)] focus-visible:ring-offset-2",
             !isManualSize
-              ? "border-2 border-black bg-[#B7D1EA] text-black shadow-none"
-              : "text-slate-500 hover:text-slate-800",
+              ? "bg-[var(--sd-blue-600)] text-white shadow-[var(--sd-shadow-1)]"
+              : "text-[var(--sd-muted)] hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)]",
           )}
         >
-          Auto (อัตโนมัติ)
+          {t("autoLabel")}
         </button>
         <button
           type="button"
           onClick={() => setIsManualSize(true)}
           className={cn(
-            "flex-1 rounded-lg py-2 transition-all duration-200 font-extrabold cursor-pointer",
+            "min-h-10 flex-1 rounded-[var(--sd-radius-sm)] py-2 font-extrabold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-focus)] focus-visible:ring-offset-2",
             isManualSize
-              ? "border-2 border-black bg-[#B7D1EA] text-black shadow-none"
-              : "text-slate-500 hover:text-slate-800",
+              ? "bg-[var(--sd-blue-600)] text-white shadow-[var(--sd-shadow-1)]"
+              : "text-[var(--sd-muted)] hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)]",
           )}
         >
-          Manual (กำหนดเอง)
+          {t("manualLabel")}
         </button>
       </div>
 
@@ -2068,13 +2016,11 @@ export default function SummaryClient({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.35, ease: [0.19, 1, 0.22, 1] }}
-          className="space-y-3 rounded-xl border-2 border-black bg-[#B7D1EA]/20 p-3.5"
+          className="space-y-3 rounded-[var(--sd-radius-lg)] border border-[var(--sd-blue-600)]/20 bg-[var(--sd-selected)] p-3.5"
         >
           <LightSliderField
             label={
-              isThaiLocale
-                ? "ขนาดระบบที่ต้องการ (kWp)"
-                : "Desired System Size (kWp)"
+              t("desiredSystemSize")
             }
             display={`${manualSolarKwp.toFixed(1)} kWp`}
             min={1}
@@ -2092,12 +2038,12 @@ export default function SummaryClient({
           />
 
           {/* Polished Custom kWp Input */}
-          <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-black bg-white p-3">
+          <div className="flex items-center justify-between gap-3 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-3 shadow-[var(--sd-shadow-1)]">
             <label
               htmlFor="manual-kwp-input"
-              className="text-xs font-black text-slate-900 shrink-0"
+              className="shrink-0 text-xs font-black text-[var(--sd-ink)]"
             >
-              {isThaiLocale ? "ระบุขนาด kWp เอง:" : "Custom kWp:"}
+              {t("customSystemSize")}
             </label>
             <div className="relative max-w-[150px] flex-1">
               <input
@@ -2114,9 +2060,9 @@ export default function SummaryClient({
                     setIsManualSize(true);
                   }
                 }}
-                className="w-full rounded-xl border-2 border-black bg-white px-3 py-1.5 text-xs font-black text-slate-950 outline-none transition-all focus:border-[#7CA8D0] focus:ring-2 focus:ring-[#B7D1EA] shadow-none"
+                className="min-h-11 w-full rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-3 py-1.5 text-xs font-black text-[var(--sd-ink)] outline-none transition-all focus:border-[var(--sd-focus)] focus:ring-2 focus:ring-[var(--sd-focus)]/20"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-500 pointer-events-none">
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black text-[var(--sd-muted)]">
                 kWp
               </span>
             </div>
@@ -2127,7 +2073,7 @@ export default function SummaryClient({
       {/* Auto/Manual Shared Sliders */}
       <div className="grid gap-3.5">
         <LightSliderField
-          label={isThaiLocale ? "ค่าไฟต่อเดือน" : "Monthly Bill"}
+          label={t("quickAdjust.monthlyBill")}
           display={formatCurrency(monthlyBill)}
           min={Math.min(100, Math.floor(monthlyBill))}
           max={50000}
@@ -2140,7 +2086,7 @@ export default function SummaryClient({
           maxLabel={formatCurrency(50000)}
         />
         <LightSliderField
-          label={isThaiLocale ? "ใช้ไฟช่วงกลางวัน" : "Daytime Usage"}
+          label={t("quickAdjust.daytimeUsage")}
           display={`${daytimeUsagePct}%`}
           min={10}
           max={100}
@@ -2157,15 +2103,13 @@ export default function SummaryClient({
         />
 
         {/* Upgraded Intuitive Future Load Expansion */}
-        <div className="space-y-2.5 rounded-xl border-2 border-black bg-[#F0EEE9] p-3.5">
+        <div className="space-y-2.5 rounded-[var(--sd-radius-lg)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-3.5 shadow-[var(--sd-shadow-1)]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-slate-900">
-              {isThaiLocale
-                ? "โหลดเพิ่มในอนาคต (เครื่องใช้ไฟฟ้า)"
-                : "Future Load Expansion"}
+            <span className="text-xs font-black text-[var(--sd-ink)]">
+              {t("quickAdjust.futureLoadExpansion")}
             </span>
-            <span className="text-xs font-black text-[#4F7FA8]">
-              +{formatNumber(futureLoad)} kWh/mo
+            <span className="text-xs font-black text-[var(--sd-blue-600)]">
+              {t("quickAdjust.futureLoadMonthlyDisplay", { value: formatNumber(futureLoad) })}
             </span>
           </div>
 
@@ -2204,10 +2148,10 @@ export default function SummaryClient({
                   type="button"
                   onClick={() => updateDynamicState("futureLoad", chip.value)}
                   className={cn(
-                    "flex flex-col items-center justify-center rounded-xl p-2 text-center transition-all duration-200 cursor-pointer border",
+                    "flex min-h-16 flex-col items-center justify-center rounded-[var(--sd-radius-md)] border p-2 text-center transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-focus)] focus-visible:ring-offset-2",
                     isSelected
-                      ? "border-2 border-black bg-[#B7D1EA] text-black shadow-none"
-                      : "border-2 border-black bg-white text-slate-700 hover:bg-[#A5C2DE]/25",
+                      ? "border-[var(--sd-blue-600)] bg-[var(--sd-blue-600)] text-white shadow-[var(--sd-shadow-1)]"
+                      : "border-[var(--sd-line)] bg-[var(--sd-raised)] text-[var(--sd-text)] hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)]",
                   )}
                 >
                   <div className="flex items-center justify-center h-5 w-5 mb-0.5">
@@ -2219,7 +2163,7 @@ export default function SummaryClient({
                   <span
                     className={cn(
                       "mt-0.5 text-[9px] font-bold",
-                      isSelected ? "text-[#1C1C1A]" : "text-slate-500",
+                      isSelected ? "text-white/85" : "text-[var(--sd-muted)]",
                     )}
                   >
                     {chip.value > 0 ? `+${chip.value} kWh` : "0 kWh"}
@@ -2232,11 +2176,7 @@ export default function SummaryClient({
           {/* Fine-tuning GsapSlider */}
           <div className="pt-1">
             <LightSliderField
-              label={
-                isThaiLocale
-                  ? "ปรับขนาดละเอียด (kWh/เดือน)"
-                  : "Fine-tune (kWh/mo)"
-              }
+              label={t("quickAdjust.fineTuneLoad")}
               display={`${formatNumber(futureLoad)} kWh`}
               min={0}
               max={1500}
@@ -2280,41 +2220,35 @@ export default function SummaryClient({
           ))}
         </PremiumSelect>
         <div>
-          <p className="mb-2 text-xs font-black text-slate-900">System Goal</p>
-          <div className="flex items-center gap-1 rounded-xl border-2 border-black bg-[#F0EEE9] p-1">
+          <p className="mb-2 text-xs font-black text-[var(--sd-ink)]">{t("systemGoalLabel")}</p>
+          <div className="flex items-center gap-1 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-1">
             {[
-              { key: "roi_max", label: "ROI" },
-              { key: "hybrid", label: "Hybrid" },
-              { key: "offgrid", label: "Backup" },
+              { key: "roi_max", label: t("systemGoal.roiMaxLabel") },
+              { key: "hybrid", label: t("systemGoal.hybridLabel") },
+              { key: "offgrid", label: t("systemGoal.offgridLabel") },
             ].map((option) => (
               <button
                 key={option.key}
                 type="button"
                 onClick={() => updateDynamicState("systemGoal", option.key)}
                 className={cn(
-                  "flex-1 rounded-lg px-3 py-2 text-xs font-black transition-all duration-200 cursor-pointer",
+                  "flex-1 rounded-[var(--sd-radius-sm)] px-3 py-2 text-xs font-black transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-focus)] focus-visible:ring-offset-2",
                   systemGoal === option.key
-                    ? "border-2 border-black bg-[#B7D1EA] text-black shadow-none"
-                    : "text-slate-500 hover:text-slate-800",
+                    ? "bg-[var(--sd-blue-600)] text-white shadow-[var(--sd-shadow-1)]"
+                    : "text-[var(--sd-muted)] hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)]",
                 )}
               >
                 {option.label}
               </button>
             ))}
           </div>
-          <p className="mt-1.5 text-[10px] font-bold text-slate-500 leading-relaxed">
+          <p className="mt-1.5 text-[10px] font-bold leading-relaxed text-[var(--sd-muted)]">
             {systemGoal === "roi_max" &&
-              (isThaiLocale
-                ? "เน้นการคืนทุนและประหยัดสูงสุด"
-                : "Maximum ROI & fastest payback")}
+              t("systemGoal.roiMaxHelper")}
             {systemGoal === "hybrid" &&
-              (isThaiLocale
-                ? "สมดุลพลังงานประหยัดและสำรองไฟ"
-                : "Balanced savings & backup capability")}
+              t("systemGoal.hybridHelper")}
             {systemGoal === "offgrid" &&
-              (isThaiLocale
-                ? "สำรองไฟเมื่อเกิดเหตุไฟฟ้าดับ"
-                : "Full backup power during grid outage")}
+              t("systemGoal.offgridHelper")}
           </p>
         </div>
       </div>
@@ -2322,12 +2256,10 @@ export default function SummaryClient({
   );
 
   const addonControls = (
-    <section className="border-t-2 border-black pt-4">
+    <section className="border-t border-[var(--sd-line)] pt-4">
       <div className="mb-3 flex items-center gap-2">
-        <Wrench className="size-4 text-[#4F7FA8]" aria-hidden="true" />
-        <h3 className="text-sm font-black text-black">
-          {isThaiLocale ? "อุปกรณ์เสริม" : "Add-ons"}
-        </h3>
+        <Wrench className="size-4 text-[var(--sd-blue-600)]" aria-hidden="true" />
+        <h3 className="text-sm font-black text-[var(--sd-ink)]">{t("quickAdjust.addonsTitle")}</h3>
       </div>
       <div className="space-y-2.5">
         {activeAddonsCatalog
@@ -2353,14 +2285,17 @@ export default function SummaryClient({
                     activeOptId === `${addon.id}_${option.id}`,
                 ) ?? addon.optionsList?.[0])
               : null;
-            const addonPrice =
+            const addonPrice: number | null =
               isSelected && activeSubOpt
                 ? activeSubOpt.price
                 : hasSubOptions && addon.optionsList?.[0]
                   ? addon.optionsList[0].price
                   : typeof addon.price === "number"
                     ? addon.price
-                    : 0;
+                    : null;
+            const addonLabel = addon.id === "battery-storage"
+              ? t("addons.batteryStorage")
+              : addon.shortLabel || addon.name;
 
             const handleToggle = () => {
               setSelectedAddonIds((current) => {
@@ -2379,8 +2314,10 @@ export default function SummaryClient({
               <div
                 key={addon.id}
                 className={cn(
-                  "border-2 border-black bg-white p-3",
-                  isSelected && "bg-[#B7D1EA]/35",
+                  "rounded-[var(--sd-radius-md)] border bg-[var(--sd-raised)] p-3 transition-colors",
+                  isSelected
+                    ? "border-[var(--sd-blue-600)] bg-[var(--sd-selected)]"
+                    : "border-[var(--sd-line)] hover:border-[var(--sd-blue-600)]",
                 )}
               >
                 <label className="flex cursor-pointer items-start gap-3">
@@ -2388,15 +2325,17 @@ export default function SummaryClient({
                     type="checkbox"
                     checked={isSelected}
                     onChange={handleToggle}
-                    aria-label={addon.shortLabel || addon.name}
-                    className="mt-0.5 size-4 shrink-0 cursor-pointer accent-black"
+                    aria-label={addonLabel}
+                    className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[var(--sd-blue-600)] focus-visible:ring-2 focus-visible:ring-[var(--sd-focus)]"
                   />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-xs font-black text-slate-950">
-                      {addon.shortLabel || addon.name}
+                    <span className="block truncate text-xs font-black text-[var(--sd-ink)]">
+                      {addonLabel}
                     </span>
-                    <span className="mt-0.5 block text-[10px] font-bold text-slate-600">
-                      +{formatCurrency(addonPrice)}
+                    <span className="mt-0.5 block text-[10px] font-bold text-[var(--sd-blue-600)]">
+                      {addonPrice === null
+                        ? t("addons.priceOnRequest")
+                        : `+${formatCurrency(addonPrice)}`}
                     </span>
                   </span>
                 </label>
@@ -2411,16 +2350,17 @@ export default function SummaryClient({
                         nextId,
                       ]);
                     }}
-                    aria-label={
-                      isThaiLocale
-                        ? "เลือกสเปกอุปกรณ์เสริม"
-                        : "Select add-on option"
-                    }
-                    className="mt-3 min-h-11 w-full border-2 border-black bg-white px-2.5 py-2 text-xs font-black text-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-[#B7D1EA]"
+                    aria-label={t("quickAdjust.selectAddonOption")}
+                    className="mt-3 min-h-11 w-full rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-2.5 py-2 text-xs font-black text-[var(--sd-ink)] outline-none focus-visible:border-[var(--sd-focus)] focus-visible:ring-2 focus-visible:ring-[var(--sd-focus)]/20"
                   >
                     {addon.optionsList.map((option) => (
                       <option key={option.id} value={option.id}>
-                        {option.label} (+{formatCurrency(option.price)})
+                        {option.label} ({
+                          typeof option.price === "number" &&
+                          Number.isFinite(option.price)
+                            ? `+${formatCurrency(option.price)}`
+                            : t("addons.priceOnRequest")
+                        })
                       </option>
                     ))}
                   </select>
@@ -2433,10 +2373,10 @@ export default function SummaryClient({
   );
 
   const breakdownStats = (
-    <section className="border-t-2 border-black pt-3">
+    <section className="border-t border-[var(--sd-line)] pt-4">
       <div className="mb-2.5 flex items-center gap-2">
-        <Leaf className="size-4 text-[#4F7FA8]" aria-hidden="true" />
-        <h3 className="text-sm font-black text-black">
+        <Leaf className="size-4 text-[var(--sd-blue-600)]" aria-hidden="true" />
+        <h3 className="text-sm font-black text-[var(--sd-ink)]">
           {isThaiLocale
             ? "ข้อมูลระบบและสิ่งแวดล้อม"
             : "System + environmental stats"}
@@ -2444,21 +2384,21 @@ export default function SummaryClient({
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <BreakdownStat
-          label="System size"
+          label={t("summaryStats.systemSize")}
           value={
             <AnimatedNumber value={chartSolarKwp} decimals={2} suffix=" kWp" />
           }
         />
         <BreakdownStat
-          label="Panels"
-          value={`${bomSpecs.panelCount || Math.ceil((chartSolarKwp * 1000) / 550)} units`}
+          label={t("summaryStats.panels")}
+          value={`${bomSpecs.panelCount || Math.ceil((chartSolarKwp * 1000) / 550)} ${t("summaryStats.panelsUnit")}`}
         />
         <BreakdownStat
-          label="Battery"
+          label={t("summaryStats.battery")}
           value={`${chartBatteryKwh.toFixed(1)} kWh`}
         />
         <BreakdownStat
-          label="CO₂ avoided / yr"
+          label={t("summaryStats.co2AvoidedPerYear")}
           value={
             <AnimatedNumber
               value={ecoImpact.co2TonsPerYear}
@@ -2469,18 +2409,18 @@ export default function SummaryClient({
           accent
         />
         <BreakdownStat
-          label="Tree equivalent / yr"
+          label={t("summaryStats.treeEquivalentPerYear")}
           value={
             <AnimatedNumber
               value={ecoImpact.treeEquivalent}
               decimals={0}
-              suffix=" trees"
+              suffix={` ${t("summaryStats.treeUnit")}`}
             />
           }
           accent
         />
         <BreakdownStat
-          label="Driving avoided"
+          label={t("summaryStats.drivingAvoided")}
           value={
             <AnimatedNumber
               value={ecoImpact.carDistanceAvoidedKm}
@@ -2491,13 +2431,13 @@ export default function SummaryClient({
           accent
         />
         <BreakdownStat
-          label="Payback"
+          label={t("summaryStats.payback")}
           value={
             paybackPeriodYears > 0 ? (
               <AnimatedNumber
                 value={paybackPeriodYears}
                 decimals={1}
-                suffix=" yrs"
+                suffix={` ${t("summaryStats.yearsShort")}`}
               />
             ) : (
               "—"
@@ -2505,7 +2445,7 @@ export default function SummaryClient({
           }
         />
         <BreakdownStat
-          label="Monthly savings"
+          label={t("summaryStats.monthlySavings")}
           value={formatCurrency(Math.round(estimatedSavingsMonthly))}
           accent
         />
@@ -2514,10 +2454,10 @@ export default function SummaryClient({
   );
 
   const breakdownHardware = (
-    <section className="border-t-2 border-black pt-3">
+    <section className="border-t border-[var(--sd-line)] pt-4">
       <div className="mb-2.5 flex items-center gap-2">
-        <Package className="size-4 text-[#4F7FA8]" aria-hidden="true" />
-        <h3 className="text-sm font-black text-black">
+        <Package className="size-4 text-[var(--sd-blue-600)]" aria-hidden="true" />
+        <h3 className="text-sm font-black text-[var(--sd-ink)]">
           {isThaiLocale ? "สเปกฮาร์ดแวร์" : "Hardware specs"}
         </h3>
       </div>
@@ -2526,14 +2466,33 @@ export default function SummaryClient({
   );
 
   const requestQuoteLabel = isThaiLocale ? "ขอใบเสนอราคา" : "Request Quote";
-  const summaryPanelTitle = `SolarDream ${formatNumber(chartSolarKwp)}kW ${selectedTierConfig.label} Package`;
+  const summaryPanelTitle = t("packageTitle", {
+    size: formatNumber(chartSolarKwp),
+    tier: localizedTierLabel,
+  });
 
   if (!mounted) {
     return (
-      <div className="solar-summary-loading mx-auto flex min-h-[min(70dvh,40rem)] w-full max-w-7xl items-center justify-center px-4 py-12 sm:px-6 md:px-12">
-        <div className="solar-summary-loading-panel w-full max-w-sm" role="status" aria-live="polite">
-          <LoadingProgress mode="route" />
-        </div>
+      <div className="mx-auto flex min-h-[min(70dvh,40rem)] w-full max-w-7xl items-center justify-center px-4 py-12 sm:px-6 md:px-12">
+      <SolarStatePanel
+        kind="loading"
+        headingLevel={1}
+        title={
+          isThaiLocale
+            ? "กำลังเตรียมสรุประบบของคุณ"
+              : "Preparing your solar summary"
+          }
+          description={
+            isThaiLocale
+              ? "กำลังคำนวณข้อมูลจากคำตอบและจัดลำดับตัวเลขสำคัญให้คุณตรวจสอบ"
+              : "We’re calculating your recommendation and arranging the key numbers for review."
+          }
+          soliaAlt={
+            isThaiLocale
+              ? "Solia กำลังเตรียมสรุประบบโซลาร์"
+              : "Solia preparing your solar system summary"
+          }
+        />
       </div>
     );
   }
@@ -2545,7 +2504,7 @@ export default function SummaryClient({
       className="wizard-manga solar-summary min-h-dvh"
     >
       <div className="grid w-full grid-cols-1 lg:grid-cols-[minmax(0,7fr)_minmax(19rem,3fr)] lg:items-start lg:gap-7">
-        <main className="order-last min-w-0 lg:order-first">
+        <div className="order-last min-w-0 lg:order-first">
           <div className="sd-safe-pb-46-add mx-auto flex w-full min-w-0 max-w-none flex-col p-3.5 sm:p-4 md:p-6 lg:pb-14">
             {/* Header Ribbon */}
             <div
@@ -2581,11 +2540,11 @@ export default function SummaryClient({
                           {isThaiLocale ? "ประมาณการสด" : "Live Estimate"}
                         </span>
                       </div>
-                      <h2 className="font-serif text-lg font-bold leading-tight tracking-tight text-[#1C1C1A] sm:text-2xl lg:text-3xl">
+                      <h1 className="font-serif text-lg font-bold leading-tight tracking-tight text-[#1C1C1A] sm:text-2xl lg:text-3xl">
                         {isThaiLocale
                           ? "แผนพลังงานสำหรับบ้านของคุณพร้อมแล้ว"
                           : "Your home energy plan is ready"}
-                      </h2>
+                      </h1>
                       <p className="mt-1.5 max-w-3xl text-xs font-medium leading-relaxed text-[#4E4B44] sm:text-sm">
                         {isThaiLocale
                           ? "ระบบที่แนะนำประมาณ "
@@ -2675,7 +2634,7 @@ export default function SummaryClient({
                           ? "ข้อแนะนำสำหรับบ้านของคุณ"
                           : "Recommended for your home"
                       }
-                      title={activeSystemPackage.label}
+                      title={localizedPackageLabel}
                       description={
                         isThaiLocale
                           ? "คำนวณจากค่าไฟ พฤติกรรมการใช้ไฟ และข้อมูลหลังคาของคุณ เพื่อเป็นจุดเริ่มต้นสำหรับการตรวจสอบหน้างาน"
@@ -2743,14 +2702,14 @@ export default function SummaryClient({
                       includedItems={
                         isThaiLocale
                           ? [
-                              `${formatNumber(estimatedPanelCount)} แผงประสิทธิภาพสูง`,
-                              `${genericDesignProfile.systemType} inverter profile`,
-                              "โครงสร้างยึดจับและการตรวจสอบหน้างาน",
+                              t("included.highEfficiencyPanels", { count: formatNumber(estimatedPanelCount) }),
+                              t("included.inverterProfile", { type: localizedSystemType }),
+                              t("included.roofMounting"),
                             ]
                           : [
-                              `${formatNumber(estimatedPanelCount)} high-efficiency panels`,
-                              `${genericDesignProfile.systemType} inverter profile`,
-                              "Roof mounting and site-review allowance",
+                              t("included.highEfficiencyPanels", { count: formatNumber(estimatedPanelCount) }),
+                              t("included.inverterProfile", { type: localizedSystemType }),
+                              t("included.roofMounting"),
                             ]
                       }
                       primaryLabel={requestQuoteLabel}
@@ -2789,17 +2748,14 @@ export default function SummaryClient({
                                         : "Technical Overview & Hardware"}
                                     </span>
                                     <h3 className="mt-1 text-2xl font-black tracking-tight text-[#000] sm:text-3xl">
-                                      {activeSystemPackage.label}
+                                      {localizedPackageLabel}
                                     </h3>
                                     <p className="mt-1 text-sm font-semibold leading-relaxed text-[#000]/70">
                                       {t("bentoDesc")}
                                     </p>
                                   </div>
                                   <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-[#000]">
-                                    {formatNumber(
-                                      genericDesignProfile.systemWatts,
-                                    )}{" "}
-                                    W profile
+                                    {t("wattProfile", { watts: formatNumber(genericDesignProfile.systemWatts) })}
                                   </span>
                                 </div>
 
@@ -2828,14 +2784,10 @@ export default function SummaryClient({
                                     <Zap className="h-5 w-5 shrink-0 text-[#4F7FA8] mt-0.5" />
                                     <div>
                                       <span className="font-extrabold block text-sm">
-                                        {isThaiLocale
-                                          ? `ระบบขนาดใหญ่พิเศษ (${chartSolarKwp.toFixed(1)} kWp) — ติดต่อเราเพื่อขอใบเสนอราคาเฉพาะ`
-                                          : `Custom Enterprise System (${chartSolarKwp.toFixed(1)} kWp) — Contact Us for Quote`}
+                                        {t("enterpriseSystemTitle", { kwp: chartSolarKwp.toFixed(1) })}
                                       </span>
                                       <p className="mt-1 text-slate-700 leading-5">
-                                        {isThaiLocale
-                                          ? `เนื่องจากระบบขนาด ${chartSolarKwp.toFixed(1)} kWp จัดเป็นขนาดอาคารธุรกิจ/โรงงานอุตสาหกรรม เกินตารางราคาสำเร็จรูปมาตรฐาน กรุณากดปุ่มขอใบเสนอราคา ทีมวิศวกร SolarDream จะติดต่อกลับพร้อมแบบ Single Line Diagram และใบเสนอราคาพิเศษ`
-                                          : `System size ${chartSolarKwp.toFixed(1)} kWp is designed for commercial or industrial facilities, exceeding standard pricing matrices. Request a quote below for custom engineering and enterprise pricing.`}
+                                        {t("enterpriseSystemDescription", { kwp: chartSolarKwp.toFixed(1) })}
                                       </p>
                                     </div>
                                   </div>
@@ -2846,7 +2798,7 @@ export default function SummaryClient({
                               <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                                 <div className="rounded-lg border-2 border-black bg-white p-3">
                                   <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                                    Payback
+                                    {t("paybackLabel")}
                                   </p>
                                   <p className="mt-1 text-xl font-black text-slate-900">
                                     {paybackPeriodYears > 0 ? (
@@ -2862,7 +2814,7 @@ export default function SummaryClient({
                                 </div>
                                 <div className="rounded-lg border-2 border-black bg-white p-3">
                                   <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                                    Roof Setup
+                                    {t("roofSetupLabel")}
                                   </p>
                                   <p className="mt-1 text-xl font-black text-slate-900">
                                     {`${roofFacingOption.degrees}° · ${roofTiltOption.degrees}°`}
@@ -2870,7 +2822,7 @@ export default function SummaryClient({
                                 </div>
                                 <div className="rounded-lg border-2 border-black bg-white p-3">
                                   <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                                    Daytime
+                                    {t("daytimeLabel")}
                                   </p>
                                   <p className="mt-1 text-xl font-black text-slate-900">
                                     <AnimatedNumber
@@ -2882,7 +2834,7 @@ export default function SummaryClient({
                                 </div>
                                 <div className="rounded-lg border-2 border-black bg-white p-3">
                                   <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                                    Excess
+                                    {t("excessLabel")}
                                   </p>
                                   <p className="mt-1 text-xl font-black text-slate-900">
                                     <AnimatedNumber
@@ -2904,12 +2856,10 @@ export default function SummaryClient({
                                   </div>
                                   <div>
                                     <h4 className="text-base font-black text-[#000]">
-                                      {locale === "th"
-                                        ? "ผลกระทบต่อสิ่งแวดล้อม 25 ปี"
-                                        : "25-Year Clean Impact"}
+                                      {t("environmentalImpact25")}
                                     </h4>
                                     <p className="text-xs font-semibold text-slate-500">
-                                      Environmental & Financial Indexes
+                                      {t("environmentalIndexes")}
                                     </p>
                                   </div>
                                 </div>
@@ -2940,7 +2890,7 @@ export default function SummaryClient({
                                       <AnimatedNumber
                                         value={ecoImpact.treeEquivalent}
                                         decimals={0}
-                                        suffix=" trees"
+                                        suffix={` ${t("summaryStats.treeUnit")}`}
                                       />
                                     </span>
                                   </div>
@@ -3056,11 +3006,16 @@ export default function SummaryClient({
 
                       {activeDashboardTab === "financial" && (
                         <div className="space-y-4">
-                          <div className="flex justify-end">
+                          <div className="flex flex-col items-stretch gap-2 sm:items-end">
                             <button
                               type="button"
                               onClick={handleFinancialReport}
-                              disabled={reportDownloading}
+                              disabled={reportDownloading || isMatrixContactPrice}
+                              aria-describedby={
+                                isMatrixContactPrice
+                                  ? "summary-financial-report-note"
+                                  : undefined
+                              }
                               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-white px-4 py-3 text-xs font-black text-slate-800 transition-colors hover:bg-[#A5C2DE] disabled:cursor-wait disabled:opacity-60 sm:w-auto"
                             >
                               <Download className="h-4 w-4" />
@@ -3071,10 +3026,24 @@ export default function SummaryClient({
                                 ? isThaiLocale
                                   ? "กำลังเตรียมรายงาน..."
                                   : "Preparing report..."
+                                : isMatrixContactPrice
+                                  ? isThaiLocale
+                                    ? "รายงานพร้อมหลังยืนยันราคา"
+                                    : "Report available after pricing review"
                                 : isThaiLocale
                                   ? "ดาวน์โหลดรายงานการเงินฉบับเต็ม 25 ปี (PDF)"
                                   : "Download Complete 25-Year Financial PDF Report"}
                             </button>
+                            {isMatrixContactPrice ? (
+                              <p
+                                id="summary-financial-report-note"
+                                className="max-w-md text-right text-xs font-semibold leading-5 text-[var(--sd-muted)]"
+                              >
+                                {isThaiLocale
+                                  ? "รายงานการเงินฉบับเต็มจะสร้างได้หลังทีมวิศวกรยืนยันราคาและเงื่อนไขหน้างาน"
+                                  : "The full financial report becomes available after engineering confirms the project price and site conditions."}
+                              </p>
+                            ) : null}
                           </div>
                           {isMatrixContactPrice ? (
                             <SolarCard className="p-4">
@@ -3083,12 +3052,10 @@ export default function SummaryClient({
                                   {t("customPricingRequired")}
                                 </p>
                                 <h3 className="mt-3 text-xl font-black tracking-[-0.025em] text-[#000] sm:text-2xl sm:tracking-[-0.03em]">
-                                  ติดต่อสอบถามเพิ่มเติม
+                                  {t("customPricingTitle")}
                                 </h3>
                                 <p className="mt-3 text-sm font-semibold leading-7 text-[#000]/65">
-                                  ขนาดระบบหรือเฟสไฟนี้อยู่นอกตารางราคาเริ่มต้น
-                                  ทีมวิศวกรจะช่วยประเมินราคา ค่างวด
-                                  และระยะเวลาคืนทุนหลังตรวจสอบรายละเอียดหน้างานค่ะ
+                                  {t("customPricingDescription")}
                                 </p>
                               </div>
                             </SolarCard>
@@ -3097,11 +3064,10 @@ export default function SummaryClient({
                               <SolarCard className="wizard-ui-section space-y-6 p-5 md:p-6">
                                 <div className="flex flex-col gap-1 border-b border-neutral-100 pb-3">
                                   <h3 className="text-base font-black tracking-tight text-[#000] sm:text-lg">
-                                    Solar Financing Simulator
+                                    {t("solarFinancingSimulator")}
                                   </h3>
                                   <p className="text-xs font-semibold text-[#000]/60">
-                                    Interactive tool to compare cash purchase
-                                    and bank loan options.
+                                    {t("solarFinancingDescription")}
                                   </p>
                                 </div>
 
@@ -3111,7 +3077,7 @@ export default function SummaryClient({
                                     {/* Segmented Control Switcher */}
                                     <div className="space-y-2">
                                       <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-                                        โหมดการชำระเงิน (Payment Mode)
+                                        {t("paymentMode")}
                                       </label>
                                       <div className="flex items-center gap-1 rounded-xl border-2 border-black bg-[#F0EEE9] p-1 text-xs font-medium">
                                         <button
@@ -3126,7 +3092,7 @@ export default function SummaryClient({
                                               : "text-neutral-500 hover:text-neutral-700",
                                           )}
                                         >
-                                          Cash (ซื้อสด)
+                                          {t("cashOption")}
                                         </button>
                                         <button
                                           type="button"
@@ -3151,7 +3117,7 @@ export default function SummaryClient({
                                               : "text-neutral-500 hover:text-neutral-700",
                                           )}
                                         >
-                                          Loan (จัดไฟแนนซ์)
+                                          {t("loanOption")}
                                         </button>
                                       </div>
                                     </div>
@@ -3162,8 +3128,8 @@ export default function SummaryClient({
                                         {/* Down Payment Slider */}
                                         <div className="space-y-1.5">
                                           <div className="flex items-center justify-between text-xs font-medium text-slate-500">
-                                            <span>
-                                              เงินดาวน์ (Down Payment)
+                                            <span id="summary-down-payment-label">
+                                              {t("downPayment")}
                                             </span>
                                             <span className="font-bold text-slate-900">
                                               {downPaymentPct}% (
@@ -3180,6 +3146,8 @@ export default function SummaryClient({
                                             max={80}
                                             step={5}
                                             value={downPaymentPct}
+                                            aria-labelledby="summary-down-payment-label"
+                                            aria-valuetext={`${downPaymentPct}%`}
                                             onChange={(e) =>
                                               setDownPaymentPct(
                                                 Number(e.target.value),
@@ -3196,8 +3164,8 @@ export default function SummaryClient({
                                         {/* Loan Duration Slider */}
                                         <div className="space-y-1.5">
                                           <div className="flex items-center justify-between text-xs font-medium text-slate-500">
-                                            <span>
-                                              ระยะเวลาผ่อนกู้ (Loan Duration)
+                                            <span id="summary-loan-duration-label">
+                                              {t("loanDuration")}
                                             </span>
                                             <span className="font-bold text-slate-900">
                                               {Math.round(loanTermMonths / 12)}{" "}
@@ -3210,6 +3178,8 @@ export default function SummaryClient({
                                             max={120}
                                             step={12}
                                             value={loanTermMonths}
+                                            aria-labelledby="summary-loan-duration-label"
+                                            aria-valuetext={`${Math.round(loanTermMonths / 12)} ปี`}
                                             onChange={(e) =>
                                               setLoanTermMonths(
                                                 Number(e.target.value),
@@ -3243,12 +3213,12 @@ export default function SummaryClient({
                                           {/* Solar Monthly Bill Reduction */}
                                           <div className="flex w-full min-w-0 flex-col justify-between">
                                             <span className="text-[10px] font-semibold text-slate-500 leading-tight">
-                                              Solar Savings
+                                              {t("solarSavings")}
                                             </span>
                                             <span className="mt-1 text-sm sm:text-base font-black text-slate-900 leading-tight">
                                               {formatCurrency(savingsMonthly)}
                                               <span className="text-[9px] font-medium text-slate-400 block sm:inline sm:ml-0.5">
-                                                / mo
+                                                {t("monthlyUnit")}
                                               </span>
                                             </span>
                                           </div>
@@ -3256,12 +3226,12 @@ export default function SummaryClient({
                                           {/* Bank Loan Installment */}
                                           <div className="flex w-full min-w-0 flex-col justify-between lg:border-l lg:border-slate-200/60 lg:pl-2.5">
                                             <span className="text-[10px] font-semibold text-slate-500 leading-tight">
-                                              Loan Installment
+                                              {t("loanInstallment")}
                                             </span>
                                             <span className="mt-1 text-sm sm:text-base font-black text-slate-950 leading-tight">
                                               {formatCurrency(loanInstallment)}
                                               <span className="text-[9px] font-medium text-slate-400 block sm:inline sm:ml-0.5">
-                                                / mo
+                                                {t("monthlyUnit")}
                                               </span>
                                             </span>
                                           </div>
@@ -3277,8 +3247,8 @@ export default function SummaryClient({
                                           >
                                             <span className="text-[10px] font-bold text-slate-500 leading-tight">
                                               {isNetBenefit
-                                                ? "Net Saving"
-                                                : "Net Expense"}
+                                                ? t("netSaving")
+                                                : t("netExpense")}
                                             </span>
                                             <span
                                               className={cn(
@@ -3292,7 +3262,7 @@ export default function SummaryClient({
                                                 Math.abs(netOutofPocket),
                                               )}
                                               <span className="text-[9px] font-medium text-slate-400 block sm:inline sm:ml-0.5">
-                                                / mo
+                                                {t("monthlyUnit")}
                                               </span>
                                             </span>
                                           </div>
@@ -3698,6 +3668,11 @@ export default function SummaryClient({
                                         breakevenYear={
                                           cashFlow10Years.breakevenYear
                                         }
+                                        ariaLabel={
+                                          isThaiLocale
+                                            ? "กราฟกระแสเงินสดสะสม 25 ปี เปรียบเทียบเงินประหยัดกับยอดชำระ"
+                                            : "25-year cumulative cash flow chart comparing savings and payments"
+                                        }
                                         formatCurrency={formatCurrency}
                                         formatCompactCurrency={
                                           formatCompactCurrency
@@ -3708,15 +3683,15 @@ export default function SummaryClient({
                                 </div>
                                 <div className="mt-4 grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-3">
                                   <ForecastCard
-                                    label="Payoff Year"
+                                    label={t("payoffYear")}
                                     value={
                                       cashFlow10Years.breakevenYear !== null
-                                        ? `${cashFlow10Years.breakevenYear} Years`
-                                        : "Over 25 Years"
+                                        ? t("yearsValue", { count: cashFlow10Years.breakevenYear })
+                                        : t("over25Years")
                                     }
                                   />
                                   <ForecastCard
-                                    label="Net 25-Yr Lifecycle Benefit"
+                                    label={t("netLifecycleBenefit")}
                                     value={formatCurrency(
                                       cashFlowChartData[
                                         cashFlowChartData.length - 1
@@ -3731,27 +3706,41 @@ export default function SummaryClient({
                                     )}
                                   />
                                 </div>
-                                <div className="mt-4 w-full min-w-0 max-w-full touch-pan-x overflow-x-auto overscroll-x-contain rounded-xl border-2 border-black [scrollbar-width:thin]">
+                                <div
+                                  className="mt-4 w-full min-w-0 max-w-full touch-pan-x overflow-x-auto overscroll-x-contain rounded-xl border-2 border-black [scrollbar-width:thin]"
+                                  tabIndex={0}
+                                  role="region"
+                                  aria-label={
+                                    isThaiLocale
+                                      ? "เลื่อนดูตารางประมาณการกระแสเงินสด"
+                                      : "Scrollable cash flow forecast table"
+                                  }
+                                >
                                   <table className="w-full min-w-[760px] border-collapse text-left">
+                                    <caption className="sr-only">
+                                      {isThaiLocale
+                                        ? "ตารางประมาณการกระแสเงินสดสะสม 25 ปี"
+                                        : "25-year cumulative cash flow forecast table"}
+                                    </caption>
                                     <thead className="border-b-2 border-black/15 bg-[#F0EEE9] text-[#000]/60">
                                       <tr>
-                                        <th className="px-4 py-3 text-xs font-black uppercase tracking-wider text-left">
-                                          Year
+                                        <th scope="col" className="px-4 py-3 text-xs font-black uppercase tracking-wider text-left">
+                                          {t("yearLabel")}
                                         </th>
-                                        <th className="px-4 py-3 text-xs font-black uppercase tracking-wider text-right">
-                                          Panel Output Efficiency (%)
+                                        <th scope="col" className="px-4 py-3 text-xs font-black uppercase tracking-wider text-right">
+                                          {t("panelOutputEfficiency")}
                                         </th>
-                                        <th className="px-4 py-3 text-xs font-black uppercase tracking-wider text-right">
-                                          Annual Savings (฿)
+                                        <th scope="col" className="px-4 py-3 text-xs font-black uppercase tracking-wider text-right">
+                                          {t("annualSavings")}
                                         </th>
-                                        <th className="px-4 py-3 text-xs font-black uppercase tracking-wider text-right">
-                                          Cumulative Savings (฿)
+                                        <th scope="col" className="px-4 py-3 text-xs font-black uppercase tracking-wider text-right">
+                                          {t("cumulativeSavingsTable")}
                                         </th>
-                                        <th className="px-4 py-3 text-xs font-black uppercase tracking-wider text-right">
-                                          Cumulative Payments (฿)
+                                        <th scope="col" className="px-4 py-3 text-xs font-black uppercase tracking-wider text-right">
+                                          {t("cumulativePaymentsTable")}
                                         </th>
-                                        <th className="px-4 py-3 text-xs font-black uppercase tracking-wider text-right">
-                                          Net Cash Benefit (฿)
+                                        <th scope="col" className="px-4 py-3 text-xs font-black uppercase tracking-wider text-right">
+                                          {t("netCashBenefit")}
                                         </th>
                                       </tr>
                                     </thead>
@@ -3772,11 +3761,11 @@ export default function SummaryClient({
                                                 : "even:bg-[#F0EEE9]",
                                             )}
                                           >
-                                            <td className="px-4 py-2.5 font-bold text-[#000] text-left">
+                                            <th scope="row" className="px-4 py-2.5 font-bold text-[#000] text-left">
                                               {isYear0
-                                                ? "Year 0"
-                                                : `Year ${flow.year}`}
-                                            </td>
+                                                ? t("yearZero")
+                                                : t("yearValue", { year: flow.year })}
+                                            </th>
                                             <td className="px-4 py-2.5 text-right font-medium text-slate-500">
                                               {isYear0
                                                 ? "—"
@@ -3879,7 +3868,7 @@ export default function SummaryClient({
                                     : "Tree Equivalent"
                                 }
                                 value={ecoImpact.treeEquivalent}
-                                unit="trees / year"
+                                unit={t("journey.treesPerYear")}
                                 iconType="earth"
                                 decimals={0}
                               />
@@ -3987,12 +3976,12 @@ export default function SummaryClient({
                                   </div>
                                   <div className="mt-4 grid grid-cols-1 gap-2 rounded-xl bg-[#F0EEE9] p-2.5 shadow-inner shadow-[#000]/5 sm:grid-cols-3">
                                     <ProposalContextItem
-                                      label="Selected Tier"
-                                      value={selectedTierConfig.label}
-                                      helper={selectedTierConfig.equipment}
+                                      label={t("journey.profile")}
+                                      value={localizedTierLabel}
+                                      helper={localizedTierEquipment}
                                     />
                                     <ProposalContextItem
-                                      label="System Size"
+                                      label={t("summaryStats.systemSize")}
                                       value={
                                         <AnimatedNumber
                                           value={chartSolarKwp}
@@ -4000,10 +3989,10 @@ export default function SummaryClient({
                                           suffix=" kWp"
                                         />
                                       }
-                                      helper="Live from simulator"
+                                      helper={t("journey.liveFromSimulator")}
                                     />
                                     <ProposalContextItem
-                                      label="Estimated Price"
+                                      label={t("journey.estimatedPrice")}
                                       value={
                                         isMatrixContactPrice ? (
                                           displayPrice
@@ -4016,11 +4005,10 @@ export default function SummaryClient({
                                           />
                                         )
                                       }
-                                      helper="Before final site survey"
+                                      helper={t("journey.beforeSiteReview")}
                                     />
                                   </div>
                                   <ProposalAddonsAdvisory
-                                    locale={locale}
                                     activeAddonsCatalog={activeAddonsCatalog}
                                     selectedAddonIds={selectedAddonIds}
                                     setSelectedAddonIds={setSelectedAddonIds}
@@ -4110,12 +4098,12 @@ export default function SummaryClient({
                                   </div>
                                   <div className="mb-5 grid grid-cols-1 gap-2 rounded-xl bg-[#F0EEE9] p-3 shadow-inner shadow-[#000]/5 lg:grid-cols-3">
                                     <ProposalContextItem
-                                      label="Selected Tier"
-                                      value={selectedTierConfig.label}
-                                      helper={selectedTierConfig.equipment}
+                                      label={t("journey.profile")}
+                                      value={localizedTierLabel}
+                                      helper={localizedTierEquipment}
                                     />
                                     <ProposalContextItem
-                                      label="System Size"
+                                      label={t("summaryStats.systemSize")}
                                       value={
                                         <AnimatedNumber
                                           value={chartSolarKwp}
@@ -4123,10 +4111,10 @@ export default function SummaryClient({
                                           suffix=" kWp"
                                         />
                                       }
-                                      helper="Live from simulator"
+                                      helper={t("journey.liveFromSimulator")}
                                     />
                                     <ProposalContextItem
-                                      label="Estimated Price"
+                                      label={t("journey.estimatedPrice")}
                                       value={
                                         isMatrixContactPrice ? (
                                           displayPrice
@@ -4139,11 +4127,10 @@ export default function SummaryClient({
                                           />
                                         )
                                       }
-                                      helper="Before final site survey"
+                                      helper={t("journey.beforeSiteReview")}
                                     />
                                   </div>
                                   <ProposalAddonsAdvisory
-                                    locale={locale}
                                     activeAddonsCatalog={activeAddonsCatalog}
                                     selectedAddonIds={selectedAddonIds}
                                     setSelectedAddonIds={setSelectedAddonIds}
@@ -4427,11 +4414,10 @@ export default function SummaryClient({
             </section>
             {activeDashboardTab === "package" ? (
               <SummaryJourneySection
-                isThaiLocale={isThaiLocale}
                 co2TonsPerYear={ecoImpact.co2TonsPerYear}
                 treeEquivalent={ecoImpact.treeEquivalent}
                 carDistanceAvoidedKm={ecoImpact.carDistanceAvoidedKm}
-                selectedTierLabel={selectedTierConfig.label}
+                selectedTierLabel={localizedTierLabel}
                 chartSolarKwp={chartSolarKwp}
                 displayPrice={displayPrice}
                 isMatrixContactPrice={isMatrixContactPrice}
@@ -4445,7 +4431,7 @@ export default function SummaryClient({
               />
             ) : null}
           </div>
-        </main>
+        </div>
 
         <WizardSummarySidebar
           title={summaryPanelTitle}
@@ -4492,6 +4478,16 @@ export default function SummaryClient({
           monthlySavings={formatCurrency(Math.round(estimatedSavingsMonthly))}
           requestQuoteLabel={requestQuoteLabel}
           onRequestQuote={handleRequestProposalFocus}
+          soliaAlt={
+            isThaiLocale
+              ? "Solia กำลังช่วยอธิบายแผนพลังงานของคุณ"
+              : "Solia helping you understand your live solar plan"
+          }
+          soliaMessage={
+            isThaiLocale
+              ? "ปรับแพ็กเกจหรือค่าจำลองได้เลยค่ะ ตัวเลขด้านล่างจะอัปเดตให้เห็นผลทันที"
+              : "Tune the package or simulator. I’ll keep the important numbers visible as they update."
+          }
         >
           <div className="space-y-5">
             <section
@@ -4506,7 +4502,7 @@ export default function SummaryClient({
                   {isThaiLocale ? "เลือกแพ็กเกจ" : "Package tier"}
                 </h3>
                 <span className="border-2 border-black bg-[#B7D1EA] px-2 py-0.5 text-[9px] font-black text-black">
-                  {selectedTierConfig.label}
+                  {localizedTierLabel}
                 </span>
               </div>
               <SolarProfileSelectorSummary
@@ -4530,10 +4526,10 @@ export default function SummaryClient({
                   id="summary-simulation-controls"
                   className="text-sm font-black text-black"
                 >
-                  {isThaiLocale ? "ตัวควบคุมการจำลอง" : "Simulation controls"}
+                  {t("simulationControls")}
                 </h3>
                 <span className="text-[10px] font-bold text-slate-600">
-                  Auto / Manual
+                  {t("autoLabel")} / {t("manualLabel")}
                 </span>
               </div>
               {simulatorControls}
@@ -4575,36 +4571,6 @@ export default function SummaryClient({
           />
         ) : null}
 
-        {isLeadModalOpen ? (
-          <LeadCaptureModal
-            isOpen={isLeadModalOpen}
-            onClose={() => setIsLeadModalOpen(false)}
-            totalPrice={totalInstallCost}
-            systemkWp={chartSolarKwp}
-            panelCount={bomSpecs.panelCount}
-            estimatedSavings={estimatedSavingsMonthly}
-            paybackPeriod={paybackPeriodYears.toFixed(1)}
-            selectedSpecs={{
-              ...wizardAnswers,
-              selectedFinancingId,
-              downPaymentPct:
-                selectedFinancingId !== "cash" ? downPaymentPct : 0,
-              loanTermMonths:
-                selectedFinancingId !== "cash" ? loanTermMonths : 0,
-            }}
-            electricityRate={effectiveTariffRate}
-            meterType={electricityTariff === "tou" ? "TOU" : "NORMAL"}
-            daytimeUsagePercent={daytimeUsagePct}
-            propertyType={
-              (wizardAnswers.propertyType as "home" | "factory") || "home"
-            }
-            dailyEnergyKwh={dailySolarKwh}
-            PR={0.75}
-            mainBundleId="default"
-            selectedAddonIds={selectedAddonIds}
-          />
-        ) : null}
-
         <ProgressiveRegistrationDialog
           open={registrationIntent !== null}
           intent={registrationIntent ?? "SAVE"}
@@ -4618,49 +4584,12 @@ export default function SummaryClient({
           onClose={() => setRegistrationIntent(null)}
         />
 
-        {isLineLoginModalOpen && (
-          <LineLoginModal
-            onClose={() => setIsLineLoginModalOpen(false)}
-            onLoginSuccess={() => {
-              setIsSimulatedMember(true);
-              setIsLineLoginModalOpen(false);
-            }}
-          />
-        )}
-
-        {isMemberQuoteModalOpen && (
-          <MemberQuoteModal
-            onClose={() => setIsMemberQuoteModalOpen(false)}
-            systemSpecs={{
-              solarKwp: chartSolarKwp,
-              panelCount:
-                bomSpecs.panelCount || Math.ceil((chartSolarKwp * 1000) / 550),
-              batteryKwh: chartBatteryKwh,
-              totalPrice: totalInstallCost,
-              monthlySavings: estimatedSavingsMonthly,
-              paybackPeriodYears,
-              items: activeSystemPackage.contents.map((content) => ({
-                name: content.title,
-                brand: activeSystemPackage.packageId,
-                qty: 1,
-                categoryName: "Included Package Content",
-              })),
-            }}
-            onPushSuccess={() => {
-              handleMemberQuotation();
-            }}
-            isPushing={isPushingLine}
-            setIsPushing={setIsPushingLine}
-            formatCurrency={formatCurrency}
-          />
-        )}
       </div>
     </div>
   );
 }
 
 type SummaryJourneySectionProps = Readonly<{
-  isThaiLocale: boolean;
   co2TonsPerYear: number;
   treeEquivalent: number;
   carDistanceAvoidedKm: number;
@@ -4678,7 +4607,6 @@ type SummaryJourneySectionProps = Readonly<{
 }>;
 
 function SummaryJourneySection({
-  isThaiLocale,
   co2TonsPerYear,
   treeEquivalent,
   carDistanceAvoidedKm,
@@ -4694,35 +4622,21 @@ function SummaryJourneySection({
   formatCurrency,
   onRequestQuote,
 }: SummaryJourneySectionProps) {
-  const steps = isThaiLocale
-    ? [
-        {
-          title: "ส่งแบบที่คุณเลือก",
-          description: "ทีมงานรับข้อมูลระบบและช่องทางติดต่อของคุณ",
-        },
-        {
-          title: "ตรวจสอบหน้างาน",
-          description: "ทีมวิศวกรยืนยันหลังคา อุปกรณ์ และเงื่อนไขการติดตั้ง",
-        },
-        {
-          title: "รับแบบที่พร้อมคุยต่อ",
-          description: "รับแบบและใบเสนอราคาที่ละเอียดขึ้นสำหรับบ้านของคุณ",
-        },
-      ]
-    : [
-        {
-          title: "Send your selected plan",
-          description: "We receive the system profile and contact details you chose.",
-        },
-        {
-          title: "Review the site details",
-          description: "Our engineers confirm roof conditions, equipment, and installation requirements.",
-        },
-        {
-          title: "Receive a reviewed proposal",
-          description: "You get a clearer design and quotation ready for the next conversation.",
-        },
-      ];
+  const t = useTranslations("WizardSummary");
+  const steps = [
+    {
+      title: t("journey.sendPlanTitle"),
+      description: t("journey.sendPlanDescription"),
+    },
+    {
+      title: t("journey.reviewSiteTitle"),
+      description: t("journey.reviewSiteDescription"),
+    },
+    {
+      title: t("journey.receiveProposalTitle"),
+      description: t("journey.receiveProposalDescription"),
+    },
+  ];
 
   return (
     <div
@@ -4730,42 +4644,40 @@ function SummaryJourneySection({
       data-solar-reveal
       className="solar-summary-journey mt-5 space-y-5"
     >
-      <section className="solar-summary-legacy-panel rounded-[1.25rem] p-5 sm:p-6">
+      <section className="solar-summary-legacy-panel rounded-[var(--sd-radius-panel)] p-5 sm:p-6">
         <div className="flex items-start gap-3">
           <div className="solar-summary-legacy-icon grid size-11 shrink-0 place-items-center rounded-xl">
             <Leaf className="size-5" aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <p className="solar-route-kicker">{isThaiLocale ? "ผลลัพธ์ที่ส่งต่อได้" : "The impact you carry forward"}</p>
-            <h3 className="mt-1 text-xl font-black tracking-[-0.03em] text-[#1C1C1A]">
-              {isThaiLocale ? "มรดกสีเขียวของคุณ" : "Your Green Legacy"}
+            <p className="solar-route-kicker">{t("journey.impactEyebrow")}</p>
+            <h3 className="mt-1 text-xl font-black tracking-[-0.03em] text-[var(--sd-ink)]">
+              {t("journey.impactTitle")}
             </h3>
-            <p className="mt-1 text-sm font-medium leading-6 text-[#4E4B44]">
-              {isThaiLocale
-                ? "ดูผลกระทบของระบบที่เลือกในมุมที่เข้าใจง่าย"
-                : "See the environmental value of the system you selected in a simple, useful view."}
+            <p className="mt-1 text-sm font-medium leading-6 text-[var(--sd-text)]">
+              {t("journey.impactDescription")}
             </p>
           </div>
         </div>
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <ImpactMetricCard
-            label={isThaiLocale ? "ลด CO₂" : "CO₂ reduced"}
+            label={t("journey.co2Reduced")}
             value={co2TonsPerYear}
-            unit="tons / year"
+            unit={t("journey.unitPerYear")}
             iconType="seedling"
             decimals={2}
           />
           <ImpactMetricCard
-            label={isThaiLocale ? "เทียบเท่าต้นไม้" : "Tree equivalent"}
+            label={t("journey.treeEquivalent")}
             value={treeEquivalent}
-            unit="trees / year"
+            unit={t("journey.treesPerYear")}
             iconType="earth"
             decimals={0}
           />
           <ImpactMetricCard
-            label={isThaiLocale ? "ลดระยะทางรถยนต์" : "Driving avoided"}
+            label={t("journey.drivingAvoided")}
             value={carDistanceAvoidedKm}
-            unit="km / year"
+            unit={t("journey.kmPerYear")}
             iconType="car"
             decimals={0}
           />
@@ -4774,51 +4686,44 @@ function SummaryJourneySection({
 
       <SolarNextSteps
         icon={<ShieldCheck className="size-5" aria-hidden="true" />}
-        title={isThaiLocale ? "หลังจากขอใบเสนอราคา จะเกิดอะไรขึ้น" : "What happens after you request a quote"}
-        description={
-          isThaiLocale
-            ? "ขั้นตอนถัดไปจะเปลี่ยนค่าประมาณนี้ให้เป็นแบบระบบที่ตรวจสอบได้สำหรับบ้านของคุณ"
-            : "The next steps turn this estimate into a site-reviewed system plan for your home."
-        }
+        title={t("journey.nextStepsTitle")}
+        description={t("journey.nextStepsDescription")}
         steps={steps}
       />
 
-      <section className="solar-summary-blueprint-panel overflow-hidden rounded-[1.25rem] p-5 sm:p-6">
+      <section className="solar-summary-blueprint-panel overflow-hidden rounded-[var(--sd-radius-panel)] p-5 sm:p-6">
         <div className="grid items-center gap-5 md:grid-cols-[6.5rem_minmax(0,1fr)]">
           <div className="solar-summary-blueprint-art relative mx-auto h-28 w-24 overflow-hidden rounded-2xl md:mx-0">
-            <Image
-              src="/asset/solia-blueprint.webp"
-              alt="Solia preparing a solar blueprint"
-              fill
-              sizes="96px"
-              className="object-contain"
+            <SoliaGuide
+              pose="blueprint"
+              alt={t("journey.blueprintAlt")}
+              className="h-full w-full"
+              imageSizes="96px"
             />
           </div>
           <div className="min-w-0">
-            <p className="solar-route-kicker">{isThaiLocale ? "ขั้นตอนถัดไป" : "Next step"}</p>
-            <h3 className="mt-1 text-xl font-black tracking-[-0.03em] text-[#1C1C1A]">
-              {isThaiLocale ? "แบบพิมพ์เขียวระบบโซลาร์ของคุณ" : "Your Custom Solar Blueprint"}
+            <p className="solar-route-kicker">{t("journey.blueprintEyebrow")}</p>
+            <h3 className="mt-1 text-xl font-black tracking-[-0.03em] text-[var(--sd-ink)]">
+              {t("journey.blueprintTitle")}
             </h3>
-            <p className="mt-1.5 max-w-2xl text-sm font-medium leading-6 text-[#4E4B44]">
-              {isThaiLocale
-                ? "ทีมวิศวกรจะนำโปรไฟล์นี้ไปตรวจสอบโครงสร้างและปรับรายละเอียดให้เหมาะกับหน้างานจริง"
-                : "Our engineering team uses this profile to verify the roof and refine a system that fits the real site."}
+            <p className="mt-1.5 max-w-2xl text-sm font-medium leading-6 text-[var(--sd-text)]">
+              {t("journey.blueprintDescription")}
             </p>
           </div>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <ProposalContextItem label="Profile" value={selectedTierLabel} helper={`${chartSolarKwp.toFixed(2)} kWp`} />
+          <ProposalContextItem label={t("journey.profile")} value={selectedTierLabel} helper={`${chartSolarKwp.toFixed(2)} kWp`} />
           <ProposalContextItem
-            label="Estimated price"
+            label={t("journey.estimatedPrice")}
             value={isMatrixContactPrice ? displayPrice : formatCurrency(Math.round(totalInstallCost))}
-            helper="Before site review"
+            helper={t("journey.beforeSiteReview")}
           />
           <ProposalContextItem
-            label="Monthly savings"
+            label={t("journey.monthlySavings")}
             value={formatCurrency(Math.round(estimatedSavingsMonthly))}
-            helper="Current estimate"
+            helper={t("journey.currentEstimate")}
           />
-          <ProposalContextItem label="Review" value="Engineering" helper="Site-specific validation" />
+          <ProposalContextItem label={t("journey.review")} value={t("journey.engineering")} helper={t("journey.siteValidation")} />
         </div>
         <Button
           type="button"
@@ -4827,13 +4732,12 @@ function SummaryJourneySection({
           className="wizard-ui-primary mt-4 w-full rounded-full px-5 py-3.5 text-sm font-black sm:w-auto"
         >
           <Zap className="size-4" aria-hidden="true" />
-          {isThaiLocale ? "ขอให้ทีมวิศวกรตรวจสอบแบบ" : "Request engineering review"}
+          {t("journey.requestEngineeringReview")}
           <ArrowRight className="size-4" aria-hidden="true" />
         </Button>
       </section>
 
       <ProposalAddonsAdvisory
-        locale={isThaiLocale ? "th" : "en"}
         activeAddonsCatalog={activeAddonsCatalog}
         selectedAddonIds={selectedAddonIds}
         setSelectedAddonIds={setSelectedAddonIds}
@@ -4844,19 +4748,17 @@ function SummaryJourneySection({
 }
 
 function ProposalAddonsAdvisory({
-  locale,
   activeAddonsCatalog,
   selectedAddonIds,
   setSelectedAddonIds,
   formatCurrency,
 }: {
-  locale: string;
   activeAddonsCatalog: SolarAddonConfig[];
   selectedAddonIds: string[];
   setSelectedAddonIds: React.Dispatch<React.SetStateAction<string[]>>;
   formatCurrency: (val: number) => string;
 }) {
-  const isThai = locale === "th";
+  const t = useTranslations("WizardSummary");
 
   const visibleAddons = useMemo(() => {
     return activeAddonsCatalog.filter((item) => item.isVisible !== false);
@@ -4874,31 +4776,21 @@ function ProposalAddonsAdvisory({
   }).length;
 
   return (
-    <div className="solar-recommendation-panel my-5 rounded-xl border-2 border-black bg-white p-4 shadow-none sm:p-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-3 mb-4">
+    <div className="solar-recommendation-panel my-5 rounded-[var(--sd-radius-panel)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-4 shadow-[var(--sd-shadow-1)] sm:p-5">
+      <div className="mb-4 flex flex-col justify-between gap-2 border-b border-[var(--sd-line)] pb-3 sm:flex-row sm:items-center">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg border-2 border-black bg-[#B7D1EA] text-slate-800">
-              <Sparkles className="h-4 w-4 text-[#4F7FA8]" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-selected)] text-[var(--sd-blue-600)]">
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
             </span>
-            <h4 className="text-sm font-black text-[#000]">
-              {isThai
-                ? "คำแนะนำวิศวกร: อุปกรณ์เสริมยกระดับระบบ"
-                : "Engineering Recommended Add-ons"}
-            </h4>
+            <h4 className="text-sm font-black text-[var(--sd-ink)]">{t("addons.title")}</h4>
           </div>
-          <p className="mt-1 text-xs font-semibold text-slate-600 leading-relaxed">
-            {isThai
-              ? "วิศวกรแนะนำให้เลือกอุปกรณ์เสริมเพิ่มเติมเพื่อความปลอดภัยสูงสุด การไฟฟ้ากำหนด และสะสมพลังงานสำรอง"
-              : "Advised additions for maximum grid compliance, safety protection, and nighttime autonomy."}
-          </p>
+          <p className="mt-1 text-xs font-semibold leading-relaxed text-[var(--sd-muted)]">{t("addons.description")}</p>
         </div>
         {selectedCount > 0 && (
-          <span className="inline-flex shrink-0 items-center gap-1.5 border-2 border-black bg-[#B7D1EA] px-3 py-1 text-xs font-black text-black">
-            <Check className="h-3.5 w-3.5" />
-            {isThai
-              ? `เลือกแล้ว ${selectedCount} รายการ`
-              : `${selectedCount} Selected`}
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--sd-blue-600)]/25 bg-[var(--sd-selected)] px-3 py-1 text-xs font-black text-[var(--sd-blue-600)]">
+            <Check className="h-3.5 w-3.5" aria-hidden="true" />
+            {t("addons.selected", { count: selectedCount })}
           </span>
         )}
       </div>
@@ -4927,14 +4819,20 @@ function ProposalAddonsAdvisory({
               ) || addon.optionsList?.[0]
             : null;
 
-          const displayPrice =
+          const displayPrice: number | null =
             isSelected && activeSubOpt
               ? activeSubOpt.price
               : hasSubOptions && addon.optionsList?.[0]
                 ? addon.optionsList[0].price
                 : typeof addon.price === "number"
                   ? addon.price
-                  : 0;
+                  : null;
+          const addonLabel = addon.id === "battery-storage"
+            ? t("addons.batteryStorage")
+            : addon.shortLabel || addon.name;
+          const addonDescription = addon.id === "battery-storage"
+            ? t("addons.batteryDescription")
+            : addon.description;
 
           const handleToggle = () => {
             setSelectedAddonIds((current) => {
@@ -4951,26 +4849,26 @@ function ProposalAddonsAdvisory({
             });
           };
 
-          let adviceTag = isThai ? "วิศวกรแนะนำ" : "Engineer Recommended";
+          let adviceTag = t("addons.engineerRecommended");
           if (addon.category === "GRID_COMPLIANCE")
-            adviceTag = isThai ? "มาตรฐานการไฟฟ้า" : "Grid Standard";
+            adviceTag = t("addons.gridStandard");
           else if (addon.category === "SAFETY")
-            adviceTag = isThai ? "ความปลอดภัยสูงสุด" : "Max Safety";
+            adviceTag = t("addons.maxSafety");
           else if (addon.category === "EV_READY")
-            adviceTag = isThai ? "รองรับชาร์จ EV" : "EV Charger Ready";
+            adviceTag = t("addons.evChargerReady");
           else if (addon.category === "BATTERY")
-            adviceTag = isThai ? "สำรองไฟกลางคืน" : "Night Autonomy";
+            adviceTag = t("addons.nightAutonomy");
           else if (addon.category === "PROTECTION")
-            adviceTag = isThai ? "ระบบตู้ป้องกัน" : "Protection Panel";
+            adviceTag = t("addons.protectionPanel");
 
           return (
             <div
               key={addon.id}
               className={cn(
-                "solar-recommendation-option group relative flex flex-col justify-between rounded-xl border p-3.5 transition-all duration-200 bg-white",
+                "solar-recommendation-option group relative flex flex-col justify-between rounded-[var(--sd-radius-lg)] border p-3.5 transition-all duration-200",
                 isSelected
-                  ? "border-2 border-black bg-[#B7D1EA]/25"
-                  : "border-2 border-black hover:bg-[#F0EEE9]",
+                  ? "border-[var(--sd-blue-600)] bg-[var(--sd-selected)]"
+                  : "border-[var(--sd-line)] bg-[var(--sd-raised)] hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)]",
               )}
             >
               <div>
@@ -4978,59 +4876,61 @@ function ProposalAddonsAdvisory({
                   <div className="flex items-center gap-2">
                     <span
                       className={cn(
-                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-black transition-colors",
+                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--sd-radius-md)] text-xs font-black transition-colors",
                         isSelected
-                          ? "bg-[#B7D1EA] text-[#000]"
-                          : "bg-slate-100 text-slate-600 group-hover:bg-slate-200",
+                          ? "bg-[var(--sd-blue-600)] text-white"
+                          : "bg-[var(--sd-soft-solar)] text-[var(--sd-muted)] group-hover:bg-[var(--sd-selected)]",
                       )}
                     >
                       {addon.category === "EV_READY" ? (
                         <Car className="h-4 w-4" />
                       ) : addon.category === "BATTERY" ? (
-                        <BatteryCharging className="h-4 w-4 text-[#4F7FA8]" />
+                        <BatteryCharging className="h-4 w-4 text-[var(--sd-blue-600)]" />
                       ) : addon.category === "GRID_COMPLIANCE" ? (
                         <Zap className="h-4 w-4 text-amber-500" />
                       ) : (
-                        <ShieldCheck className="h-4 w-4 text-[#4F7FA8]" />
+                        <ShieldCheck className="h-4 w-4 text-[var(--sd-blue-600)]" />
                       )}
                     </span>
-                    <span className="text-xs font-black text-[#000] line-clamp-1">
-                      {addon.shortLabel || addon.name}
+                    <span className="line-clamp-1 text-xs font-black text-[var(--sd-ink)]">
+                      {addonLabel}
                     </span>
                   </div>
-                  <span className="inline-block shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                  <span className="inline-block shrink-0 rounded-full bg-[var(--sd-soft-solar)] px-2 py-0.5 text-[10px] font-bold text-[var(--sd-muted)]">
                     {adviceTag}
                   </span>
                 </div>
 
-                <p className="mt-1.5 text-[11px] font-semibold leading-relaxed text-slate-600 line-clamp-2">
-                  {addon.description}
+                <p className="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-relaxed text-[var(--sd-muted)]">
+                  {addonDescription}
                 </p>
               </div>
 
-              <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5">
-                <span className="text-xs font-black text-[#4F7FA8]">
-                  +{formatCurrency(displayPrice)}
+              <div className="mt-3 flex items-center justify-between border-t border-[var(--sd-line)] pt-2.5">
+                <span className="text-xs font-black text-[var(--sd-blue-600)]">
+                  {displayPrice === null
+                    ? t("addons.priceOnRequest")
+                    : `+${formatCurrency(displayPrice)}`}
                 </span>
                 <button
                   type="button"
                   onClick={handleToggle}
                   className={cn(
-                    "solar-recommendation-add inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black transition-all cursor-pointer",
+                    "solar-recommendation-add inline-flex min-h-10 items-center gap-1.5 rounded-[var(--sd-radius-md)] px-3 py-1.5 text-xs font-black transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2",
                     isSelected
-                      ? "border-2 border-black bg-[#B7D1EA] text-black shadow-none hover:bg-[#DCE8F5]"
-                      : "bg-[#000] text-white hover:bg-slate-800",
+                      ? "border border-[var(--sd-blue-600)] bg-[var(--sd-selected)] text-[var(--sd-blue-600)] hover:bg-[var(--sd-cyan-100)]"
+                      : "bg-[var(--sd-blue-600)] text-white hover:bg-[var(--sd-blue-500)]",
                   )}
                 >
                   {isSelected ? (
                     <>
                       <Check className="h-3.5 w-3.5" />
-                      <span>{isThai ? "เลือกแล้ว" : "Selected"}</span>
+                      <span>{t("addons.selectedAction")}</span>
                     </>
                   ) : (
                     <>
                       <Plus className="h-3.5 w-3.5" />
-                      <span>{isThai ? "เลือกเพิ่ม" : "Add Option"}</span>
+                      <span>{t("addons.addOption")}</span>
                     </>
                   )}
                 </button>
@@ -5039,10 +4939,10 @@ function ProposalAddonsAdvisory({
               {isSelected && hasSubOptions && addon.optionsList && (
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap items-center gap-1.5"
+                  className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-[var(--sd-line)] pt-2"
                 >
                   <span className="text-[10px] font-black uppercase text-slate-600 tracking-wider w-full">
-                    {isThai ? "เลือกขนาด:" : "Option Sizing:"}
+                    {t("addons.optionSizing")}
                   </span>
                   <div className="flex flex-wrap gap-1.5 w-full">
                     {addon.optionsList.map((opt) => {
@@ -5062,13 +4962,18 @@ function ProposalAddonsAdvisory({
                             });
                           }}
                           className={cn(
-                            "solar-recommendation-option-size rounded-md px-2.5 py-1 text-[11px] font-extrabold transition-all cursor-pointer",
+                            "solar-recommendation-option-size min-h-9 rounded-[var(--sd-radius-sm)] px-2.5 py-1 text-[11px] font-extrabold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2",
                             isOptActive
-                              ? "border-2 border-black bg-[#B7D1EA] text-black shadow-none"
-                              : "bg-slate-100 text-slate-700 hover:bg-slate-200",
+                              ? "border border-[var(--sd-blue-600)] bg-[var(--sd-blue-600)] text-white"
+                              : "bg-[var(--sd-soft-solar)] text-[var(--sd-muted)] hover:bg-[var(--sd-selected)]",
                           )}
                         >
-                          {opt.label} (+{formatCurrency(opt.price)})
+                          {opt.label} ({
+                            typeof opt.price === "number" &&
+                            Number.isFinite(opt.price)
+                              ? `+${formatCurrency(opt.price)}`
+                              : t("addons.priceOnRequest")
+                          })
                         </button>
                       );
                     })}
@@ -5093,12 +4998,12 @@ function ProposalContextItem({
   helper: string;
 }) {
   return (
-    <div className="w-full min-w-0 rounded-xl border-2 border-black bg-white px-3 py-2 shadow-none transition duration-200 ease-expo hover:bg-[#A5C2DE]/20">
-      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#000]/45">
+    <div className="w-full min-w-0 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-3 py-2 shadow-[var(--sd-shadow-1)] transition-colors duration-200 hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)]">
+      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--sd-muted)]">
         {label}
       </p>
-      <p className="mt-0.5 truncate text-sm font-black text-[#000]">{value}</p>
-      <p className="mt-0.5 truncate text-[10px] font-semibold text-[#000]/55">
+      <p className="mt-0.5 truncate text-sm font-black text-[var(--sd-ink)]">{value}</p>
+      <p className="mt-0.5 truncate text-[10px] font-semibold text-[var(--sd-muted)]">
         {helper}
       </p>
     </div>
@@ -5118,13 +5023,13 @@ function PremiumSelect({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-black text-[#000]">
+      <span className="mb-1.5 block text-xs font-black text-[var(--sd-ink)]">
         {label}
       </span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-10 w-full rounded-lg border-2 border-black bg-white px-3 text-sm font-bold text-[#000] outline-none transition focus:bg-[#A5C2DE]/25 focus:ring-2 focus:ring-[#B7D1EA]"
+        className="min-h-11 w-full rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-3 text-sm font-bold text-[var(--sd-ink)] outline-none transition focus:border-[var(--sd-focus)] focus:ring-2 focus:ring-[var(--sd-focus)]/20"
       >
         {children}
       </select>
@@ -5142,12 +5047,12 @@ function ForecastCard({
   accent?: boolean;
 }) {
   return (
-    <div className="w-full min-w-0 rounded-xl border-2 border-black bg-white p-3">
-      <p className="text-xs font-bold text-neutral-500">{label}</p>
+    <div className="w-full min-w-0 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-3 shadow-[var(--sd-shadow-1)]">
+      <p className="text-xs font-bold text-[var(--sd-muted)]">{label}</p>
       <p
         className={cn(
           "mt-1 text-base font-black",
-          accent ? "text-[#4F7FA8]" : "text-[#000]",
+          accent ? "text-[var(--sd-blue-600)]" : "text-[var(--sd-ink)]",
         )}
       >
         {value}
@@ -5166,14 +5071,14 @@ function BreakdownStat({
   accent?: boolean;
 }) {
   return (
-    <div className="min-w-0 border-2 border-black bg-white px-2.5 py-2">
-      <p className="truncate text-[9px] font-bold leading-tight text-slate-700">
+    <div className="min-w-0 rounded-[var(--sd-radius-sm)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-2.5 py-2">
+      <p className="truncate text-[9px] font-bold leading-tight text-[var(--sd-muted)]">
         {label}
       </p>
       <p
         className={cn(
           "mt-1 truncate text-base font-black leading-tight",
-          accent ? "text-[#4F7FA8]" : "text-black",
+          accent ? "text-[var(--sd-blue-600)]" : "text-[var(--sd-ink)]",
         )}
       >
         {value}
@@ -5189,31 +5094,53 @@ function AnimatedEcoCounter({
   value: number;
   decimals?: number;
 }) {
-  const [displayValue, setDisplayValue] = useState<number>(0);
+  const previousValueRef = useRef(value);
+  const [displayValue, setDisplayValue] = useState<number>(value);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
-    const obj = { val: 0 };
+    if (prefersReducedMotion) {
+      previousValueRef.current = value;
+      return;
+    }
+
+    const obj = { val: previousValueRef.current };
+    setDisplayValue(obj.val);
     const tween = gsap.to(obj, {
       val: value,
-      duration: 1.5,
+      duration: 0.85,
       ease: "expo.out",
       onUpdate: () => {
         setDisplayValue(obj.val);
       },
     });
+    previousValueRef.current = value;
 
     return () => {
       tween.kill();
     };
-  }, [value]);
+  }, [prefersReducedMotion, value]);
 
   return (
     <span>
-      {displayValue.toLocaleString(undefined, {
+      {(prefersReducedMotion ? value : displayValue).toLocaleString(undefined, {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
       })}
     </span>
+  );
+}
+
+function usePrefersReducedMotion() {
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const handleChange = () => onStoreChange();
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    },
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => false,
   );
 }
 
@@ -5234,17 +5161,17 @@ function ImpactMetricCard({
     iconType === "seedling" ? Sprout : iconType === "earth" ? Globe : Car;
 
   return (
-    <div className="solar-summary-impact-card group relative w-full min-w-0 overflow-hidden rounded-xl border-2 border-black bg-white p-4 transition-all duration-200 hover:bg-[#F0EEE9]">
-      <div className="solar-summary-impact-icon mb-3 flex h-11 w-11 items-center justify-center rounded-xl border-2 border-black bg-[#B7D1EA] text-[#4F7FA8] transition-colors duration-200">
-        <Icon className="h-5 w-5" />
+    <div className="solar-summary-impact-card group relative w-full min-w-0 overflow-hidden rounded-[var(--sd-radius-lg)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-4 shadow-[var(--sd-shadow-1)] transition-colors duration-200 hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)]">
+      <div className="solar-summary-impact-icon mb-3 flex h-11 w-11 items-center justify-center rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-selected)] text-[var(--sd-blue-600)] transition-colors duration-200">
+        <Icon className="h-5 w-5" aria-hidden="true" />
       </div>
-      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+      <p className="text-xs font-bold uppercase tracking-wider text-[var(--sd-muted)]">
         {label}
       </p>
-      <p className="mt-1.5 text-2xl font-black text-[#4F7FA8]">
+      <p className="mt-1.5 text-2xl font-black text-[var(--sd-blue-600)]">
         <AnimatedEcoCounter value={value} decimals={decimals} />
       </p>
-      <p className="text-xs font-semibold text-slate-500 mt-1">{unit}</p>
+      <p className="mt-1 text-xs font-semibold text-[var(--sd-muted)]">{unit}</p>
     </div>
   );
 }
@@ -5258,7 +5185,7 @@ function ConsultationField({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-black text-slate-700">{label}</span>
+      <span className="text-xs font-black text-[var(--sd-ink)]">{label}</span>
       {children}
     </div>
   );
@@ -5290,10 +5217,10 @@ function LightSliderField({
   ticks?: number[];
 }) {
   return (
-    <div className="space-y-1 rounded-xl border-2 border-black bg-white p-3.5 shadow-none">
+    <div className="space-y-1 rounded-[var(--sd-radius-lg)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-3.5 shadow-[var(--sd-shadow-1)]">
       <div className="flex items-center justify-between gap-3">
-        <label className="text-xs font-black text-slate-950">{label}</label>
-        <span className="rounded-full border-2 border-black bg-[#B7D1EA] px-2.5 py-0.5 text-xs font-black text-black">
+        <span className="text-xs font-black text-[var(--sd-ink)]">{label}</span>
+        <span className="rounded-full border border-[var(--sd-blue-600)]/25 bg-[var(--sd-selected)] px-2.5 py-0.5 text-xs font-black text-[var(--sd-blue-600)]">
           {display}
         </span>
       </div>
@@ -5303,10 +5230,11 @@ function LightSliderField({
         max={max}
         step={step}
         unit={unit}
+        ariaLabel={label}
         ticks={ticks || [min, Math.round(min + (max - min) * 0.5), max]}
         onChange={onChange}
       />
-      <div className="flex items-center justify-between gap-3 px-1 text-[10px] font-semibold text-slate-500">
+      <div className="flex items-center justify-between gap-3 px-1 text-[10px] font-semibold text-[var(--sd-muted)]">
         <span>{minLabel}</span>
         <span>{maxLabel}</span>
       </div>
@@ -5623,234 +5551,3 @@ const GsapRevealForm = forwardRef<
     </form>
   );
 });
-
-function LineLoginModal({
-  onClose,
-  onLoginSuccess,
-}: {
-  onClose: () => void;
-  onLoginSuccess: () => void;
-}) {
-  const t = useTranslations("WizardSummary");
-  const [loading, setLoading] = useState(false);
-
-  const handleSimulatedLogin = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      onLoginSuccess();
-    }, 1500);
-  };
-
-  return (
-    <Dialog
-      isOpen
-      onClose={onClose}
-      size="sm"
-      tone="light"
-      ariaLabel="Connect with LINE Account"
-      closeLabel={t("modal.closeAria")}
-      className="bg-white"
-    >
-      <DialogContent>
-        <DialogHeader className="border-b-2 border-black bg-[#F0EEE9] text-left">
-          <div className="flex items-start gap-4">
-            <div className="grid size-11 shrink-0 place-items-center rounded-xl border-2 border-black bg-[#B7D1EA] text-[#4F7FA8]">
-              <Zap className="size-5 fill-[#B7D1EA]" aria-hidden="true" />
-            </div>
-            <div className="min-w-0 space-y-2">
-              <DialogTitle className="text-lg">
-                เชื่อมต่อกับ LINE Account
-              </DialogTitle>
-              <DialogDescription className="font-semibold">
-                สมัครสมาชิกและเชื่อมต่อระบบกับ LINE เพื่อรับสเปคระบบ
-                คำนวณความคุ้มค่า และใบเสนอราคาในห้องแชทของคุณโดยตรง
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-        <DialogBody className="bg-white text-center">
-          <Button
-            type="button"
-            onClick={handleSimulatedLogin}
-            disabled={loading}
-            className="w-full rounded-xl bg-[#06C755] font-bold text-white hover:bg-[#05B34C]"
-          >
-            {loading ? (
-              <span>กำลังล็อกอินด้วย LINE...</span>
-            ) : (
-              <>
-                <GsapPulse>
-                  <Zap className="w-4 h-4 text-white fill-white" />
-                </GsapPulse>
-                <span>Log in with LINE</span>
-              </>
-            )}
-          </Button>
-          <p className="text-[10px] text-slate-500">
-            * ระบบจะบันทึกจำลองสถานะสมาชิกลงในเบราว์เซอร์ของท่านชั่วคราว
-          </p>
-        </DialogBody>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function MemberQuoteModal({
-  onClose,
-  systemSpecs,
-  onPushSuccess,
-  isPushing,
-  setIsPushing,
-  formatCurrency,
-}: {
-  onClose: () => void;
-  systemSpecs: {
-    solarKwp: number;
-    panelCount: number;
-    batteryKwh: number;
-    totalPrice: number;
-    monthlySavings: number;
-    paybackPeriodYears: number;
-    items: Array<{
-      name: string;
-      brand: string;
-      qty: number;
-      categoryName: string;
-    }>;
-  };
-  onPushSuccess: () => void;
-  isPushing: boolean;
-  setIsPushing: (val: boolean) => void;
-  formatCurrency: (val: number) => string;
-}) {
-  const handleSimulatePush = () => {
-    setIsPushing(true);
-    toast.loading("กำลังส่ง Flex Message ไปยังห้องแชท LINE...", {
-      id: "line-push",
-    });
-    setTimeout(() => {
-      toast.success("ส่งสรุปและใบเสนอราคาเข้า LINE เรียบร้อยแล้ว!", {
-        id: "line-push",
-      });
-      setIsPushing(false);
-      onPushSuccess();
-      onClose();
-    }, 1500);
-  };
-
-  return (
-    <Dialog
-      isOpen
-      onClose={onClose}
-      size="md"
-      tone="light"
-      ariaLabel="Quotation Summary"
-      closeLabel="ปิดหน้าต่างใบเสนอราคา"
-      className="bg-white"
-    >
-      <DialogContent>
-        <DialogHeader className="border-b-2 border-black bg-[#F0EEE9]">
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            <FileText className="size-5 text-[#4F7FA8]" aria-hidden="true" />
-            เอกสารสรุปใบเสนอราคา (Quotation Summary)
-          </DialogTitle>
-          <DialogDescription>
-            รายละเอียดรายการระบบโซลาร์เซลล์ที่ออกแบบเฉพาะสำหรับอาคารของคุณ
-          </DialogDescription>
-        </DialogHeader>
-        <DialogBody className="space-y-5 bg-white">
-          {/* Spec Overview */}
-          <div className="grid grid-cols-2 gap-3 rounded-xl border-2 border-black bg-[#F0EEE9] p-4">
-            <div className="space-y-0.5">
-              <span className="text-[10px] text-slate-500 font-bold uppercase">
-                ขนาดระบบโซลาร์
-              </span>
-              <p className="text-sm font-extrabold text-slate-900 font-mono">
-                {systemSpecs.solarKwp.toFixed(2)} kWp
-              </p>
-            </div>
-            <div className="space-y-0.5">
-              <span className="text-[10px] text-slate-500 font-bold uppercase">
-                จำนวนแผงที่ติดตั้ง
-              </span>
-              <p className="text-sm font-extrabold text-slate-900 font-mono">
-                {systemSpecs.panelCount} แผง
-              </p>
-            </div>
-            <div className="space-y-0.5">
-              <span className="text-[10px] text-slate-500 font-bold uppercase">
-                แบตเตอรี่กักเก็บ
-              </span>
-              <p className="text-sm font-extrabold text-slate-900 font-mono">
-                {systemSpecs.batteryKwh.toFixed(1)} kWh
-              </p>
-            </div>
-            <div className="space-y-0.5">
-              <span className="text-[10px] text-slate-500 font-bold uppercase">
-                ประมาณการคืนทุน
-              </span>
-              <p className="text-sm font-extrabold text-slate-900 font-mono">
-                {systemSpecs.paybackPeriodYears.toFixed(1)} ปี
-              </p>
-            </div>
-            <div className="space-y-0.5 col-span-2 border-t border-slate-200/60 pt-2 flex justify-between items-baseline">
-              <span className="text-[10px] text-slate-500 font-bold uppercase">
-                เงินลงทุนสุทธิ
-              </span>
-              <p className="font-mono text-base font-black text-[#4F7FA8]">
-                {formatCurrency(systemSpecs.totalPrice)}
-              </p>
-            </div>
-          </div>
-
-          {/* Itemized list */}
-          <div className="space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              รายการอุปกรณ์ (BOM Items)
-            </p>
-            <div className="space-y-1.5 rounded-xl border-2 border-black bg-[#F0EEE9] p-2">
-              {systemSpecs.items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex justify-between items-center text-xs py-1 border-b border-slate-200/60 last:border-b-0"
-                >
-                  <div className="min-w-0 pr-2">
-                    <p className="font-bold text-slate-700 truncate">
-                      {item.name}
-                    </p>
-                    <p className="text-[9px] text-slate-500">
-                      {item.brand} · {item.categoryName}
-                    </p>
-                  </div>
-                  <span className="text-[11px] font-mono font-bold text-slate-500 shrink-0">
-                    × {item.qty}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </DialogBody>
-        <DialogFooter className="sd-safe-pb-5-max flex-col border-t-2 border-black bg-[#F0EEE9] sm:flex-row">
-          <Button
-            type="button"
-            onClick={handleSimulatePush}
-            disabled={isPushing}
-            className="wizard-ui-primary w-full flex-1 sm:w-auto"
-          >
-            <Zap className="size-4 fill-slate-950" aria-hidden="true" />
-            ส่งเข้าแชท LINE (Flex Message)
-          </Button>
-          <Button
-            type="button"
-            onClick={onClose}
-            variant="outline"
-            className="wizard-ui-secondary w-full sm:w-auto"
-          >
-            ปิดหน้าต่าง
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}

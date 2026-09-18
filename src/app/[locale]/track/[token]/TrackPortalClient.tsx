@@ -16,6 +16,7 @@ import {
 import InvisibleTurnstile, {
   type InvisibleTurnstileHandle,
 } from "@/components/security/InvisibleTurnstile";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/ui/page-shell";
 import Skeleton from "@/components/ui/skeleton";
@@ -173,9 +174,12 @@ export default function TrackPortalClient({
   };
   if (state === "loading") {
     return (
-      <StateShell>
+      <StateShell
+        soliaAlt={t("portal.loadingAlt")}
+        soliaMessage={t("portal.loading")}
+      >
         <div role="status" className="space-y-4">
-          <p className="text-sm font-semibold text-foreground">{t("portal.loading")}</p>
+          <p className="text-sm font-semibold text-[var(--sd-ink)]">{t("portal.loading")}</p>
           <Skeleton className="h-8 w-2/3" />
           <Skeleton className="h-20 w-full" />
           <div className="grid grid-cols-2 gap-3">
@@ -194,15 +198,18 @@ export default function TrackPortalClient({
 
   if (state === "expired") {
     return (
-      <StateShell>
+      <StateShell
+        soliaAlt={t("portal.expiredAlt")}
+        soliaMessage={t("portal.expiredDescription")}
+      >
         <div className="text-center">
-          <span className="mx-auto flex size-11 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+          <span className="mx-auto flex size-11 items-center justify-center rounded-[var(--sd-radius-md)] bg-[var(--sd-soft-solar)] text-[var(--sd-navy-900)]">
             <ShieldCheck aria-hidden="true" />
           </span>
-          <h1 className="mt-5 text-balance text-2xl font-bold text-foreground">
+          <h1 className="mt-5 text-balance text-2xl font-bold text-[var(--sd-ink)]">
             {t("portal.expiredTitle")}
           </h1>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          <p className="mt-2 text-sm leading-6 text-[var(--sd-muted)]">
             {t("portal.expiredDescription")}
           </p>
           <Button
@@ -219,12 +226,15 @@ export default function TrackPortalClient({
 
   if (state === "error" || !order) {
     return (
-      <StateShell>
+      <StateShell
+        soliaAlt={t("portal.errorAlt")}
+        soliaMessage={t("portal.error")}
+      >
         <div role="alert" className="text-center">
-          <h1 className="text-balance text-2xl font-bold text-foreground">
+          <h1 className="text-balance text-2xl font-bold text-[var(--sd-ink)]">
             {t("portal.errorTitle")}
           </h1>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          <p className="mt-2 text-sm leading-6 text-[var(--sd-muted)]">
             {message || t("portal.error")}
           </p>
           <Button
@@ -301,22 +311,22 @@ export default function TrackPortalClient({
     : t("portal.pending");
 
   return (
-    <PageShell className="bg-background px-4 py-10 text-foreground sm:px-6 sm:py-14 lg:px-8">
+    <PageShell className="px-4 pb-16 pt-20 text-[var(--sd-ink)] sm:px-6 sm:pb-20 sm:pt-24 lg:px-8 lg:pt-28">
       <div className="mx-auto w-full max-w-5xl">
         <header className="max-w-3xl">
-          <p className="text-sm font-semibold text-muted-foreground">{t("portal.eyebrow")}</p>
+          <p className="text-sm font-semibold text-[var(--sd-muted)]">{t("portal.eyebrow")}</p>
           <h1 className="mt-2 text-balance text-3xl font-extrabold tracking-[-0.03em] sm:text-4xl">
             {name}
           </h1>
-          <p className="mt-2 font-mono text-sm font-semibold text-slate-600">{order.reference}</p>
+          <p className="mt-2 font-mono text-sm font-semibold text-[var(--sd-muted)]">{order.reference}</p>
         </header>
 
-        <section className="mt-7 rounded-xl border border-border bg-card p-5 sm:p-6">
+        <section className="solar-route-card solar-route-card--strong mt-7 p-5 sm:p-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0 max-w-2xl">
               <h2 className="text-base font-bold">{t("portal.linkSaverTitle")}</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{t("portal.linkSaverWarning")}</p>
-              <p className="mt-3 break-all rounded-lg bg-muted px-3 py-2 font-mono text-xs font-semibold text-slate-700">
+              <p className="mt-2 text-sm leading-6 text-[var(--sd-muted)]">{t("portal.linkSaverWarning")}</p>
+              <p className="mt-3 break-all rounded-[var(--sd-radius-sm)] bg-[var(--sd-soft-solar)] px-3 py-2 font-mono text-xs font-semibold text-[var(--sd-navy-900)]">
                 /{locale}/track/{tokenId}#access=••••
               </p>
               <p
@@ -324,7 +334,7 @@ export default function TrackPortalClient({
                 aria-live="polite"
                 className={cn(
                   "mt-2 min-h-5 text-xs font-semibold",
-                  shareState === "error" ? "text-rose-700" : "text-muted-foreground",
+                  shareState === "error" ? "text-[var(--sd-danger)]" : "text-[var(--sd-muted)]",
                 )}
               >
                 {shareState === "copied"
@@ -352,26 +362,26 @@ export default function TrackPortalClient({
         </section>
 
         <section
-          className="mt-5 grid overflow-hidden rounded-xl border border-border bg-card sm:grid-cols-2 lg:grid-cols-4"
+          className="solar-route-card solar-route-card--strong mt-5 grid overflow-hidden sm:grid-cols-2 lg:grid-cols-4"
           aria-label={t("portal.summary")}
         >
           <Tile
             icon={Wrench}
             label={t("portal.serviceStatus")}
             value={serviceLabel}
-            className="border-b border-border sm:border-r lg:border-b-0"
+            className="border-b border-[var(--sd-line)] sm:border-r lg:border-b-0"
           />
           <Tile
             icon={CalendarDays}
             label={t("portal.appointment")}
             value={appointment}
-            className="border-b border-border lg:border-b-0 lg:border-r"
+            className="border-b border-[var(--sd-line)] lg:border-b-0 lg:border-r"
           />
           <Tile
             icon={CircleDollarSign}
             label={t("portal.paymentStatus")}
             value={paymentLabel}
-            className="border-b border-border sm:border-b-0 sm:border-r"
+            className="border-b border-[var(--sd-line)] sm:border-b-0 sm:border-r"
           />
           <Tile
             icon={CloudCog}
@@ -381,22 +391,38 @@ export default function TrackPortalClient({
         </section>
 
         <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_360px]">
-          <section className="rounded-xl border border-border bg-card p-5 sm:p-6">
-            <h2 className="text-xl font-bold">{t("portal.timeline")}</h2>
-            <ol className="mt-4 divide-y divide-border">
-              {milestones.map((item) => (
-                <li key={item.label} className="flex items-start gap-3 py-4 first:pt-2 last:pb-1">
+          <section className="solar-route-card solar-route-card--strong p-5 sm:p-6">
+            <h2 className="text-xl font-bold text-[var(--sd-ink)]">{t("portal.timeline")}</h2>
+            <ol className="mt-4 space-y-3">
+              {milestones.map((item, index) => (
+                <li
+                  key={item.label}
+                  className="relative grid grid-cols-[1rem_minmax(0,1fr)] gap-3 py-2"
+                >
+                  {index < milestones.length - 1 ? (
+                    <span
+                      aria-hidden="true"
+                      className="absolute bottom-[-0.75rem] left-[0.34rem] top-5 w-px bg-[var(--sd-line)]"
+                    />
+                  ) : null}
                   <span
                     className={
                       item.complete
-                        ? "mt-1.5 size-3 shrink-0 rounded-full bg-primary"
-                        : "mt-1.5 size-3 shrink-0 rounded-full border-2 border-slate-300 bg-card"
+                        ? "relative z-[1] mt-1.5 size-3 shrink-0 rounded-full bg-[var(--sd-success)] ring-4 ring-[var(--sd-raised)]"
+                        : "relative z-[1] mt-1.5 size-3 shrink-0 rounded-full border-2 border-[var(--sd-line)] bg-[var(--sd-soft-solar)] ring-4 ring-[var(--sd-raised)]"
                     }
                     aria-hidden="true"
                   />
-                  <div>
-                    <p className="text-sm font-bold text-foreground">{item.label}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[var(--sd-ink)]">{item.label}</p>
+                    <p
+                      className={cn(
+                        "mt-1 text-xs font-semibold",
+                        item.complete
+                          ? "text-[var(--sd-success)]"
+                          : "text-[var(--sd-muted)]",
+                      )}
+                    >
                       {item.complete
                         ? t("portal.complete")
                         : t("portal.pending")}
@@ -408,8 +434,8 @@ export default function TrackPortalClient({
           </section>
 
           <aside className="space-y-5">
-            <section className="rounded-xl border border-border bg-card p-5 sm:p-6">
-              <h2 className="text-lg font-bold">{t("portal.contact")}</h2>
+            <section className="solar-route-card solar-route-card--strong p-5 sm:p-6">
+              <h2 className="text-lg font-bold text-[var(--sd-ink)]">{t("portal.contact")}</h2>
               <dl className="mt-4 space-y-3 text-sm">
                 <Masked
                   label={t("portal.name")}
@@ -419,15 +445,15 @@ export default function TrackPortalClient({
                 <Masked label={t("portal.phone")} value={order.contact.phone} />
               </dl>
             </section>
-            <section className="rounded-xl border border-primary/45 bg-primary/15 p-5 sm:p-6">
-              <h2 className="text-xl font-bold">{t("portal.claimTitle")}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-700">
+            <section className="solar-route-card solar-route-card--accent p-5 sm:p-6">
+              <h2 className="text-xl font-bold text-[var(--sd-ink)]">{t("portal.claimTitle")}</h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--sd-muted)]">
                 {t("portal.claimDescription")}
               </p>
               {message ? (
                 <p
                   role="alert"
-                  className="mt-3 text-sm font-semibold text-rose-700"
+                  className="mt-3 text-sm font-semibold text-[var(--sd-danger)]"
                 >
                   {message}
                 </p>
@@ -446,7 +472,7 @@ export default function TrackPortalClient({
                   variant="outline"
                   disabled={claimBusy}
                   onClick={() => void claim("login")}
-                  className="w-full bg-card"
+                  className="w-full"
                 >
                   {t("portal.signIn")}
                 </Button>
@@ -459,10 +485,25 @@ export default function TrackPortalClient({
   );
 }
 
-function StateShell({ children }: { children: ReactNode }) {
+function StateShell({
+  children,
+  soliaAlt,
+  soliaMessage,
+}: {
+  children: ReactNode;
+  soliaAlt: string;
+  soliaMessage: ReactNode;
+}) {
   return (
-    <PageShell className="grid place-items-center bg-background px-4 py-12 text-foreground">
-      <section className="w-full max-w-lg rounded-xl border border-border bg-card p-6 sm:p-8">
+    <PageShell className="grid place-items-center px-4 pb-16 pt-20 text-[var(--sd-ink)] sm:pt-24 lg:pt-28">
+      <section className="solar-route-card solar-route-card--strong w-full max-w-lg p-6 sm:p-8">
+        <SoliaGuide
+          className="mx-auto mb-5 h-28 w-24"
+          pose="thinking"
+          alt={soliaAlt}
+          message={soliaMessage}
+          speechBubbleClassName="absolute bottom-0 left-0 max-w-[15rem] -translate-x-1/2 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-2.5 text-xs font-semibold leading-5 text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)]"
+        />
         {children}
       </section>
     </PageShell>
@@ -482,9 +523,9 @@ function Tile({
 }) {
   return (
     <div className={cn("p-5", className)}>
-      <Icon aria-hidden="true" className="text-slate-600" />
-      <p className="mt-3 text-xs font-semibold text-muted-foreground">{label}</p>
-      <p className="mt-1 break-words text-sm font-bold text-foreground">{value}</p>
+      <Icon aria-hidden="true" className="text-[var(--sd-navy-900)]" />
+      <p className="mt-3 text-xs font-semibold text-[var(--sd-muted)]">{label}</p>
+      <p className="mt-1 break-words text-sm font-bold text-[var(--sd-ink)]">{value}</p>
     </div>
   );
 }
@@ -492,8 +533,8 @@ function Tile({
 function Masked({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 break-words text-right font-semibold text-foreground">{value}</dd>
+      <dt className="text-[var(--sd-muted)]">{label}</dt>
+      <dd className="min-w-0 break-words text-right font-semibold text-[var(--sd-ink)]">{value}</dd>
     </div>
   );
 }

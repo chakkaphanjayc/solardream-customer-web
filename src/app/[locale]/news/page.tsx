@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/card";
 
 // The listing combines the cached article feed with request-scoped localized
 // copy. Keep the route blocking while the article query remains tag-cached.
+export const instant = false;
 
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -53,7 +54,7 @@ export default async function NewsPage({ params }: PageProps) {
       <MotionReveal className="mx-auto max-w-6xl px-4 pb-12 pt-28 md:px-6 md:pb-16 md:pt-32">
         {/* Header */}
         <div className="mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#4F7FA8] block mb-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-[var(--sd-navy-900)] block mb-2">
             {t("breadcrumbs.knowledge")}
           </span>
           <h1 className="text-3xl md:text-4xl font-bold text-[#1C1C1A] tracking-tight">
@@ -117,7 +118,7 @@ export default async function NewsPage({ params }: PageProps) {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-[#4F7FA8] mt-5 pt-3 border-t border-[#8E8B83]/15">
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-[var(--sd-navy-900)] mt-5 pt-3 border-t border-[#8E8B83]/15">
                     {t("readArticle")} <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>

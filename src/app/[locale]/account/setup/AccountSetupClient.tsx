@@ -60,7 +60,7 @@ export default function AccountSetupClient({
       subtitle={t("description")}
     >
       <div className="space-y-6">
-        <div className="flex items-start gap-3 rounded-[20px] bg-[#DCE8F5] p-4 text-[#2E2C27]">
+        <div className="solar-ui-soft-panel flex items-start gap-3 rounded-[20px] p-4 text-[#2E2C27]">
           <Mail aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#4F7FA8]" />
           <div className="min-w-0">
             <p className="text-xs font-semibold text-[#4E4B44]">{t("signedInAs")}</p>
@@ -129,7 +129,7 @@ export default function AccountSetupClient({
             type="submit"
             size="lg"
             disabled={isPending}
-            className="min-h-12 w-full rounded-full bg-[#B7D1EA] text-white hover:bg-[#A5C2DE] active:scale-95 shadow-md font-bold"
+            className="solar-ui-primary min-h-12 w-full rounded-full font-bold active:scale-95"
           >
             {isPending ? (
               <Loader2 aria-hidden="true" className="h-5 w-5 animate-spin" />

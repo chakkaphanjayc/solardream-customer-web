@@ -92,7 +92,7 @@ export default function ContactForm() {
         ref={successRef}
         className="rounded-[28px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-8 shadow-sm sm:p-10"
       >
-        <p className="text-sm font-medium text-[#4F7FA8]">{t("success.eyebrow")}</p>
+        <p className="text-sm font-medium text-[var(--sd-navy-900)]">{t("success.eyebrow")}</p>
         <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#1C1C1A]">{t("success.title")}</h2>
         <p className="mt-5 max-w-md text-sm font-normal leading-6 text-[#4E4B44]">
           {t("success.description")}
@@ -100,7 +100,7 @@ export default function ContactForm() {
         <button
           type="button"
           onClick={() => setSubmitted(false)}
-          className="mt-8 rounded-full bg-[#B7D1EA] px-6 py-3 text-sm font-medium text-white shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/90 active:scale-95"
+          className="solar-ui-primary mt-8 rounded-full px-6 py-3 text-sm font-medium active:scale-95"
         >
           {t("success.sendAnother")}
         </button>
@@ -197,7 +197,7 @@ export default function ContactForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#B7D1EA] px-8 text-sm font-medium text-white shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/90 active:scale-95 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+          className="solar-ui-primary min-h-12 rounded-full px-8 text-sm font-medium active:scale-95 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
         >
           {submitting ? t("sending") : t("send")}
         </button>

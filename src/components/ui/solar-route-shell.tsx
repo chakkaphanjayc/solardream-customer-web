@@ -25,14 +25,14 @@ export function SolarRouteShell({
       data-bagui="page"
       data-solar-surface="atelier"
       className={cn(
-        "solar-route-shell sd-page-shell relative isolate min-h-dvh overflow-x-clip bg-transparent text-[#1C1C1A]",
+        "solar-route-shell sd-page-shell relative isolate min-h-dvh overflow-x-clip bg-[var(--sd-page)] text-[var(--sd-ink)]",
         className,
       )}
     >
       <div className="solar-route-atmosphere pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="pointer-events-none absolute -top-32 -left-20 h-[38rem] w-[38rem] rounded-full bg-[#B7D1EA]/20 blur-3xl" />
-        <div className="pointer-events-none absolute top-1/4 -right-24 h-[34rem] w-[34rem] rounded-full bg-[#F1D6B8]/24 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 left-1/4 h-[30rem] w-[30rem] rounded-full bg-[#B7D1EA]/12 blur-3xl" />
+        <div className="pointer-events-none absolute -top-32 -left-20 h-[38rem] w-[38rem] rounded-full bg-[var(--sd-selected)]/70 blur-3xl" />
+        <div className="pointer-events-none absolute top-1/4 -right-24 h-[34rem] w-[34rem] rounded-full bg-[var(--sd-anime-highlight)]/60 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 left-1/4 h-[30rem] w-[30rem] rounded-full bg-[var(--sd-selected)]/40 blur-3xl" />
         <span className="solar-route-glow solar-route-glow--sky" />
         <span className="solar-route-glow solar-route-glow--sun" />
         <span className="solar-route-horizon" />

@@ -114,7 +114,7 @@ export default function GlobalSummaryDrawer() {
                   {t("summarySpec")}
                 </SheetTitle>
                 <SheetDescription className="sr-only">
-                  {t("totalPrice")}: {formatPrice(totalPrice)}
+                  {t("totalPrice")}: {selectedCount > 0 ? formatPrice(totalPrice) : t("notCalculated")}
                 </SheetDescription>
               </div>
               <button
@@ -180,7 +180,7 @@ export default function GlobalSummaryDrawer() {
                 {t("totalPrice")}
               </span>
               <span className="text-xl font-black tracking-tight text-[#2E2C27] sm:text-2xl">
-                {formatPrice(totalPrice)}
+                {selectedCount > 0 ? formatPrice(totalPrice) : t("notCalculated")}
               </span>
             </div>
 

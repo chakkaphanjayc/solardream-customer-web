@@ -4688,10 +4688,10 @@ main[data-solar-surface="atelier"] {
 }
 
 .solar-wizard .solar-wizard-disabled {
-  border: 1px solid #ded8cf !important;
+  border: 1px solid var(--sd-line) !important;
   border-radius: 9999px !important;
-  background: rgba(240, 238, 233, 0.8) !important;
-  color: #475569 !important;
+  background: var(--sd-soft-solar) !important;
+  color: var(--sd-muted) !important;
   box-shadow: none !important;
 }
 
@@ -5043,6 +5043,42 @@ main[data-solar-surface="atelier"] {
   box-shadow: 0 4px 20px -2px rgba(44, 44, 36, 0.06) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+}
+
+.solar-summary-sidebar {
+  border: 1px solid var(--sd-line) !important;
+  border-radius: var(--sd-radius-panel) !important;
+  background: var(--sd-raised) !important;
+  color: var(--sd-ink) !important;
+  box-shadow: var(--sd-shadow-3) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.solar-summary-solia {
+  min-height: 5rem;
+  overflow: hidden;
+}
+
+.solar-summary-solia [data-solia-character] {
+  right: -0.35rem;
+  left: auto;
+  width: 5.5rem;
+}
+
+.solar-summary-solia-callout {
+  position: relative;
+  z-index: 1;
+  max-width: calc(100% - 3rem);
+  margin-right: 3rem;
+  border: 1px solid var(--sd-line);
+  border-radius: var(--sd-radius-md);
+  background: var(--sd-soft-solar);
+  color: var(--sd-text);
+  padding: 0.55rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.45;
 }
 
 .solar-build-live-header,
@@ -5454,74 +5490,62 @@ main[data-solar-surface="atelier"] {
 /* Works / installation archive ------------------------------------------- */
 
 [data-solar-surface="atelier"] .solar-works-hero {
-  border: 1px solid var(--solar-glass-edge);
-  border-radius: var(--sd-radius-feature);
-  background:
-    radial-gradient(circle at 8% 0%, rgb(183 209 234 / 0.42), transparent 34%),
-    linear-gradient(135deg, rgb(255 255 255 / 0.84), rgb(255 255 255 / 0.48));
-  color: var(--solar-glass-ink);
-  box-shadow:
-    0 6px 8px rgb(15 23 42 / 0.1),
-    inset 0 1px 0 rgb(255 255 255 / 0.64);
-  backdrop-filter: blur(24px) saturate(125%);
-  -webkit-backdrop-filter: blur(24px) saturate(125%);
+  border: 1px solid var(--sd-line);
+  border-radius: var(--sd-radius-panel);
+  background: var(--sd-raised);
+  color: var(--sd-ink);
+  box-shadow: var(--sd-shadow-2);
 }
 
 [data-solar-surface="atelier"] .solar-works-eyebrow {
-  border: 1px solid rgb(79 127 168 / 0.28);
-  background: rgb(183 209 234 / 0.7);
-  color: var(--solar-glass-ink);
-  box-shadow: 0 4px 8px rgb(79 127 168 / 0.12);
+  border: 1px solid rgb(18 107 255 / 0.22);
+  background: var(--sd-soft-solar);
+  color: var(--sd-blue-600);
+  box-shadow: var(--sd-shadow-1);
 }
 
 [data-solar-surface="atelier"] .solar-works-field-notes {
-  border: 1px solid rgb(216 168 123 / 0.42);
-  border-radius: 1.25rem;
-  background: rgb(241 214 184 / 0.52);
-  box-shadow: 0 5px 8px rgb(15 23 42 / 0.08);
+  border: 1px solid var(--sd-line);
+  border-radius: var(--sd-radius-md);
+  background: var(--sd-soft-solar);
+  box-shadow: var(--sd-shadow-1);
 }
 
 [data-solar-surface="atelier"] .solar-works-field-notes-divider {
-  border-color: rgb(15 45 54 / 0.18) !important;
+  border-color: var(--sd-line) !important;
 }
 
 [data-solar-surface="atelier"] .solar-works-card {
-  border: 1px solid rgb(255 255 255 / 0.68);
-  box-shadow:
-    0 8px 12px rgb(15 23 42 / 0.18),
-    inset 0 1px 0 rgb(255 255 255 / 0.2);
+  border: 1px solid rgb(255 255 255 / 0.28);
+  box-shadow: var(--sd-shadow-2);
 }
 
 [data-solar-surface="atelier"] .solar-works-card:hover {
-  box-shadow:
-    0 10px 16px rgb(15 23 42 / 0.22),
-    inset 0 1px 0 rgb(255 255 255 / 0.26);
+  box-shadow: var(--sd-shadow-3);
 }
 
 [data-solar-surface="atelier"] .solar-works-card .solar-works-pill {
-  border: 1px solid rgb(255 255 255 / 0.62);
-  background: rgb(255 255 255 / 0.78);
-  color: var(--solar-glass-ink);
-  box-shadow: 0 4px 8px rgb(15 23 42 / 0.12);
-  backdrop-filter: blur(12px) saturate(120%);
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid rgb(216 227 239 / 0.9);
+  background: rgb(255 255 255 / 0.92);
+  color: var(--sd-ink);
+  box-shadow: var(--sd-shadow-1);
 }
 
 [data-solar-surface="atelier"] .solar-works-card .solar-works-pill--accent {
-  border-color: rgb(183 209 234 / 0.8);
-  background: rgb(183 209 234 / 0.84);
+  border-color: rgb(77 220 255 / 0.72);
+  background: rgb(223 247 255 / 0.94);
 }
 
 [data-solar-surface="atelier"] .solar-works-card .solar-works-button {
-  border: 1px solid rgb(183 209 234 / 0.82);
-  background: #b7d1ea;
-  color: var(--solar-glass-ink);
-  box-shadow: 0 5px 8px rgb(15 23 42 / 0.16);
+  border: 1px solid var(--sd-blue-600);
+  background: var(--sd-blue-600);
+  color: #fff;
+  box-shadow: var(--sd-shadow-1);
 }
 
 [data-solar-surface="atelier"] .solar-works-card .solar-works-button:hover:not(:disabled) {
-  background: #d1e2f1;
-  box-shadow: 0 7px 10px rgb(15 23 42 / 0.2);
+  background: var(--sd-blue-500);
+  box-shadow: var(--sd-shadow-2);
   transform: translateY(-2px);
 }
 
@@ -5531,68 +5555,65 @@ main[data-solar-surface="atelier"] {
 
 [data-solar-surface="atelier"] .solar-works-filter-bar,
 [data-solar-surface="atelier"] .solar-works-empty {
-  border: 1px solid var(--solar-glass-edge);
-  background: var(--solar-glass-fill);
-  box-shadow:
-    0 6px 8px rgb(15 23 42 / 0.1),
-    inset 0 1px 0 rgb(255 255 255 / 0.62);
-  backdrop-filter: blur(24px) saturate(125%);
-  -webkit-backdrop-filter: blur(24px) saturate(125%);
+  border: 1px solid var(--sd-line);
+  background: var(--sd-raised);
+  box-shadow: var(--sd-shadow-2);
 }
 
 [data-solar-surface="atelier"] .solar-works-filter {
-  border: 1px solid var(--solar-glass-line);
-  background: rgb(255 255 255 / 0.48);
-  color: var(--solar-glass-ink);
-  box-shadow: 0 4px 8px rgb(15 23 42 / 0.06);
+  border: 1px solid var(--sd-line);
+  background: var(--sd-page);
+  color: var(--sd-ink);
+  box-shadow: var(--sd-shadow-1);
   transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
 }
 
 [data-solar-surface="atelier"] .solar-works-filter:hover,
 [data-solar-surface="atelier"] .solar-works-filter:focus-visible {
-  background: rgb(255 255 255 / 0.8);
-  box-shadow: 0 5px 8px rgb(15 23 42 / 0.1);
+  border-color: var(--sd-blue-500);
+  background: var(--sd-soft-solar);
+  box-shadow: var(--sd-shadow-1);
   transform: translateY(-1px);
 }
 
 [data-solar-surface="atelier"] .solar-works-filter--active {
-  border-color: rgb(79 127 168 / 0.36);
-  background: rgb(183 209 234 / 0.72);
-  box-shadow: 0 5px 8px rgb(79 127 168 / 0.14);
+  border-color: var(--sd-blue-600);
+  background: var(--sd-selected);
+  box-shadow: var(--sd-shadow-1);
 }
 
 [data-solar-surface="atelier"] .solar-works-results-meta {
-  border-color: var(--solar-glass-line) !important;
+  border-color: var(--sd-line) !important;
 }
 
 /* The showcase detail view is a separate portal; carry the contract with it. */
 
 [data-works-modal-backdrop] {
-  background: rgb(15 45 54 / 0.34) !important;
-  backdrop-filter: blur(16px) saturate(112%);
-  -webkit-backdrop-filter: blur(16px) saturate(112%);
+  background: rgb(7 27 61 / 0.46) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 [data-bagui="works-modal"] {
-  border: 1px solid var(--solar-glass-edge) !important;
-  border-radius: var(--sd-radius-feature) !important;
-  background: var(--solar-glass-fill-strong) !important;
-  color: var(--solar-glass-ink) !important;
-  box-shadow: 0 10px 18px rgb(15 23 42 / 0.2) !important;
-  backdrop-filter: blur(28px) saturate(125%);
-  -webkit-backdrop-filter: blur(28px) saturate(125%);
+  border: 1px solid var(--sd-line) !important;
+  border-radius: var(--sd-radius-panel) !important;
+  background: var(--sd-raised) !important;
+  color: var(--sd-ink) !important;
+  box-shadow: var(--sd-shadow-4) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 [data-bagui="works-modal"] [class*="shadow"] {
-  box-shadow: 0 5px 8px rgb(15 23 42 / 0.1) !important;
+  box-shadow: var(--sd-shadow-1) !important;
 }
 
 [data-bagui="works-modal"] .solar-works-modal-header {
-  border-bottom: 1px solid var(--solar-glass-line) !important;
-  background: rgb(255 255 255 / 0.48) !important;
-  color: var(--solar-glass-ink) !important;
-  backdrop-filter: blur(20px) saturate(120%);
-  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  border-bottom: 1px solid var(--sd-line) !important;
+  background: var(--sd-soft-solar) !important;
+  color: var(--sd-ink) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 [data-bagui="works-modal"] .solar-works-modal-hero {
@@ -5601,7 +5622,7 @@ main[data-solar-surface="atelier"] {
 
 @media (prefers-reduced-transparency: reduce) {
   [data-bagui="works-modal"] {
-    background: #f5f2eb !important;
+    background: var(--sd-raised) !important;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -5621,7 +5642,7 @@ main[data-solar-surface="atelier"] {
   [data-solar-surface="atelier"] .solar-works-hero,
   [data-solar-surface="atelier"] .solar-works-filter-bar,
   [data-solar-surface="atelier"] .solar-works-empty {
-    background: #f5f2eb !important;
+    background: var(--sd-raised) !important;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -6867,7 +6888,7 @@ main[data-solar-surface="atelier"] {
    [data-bagui="button"] rule that accidentally turned primary buttons into
    beige controls on atelier routes. */
 [data-solar-surface="atelier"]
-  [data-bagui="button"][data-button-variant="primary"] {
+  [data-bagui="button"][data-button-variant="primary"]:not(:disabled) {
   border: 1px solid rgb(79 127 168 / 0.36) !important;
   background: #b7d1ea !important;
   color: #1C1C1A !important;
@@ -7123,33 +7144,18 @@ body[data-solar-ui="customer"] #solardream-layer-root
    an old border-black, border-4, or offset-shadow utility. */
 html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"] {
-  --sd-customer-ink: #1C1C1A;
+  --sd-customer-ink: #10213B;
   --sd-customer-muted: #526477;
-  --sd-customer-line: rgb(79 127 168 / 0.14);
-  --sd-customer-line-strong: rgb(79 127 168 / 0.24);
-  --sd-customer-surface: linear-gradient(
-    135deg,
-    rgb(255 255 255 / 0.7),
-    rgb(255 255 255 / 0.42)
-  );
-  --sd-customer-surface-strong: linear-gradient(
-    135deg,
-    rgb(255 255 255 / 0.82),
-    rgb(255 255 255 / 0.58)
-  );
-  --sd-customer-surface-soft: rgb(255 255 255 / 0.38);
-  --sd-customer-accent: linear-gradient(
-    135deg,
-    rgb(183 209 234 / 0.74),
-    rgb(183 209 234 / 0.44)
-  );
+  --sd-customer-line: #D8E3EF;
+  --sd-customer-line-strong: rgb(18 107 255 / 0.28);
+  --sd-customer-surface: #FFFFFF;
+  --sd-customer-surface-strong: #FFFFFF;
+  --sd-customer-surface-soft: #EEF5FF;
+  --sd-customer-accent: #E7F1FF;
   --sd-customer-shadow:
-    0 20px 48px -34px rgb(15 23 42 / 0.38),
-    inset 0 1px 0 rgb(255 255 255 / 0.74),
-    inset 0 -1px 0 rgb(79 127 168 / 0.05);
-  --sd-customer-shadow-soft:
-    0 12px 30px -24px rgb(15 23 42 / 0.32),
-    inset 0 1px 0 rgb(255 255 255 / 0.68);
+    0 22px 48px -30px rgb(6 27 61 / 0.22),
+    0 2px 8px rgb(16 33 59 / 0.06);
+  --sd-customer-shadow-soft: 0 2px 8px rgb(16 33 59 / 0.08);
 }
 
 html body[data-solar-ui="customer"]
@@ -8373,39 +8379,55 @@ html body[data-solar-ui="customer"]
 }
 
 /* -------------------------------------------------------------------------
-   Final customer contract: Warm Air & Sand / Material You
+   Final customer contract: Future Manga Business System
    -------------------------------------------------------------------------
    The operations console deliberately does not match these selectors. The
    customer shell keeps the existing route structure, while this final layer
-   gives legacy and BagUI components one coherent surface, type, and control
-   language. */
+   gives legacy and BagUI components one coherent white/cool-white surface,
+   deep-navy copy, and electric-blue action language. */
 
 .sd-site-shell[data-solar-ui="customer"] {
-  --solar-warm-ground: #f0eee9;
-  --solar-warm-ink: #1c1c1a;
-  --solar-warm-on-primary: #142533;
-  --solar-warm-muted: #4e4b44;
-  --solar-warm-primary: #b7d1ea;
-  --solar-warm-primary-hover: #a5c2de;
-  --solar-warm-primary-focus: #7ca8d0;
-  --solar-warm-primary-container: #dce8f5;
-  --solar-warm-surface: #e6e3dc;
-  --solar-warm-surface-high: #ddd9d0;
-  --solar-warm-surface-low: #f7f6f3;
-  --solar-warm-secondary: #d8d2c4;
-  --solar-warm-tertiary: #d5dfd7;
-  --solar-warm-outline: #8e8b83;
-  --solar-warm-outline-variant: #cbc7be;
-  --solar-warm-shadow-sm: 0 1px 3px rgb(28 28 26 / 0.1);
-  --solar-warm-shadow-md: 0 4px 12px rgb(28 28 26 / 0.12);
+  /* Legacy aliases inherit the same semantic roles so unmigrated route
+     components do not reintroduce the previous sand/low-contrast palette. */
+  --solar-ui-ground: #f7faff;
+  --solar-ui-primary: #126bff;
+  --solar-ui-primary-hover: #0b5be0;
+  --solar-ui-primary-deep: #0b5be0;
+  --solar-ui-ink: #10213b;
+  --solar-ui-muted: #526477;
+  --solar-ui-surface: #ffffff;
+  --solar-ui-surface-strong: #ffffff;
+  --solar-ui-surface-soft: #eef5ff;
+  --solar-ui-line: #d8e3ef;
+  --solar-ui-edge: #d8e3ef;
+  --solar-ui-warm: #ffd84d;
+  --solar-ui-shadow-sm: 0 2px 8px rgb(16 33 59 / 0.08);
+  --solar-ui-shadow-md: 0 12px 28px -18px rgb(16 33 59 / 0.28);
+  --solar-warm-ground: #f7faff;
+  --solar-warm-ink: #10213b;
+  --solar-warm-on-primary: #ffffff;
+  --solar-warm-muted: #526477;
+  --solar-warm-primary: #126bff;
+  --solar-warm-primary-hover: #0b5be0;
+  --solar-warm-primary-focus: #126bff;
+  --solar-warm-primary-container: #e7f1ff;
+  --solar-warm-surface: #ffffff;
+  --solar-warm-surface-high: #eef5ff;
+  --solar-warm-surface-low: #f7faff;
+  --solar-warm-secondary: #eef5ff;
+  --solar-warm-tertiary: #e7f7ef;
+  --solar-warm-outline: #9aaec3;
+  --solar-warm-outline-variant: #d8e3ef;
+  --solar-warm-shadow-sm: 0 2px 8px rgb(16 33 59 / 0.08);
+  --solar-warm-shadow-md: 0 12px 28px -18px rgb(16 33 59 / 0.28);
   background: var(--solar-warm-ground) !important;
   color: var(--solar-warm-ink) !important;
   font-family: var(--font-roboto), var(--font-noto-sans-thai), sans-serif;
 }
 
 html body[data-solar-ui="customer"] {
-  background: #f0eee9 !important;
-  color: #1c1c1a !important;
+  background: #f7faff !important;
+  color: #10213b !important;
   font-family: var(--font-roboto), var(--font-noto-sans-thai), sans-serif;
 }
 
@@ -8421,9 +8443,9 @@ html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   [data-solar-surface="atelier"].solar-route-shell {
   background:
-    radial-gradient(circle at 8% 4%, rgb(183 209 234 / 0.28), transparent 34%),
-    radial-gradient(circle at 94% 86%, rgb(216 210 196 / 0.3), transparent 30%),
-    #f0eee9 !important;
+    radial-gradient(circle at 8% 4%, rgb(38 140 255 / 0.14), transparent 34%),
+    radial-gradient(circle at 94% 86%, rgb(77 220 255 / 0.12), transparent 30%),
+    #f7faff !important;
 }
 
 html body[data-solar-ui="customer"]
@@ -8441,7 +8463,7 @@ html body[data-solar-ui="customer"]
   font-family: var(--font-roboto), var(--font-noto-sans-thai), sans-serif;
 }
 
-/* Material surfaces: cards are opaque warm containers by default. */
+/* Material surfaces: cards are opaque calm containers by default. */
 html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   [data-solar-surface="atelier"]
@@ -8543,7 +8565,7 @@ html body[data-solar-ui="customer"]
 }
 
 /* Legacy white/background utilities are converted only inside customer
-   atelier content. The surface root itself keeps the Linen Ground. */
+   atelier content. The surface root itself keeps the cool-white ground. */
 html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   [data-solar-surface="atelier"]
@@ -8669,7 +8691,7 @@ html body[data-solar-ui="customer"]
     button[class*="bg-[#B7D1EA]"],
     a[class*="bg-[#B7D1EA]"],
     [role="button"][class*="bg-[#B7D1EA]"]
-  ) {
+  ):not(:disabled) {
   min-height: 2.75rem;
   border: 1px solid var(--solar-warm-primary-focus) !important;
   border-radius: 9999px !important;
@@ -8744,13 +8766,13 @@ html body[data-solar-ui="customer"]
 html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   .solar-auth-shell {
-  --solar-auth-ink: #1c1c1a;
-  --solar-auth-muted: #4e4b44;
-  --solar-auth-accent: #b7d1ea;
+  --solar-auth-ink: #10213b;
+  --solar-auth-muted: #526477;
+  --solar-auth-accent: #126bff;
   background:
-    radial-gradient(circle at 8% 16%, rgb(183 209 234 / 0.28), transparent 32%),
-    radial-gradient(circle at 92% 84%, rgb(216 210 196 / 0.26), transparent 28%),
-    #f0eee9 !important;
+    radial-gradient(circle at 8% 16%, rgb(38 140 255 / 0.14), transparent 32%),
+    radial-gradient(circle at 92% 84%, rgb(77 220 255 / 0.12), transparent 28%),
+    #f7faff !important;
   color: var(--solar-warm-ink) !important;
 }
 
@@ -8811,13 +8833,14 @@ html body[data-solar-ui="customer"] #solardream-layer-root
     .solar-summary-drawer,
     .solar-summary-sidebar,
     .solar-summary-mobile-bar,
+    .solar-route-action-bar,
     .solar-build-action-dock
   ) {
-  border: 1px solid var(--solar-warm-outline-variant, #cbc7be) !important;
+  border: 1px solid var(--solar-warm-outline-variant, #d8e3ef) !important;
   border-radius: 1rem !important;
-  background: var(--solar-warm-surface, #e6e3dc) !important;
-  box-shadow: var(--solar-warm-shadow-md, 0 4px 12px rgb(28 28 26 / 0.12)) !important;
-  color: var(--solar-warm-ink, #1c1c1a) !important;
+  background: var(--solar-warm-surface, #ffffff) !important;
+  box-shadow: var(--solar-warm-shadow-md, 0 12px 28px -18px rgb(16 33 59 / 0.28)) !important;
+  color: var(--solar-warm-ink, #10213b) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -8829,7 +8852,7 @@ html body[data-solar-ui="customer"] #solardream-layer-root
 
 html body[data-solar-ui="customer"] #solardream-layer-root
   :is([data-dialog-tone="light"].layer-backdrop, [data-sheet-tone="light"].layer-backdrop) {
-  background: rgb(28 28 26 / 0.32) !important;
+  background: rgb(6 27 61 / 0.32) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -8842,10 +8865,10 @@ html body[data-solar-ui="customer"] #solardream-layer-root
     button[class*="bg-[#B7D1EA]"],
     a[class*="bg-[#B7D1EA]"]
   ) {
-  border-color: #7ca8d0 !important;
+  border-color: #126bff !important;
   border-radius: 9999px !important;
-  background: #b7d1ea !important;
-  color: #142533 !important;
+  background: #126bff !important;
+  color: #ffffff !important;
 }
 
 html body[data-solar-ui="customer"]
@@ -8879,8 +8902,8 @@ html body[data-solar-ui="customer"]
 html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   .solar-external-access {
-  background: #f0eee9 !important;
-  color: #1c1c1a !important;
+  background: #f7faff !important;
+  color: #10213b !important;
   font-family: var(--font-roboto), var(--font-noto-sans-thai), sans-serif;
 }
 
@@ -8888,8 +8911,8 @@ html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   .solar-external-access
   :where([class*="bg-[#0d1117]"], [class*="bg-[#161b22]"]) {
-  background: #e6e3dc !important;
-  color: #1c1c1a !important;
+  background: #ffffff !important;
+  color: #10213b !important;
 }
 
 html body[data-solar-ui="customer"]
@@ -8899,7 +8922,7 @@ html body[data-solar-ui="customer"]
     [class*="border-[#30363d]"],
     [class*="divide-[#30363d]"]
   ) {
-  border-color: #cbc7be !important;
+  border-color: #d8e3ef !important;
 }
 
 html body[data-solar-ui="customer"]
@@ -8911,21 +8934,21 @@ html body[data-solar-ui="customer"]
     [class*="text-[#8b949e]"],
     [class*="text-[#6e7681]"]
   ) {
-  color: #1c1c1a !important;
+  color: #526477 !important;
 }
 
 html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   .solar-external-access
   :where(p, span) {
-  color: #4e4b44;
+  color: #526477;
 }
 
 html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   .solar-external-access
   :where(h1, h2, h3) {
-  color: #1c1c1a !important;
+  color: #10213b !important;
 }
 
 html body[data-solar-ui="customer"]
@@ -8933,19 +8956,19 @@ html body[data-solar-ui="customer"]
   .solar-external-access
   :where(button) {
   min-height: 2.75rem;
-  border: 1px solid #8e8b83 !important;
+  border: 1px solid #9aaec3 !important;
   border-radius: 9999px !important;
-  background: #f7f6f3 !important;
-  color: #1c1c1a !important;
+  background: #ffffff !important;
+  color: #10213b !important;
 }
 
 html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   .solar-external-access
   :where([class*="bg-[#238636]"]) {
-  border-color: #8e8b83 !important;
-  background: #d5dfd7 !important;
-  color: #203328 !important;
+  border-color: #1b8b58 !important;
+  background: #e7f7ef !important;
+  color: #14623f !important;
 }
 
 /* The technician workspace is a non-admin product surface. Preserve its
@@ -8953,8 +8976,8 @@ html body[data-solar-ui="customer"]
 html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   .tech-portal {
-  background: #f0eee9 !important;
-  color: #1c1c1a !important;
+  background: #f7faff !important;
+  color: #10213b !important;
   font-family: var(--font-roboto), var(--font-noto-sans-thai), sans-serif;
 }
 
@@ -8968,9 +8991,9 @@ html body[data-solar-ui="customer"]
     [class*="bg-white/15"],
     [class*="bg-white/[0.04]"]
   ) {
-  border-color: #cbc7be !important;
-  background: #e6e3dc !important;
-  color: #1c1c1a !important;
+  border-color: #d8e3ef !important;
+  background: #ffffff !important;
+  color: #10213b !important;
 }
 
 html body[data-solar-ui="customer"]
@@ -8981,7 +9004,7 @@ html body[data-solar-ui="customer"]
     [class*="border-[#E2E8F0]"],
     [class*="divide-[#30363d]"]
   ) {
-  border-color: #cbc7be !important;
+  border-color: #d8e3ef !important;
 }
 
 html body[data-solar-ui="customer"]
@@ -8995,14 +9018,14 @@ html body[data-solar-ui="customer"]
     [class*="text-[#0F172A]"],
     [class*="text-[#475569]"]
   ) {
-  color: #1c1c1a !important;
+  color: #10213b !important;
 }
 
 html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   .tech-portal
   :where(section, article) {
-  border-color: #cbc7be !important;
+  border-color: #d8e3ef !important;
   border-radius: 1rem !important;
 }
 
@@ -9018,7 +9041,1295 @@ html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   .tech-portal
   :where(button[class*="bg-[#0F172A]"], a[class*="bg-[#0F172A]"]) {
-  border-color: #7ca8d0 !important;
-  background: #b7d1ea !important;
-  color: #142533 !important;
+  border-color: #126bff !important;
+  background: #126bff !important;
+  color: #ffffff !important;
+}
+
+/* ========================================================================
+   SolarDream Anime-Tech product contract
+   ------------------------------------------------------------------------
+   This is the canonical semantic layer for customer journeys. Legacy
+   Material/Liquid-Glass aliases above remain available while routes migrate;
+   new shared UI should use these roles rather than inventing another palette.
+   ======================================================================== */
+
+:root {
+  --sd-navy-950: #061b3d;
+  --sd-navy-900: #08234a;
+  --sd-blue-600: #126bff;
+  --sd-blue-500: #268cff;
+  --sd-cyan-400: #4ddcff;
+  --sd-cyan-100: #dff7ff;
+  --sd-yellow-400: #ffd84d;
+  --sd-white: #ffffff;
+  --sd-page: #f7faff;
+  --sd-raised: #ffffff;
+  --sd-soft-solar: #eef5ff;
+  --sd-technical: #061b3d;
+  --sd-selected: #e7f1ff;
+  --sd-anime-highlight: #fff8d6;
+  --sd-ink: #10213b;
+  --sd-text: #24364f;
+  --sd-muted: #526477;
+  --sd-line: #d8e3ef;
+  --sd-success: #157347;
+  --sd-warning: #9a6700;
+  --sd-danger: #b42318;
+  --sd-focus: #126bff;
+  --sd-radius-sm: 8px;
+  --sd-radius-md: 12px;
+  --sd-radius-lg: 18px;
+  --sd-radius-xl: 24px;
+  --sd-radius-panel: 28px;
+  --sd-shadow-1: 0 2px 8px rgb(16 33 59 / 0.08);
+  --sd-shadow-2: 0 12px 28px -18px rgb(16 33 59 / 0.28);
+  --sd-shadow-3: 0 22px 48px -24px rgb(16 33 59 / 0.34);
+  --sd-shadow-4: 0 28px 72px -28px rgb(6 27 61 / 0.48);
+  --sd-space-xs: 4px;
+  --sd-space-sm: 8px;
+  --sd-space-md: 16px;
+  --sd-space-lg: 24px;
+  --sd-space-xl: 40px;
+  --sd-space-2xl: 64px;
+  --sd-motion-fast: 160ms;
+  --sd-motion-normal: 220ms;
+  --sd-motion-slow: 520ms;
+  --sd-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.solar-ui-panel,
+.solar-ui-soft-panel,
+.solar-ui-technical-panel {
+  border: 1px solid var(--sd-line);
+  border-radius: var(--sd-radius-lg);
+  color: var(--sd-ink);
+  box-shadow: var(--sd-shadow-1);
+}
+
+.solar-ui-panel {
+  background: var(--sd-raised);
+}
+
+.solar-ui-soft-panel {
+  background: var(--sd-soft-solar);
+}
+
+.solar-ui-technical-panel {
+  border-color: rgb(77 220 255 / 0.3);
+  background: var(--sd-technical);
+  color: var(--sd-white);
+  box-shadow: var(--sd-shadow-3);
+}
+
+.solar-ui-choice {
+  min-height: 4rem;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--sd-space-md);
+  border: 1px solid var(--sd-line);
+  border-radius: var(--sd-radius-md);
+  background: var(--sd-raised);
+  color: var(--sd-ink);
+  padding: 0.85rem 1rem;
+  text-align: left;
+  transition:
+    border-color var(--sd-motion-normal) var(--sd-motion-ease),
+    background-color var(--sd-motion-normal) var(--sd-motion-ease),
+    box-shadow var(--sd-motion-normal) var(--sd-motion-ease),
+    transform var(--sd-motion-normal) var(--sd-motion-ease);
+}
+
+.solar-ui-choice__leading {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sd-space-md);
+}
+
+.solar-ui-choice--feature {
+  position: relative;
+  min-height: 9rem;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.25rem;
+}
+
+.solar-ui-choice--feature .solar-ui-choice__leading {
+  width: 100%;
+}
+
+.solar-ui-choice--feature .solar-ui-choice__recommended {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  right: auto;
+}
+
+.solar-ui-choice--feature > svg {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  color: var(--sd-blue-600);
+}
+
+.solar-ui-choice--has-tooltip {
+  padding-bottom: 3.5rem;
+}
+
+.solar-ui-choice--has-tooltip + button {
+  border-radius: var(--sd-radius-sm);
+  color: var(--sd-muted);
+}
+
+.solar-ui-choice--has-tooltip + button:hover {
+  background: var(--sd-soft-solar);
+  color: var(--sd-blue-600);
+}
+
+.solar-build-capacity-choice,
+.solar-build-addon-choice {
+  align-items: stretch;
+}
+
+.solar-build-capacity-choice {
+  min-height: 10.5rem;
+}
+
+.solar-build-capacity-choice .solar-ui-choice__label {
+  font-size: 1.45rem;
+  letter-spacing: -0.04em;
+}
+
+.solar-build-capacity-choice .solar-ui-choice__meta,
+.solar-build-addon-choice .solar-ui-choice__meta {
+  margin-top: auto;
+  margin-left: 0;
+}
+
+.solar-build-inline-choice {
+  min-height: 7.25rem;
+  align-items: stretch;
+}
+
+.solar-ui-choice:hover:not(:disabled) {
+  border-color: var(--sd-blue-500);
+  box-shadow: var(--sd-shadow-2);
+  transform: translateY(-2px);
+}
+
+.solar-ui-choice[data-selected="true"],
+.solar-ui-choice[aria-checked="true"],
+.solar-ui-choice[aria-pressed="true"] {
+  border-color: var(--sd-blue-600);
+  background: var(--sd-selected);
+  box-shadow: 0 0 0 2px rgb(18 107 255 / 0.12), var(--sd-shadow-1);
+}
+
+.solar-ui-choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.solar-ui-choice:focus-visible,
+.solar-ui-primary:focus-visible,
+.solar-ui-secondary:focus-visible,
+.solar-ui-tertiary:focus-visible,
+.solar-ui-action-bar button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--sd-focus) 40%, transparent);
+  outline-offset: 3px;
+}
+
+.solar-ui-choice__icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--sd-radius-md);
+  background: var(--sd-soft-solar);
+  color: var(--sd-blue-600);
+}
+
+.solar-ui-choice[data-selected="true"] .solar-ui-choice__icon,
+.solar-ui-choice[aria-checked="true"] .solar-ui-choice__icon {
+  background: var(--sd-blue-600);
+  color: var(--sd-white);
+}
+
+.solar-ui-choice__copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.solar-ui-choice__label {
+  color: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.solar-ui-choice__description {
+  color: var(--sd-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.solar-ui-dependency-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  color: var(--sd-navy-900);
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.solar-ui-dependency-note[data-tone="warning"] {
+  color: var(--sd-warning);
+}
+
+.solar-ui-dependency-note svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: 0 0 auto;
+  margin-top: 0.08rem;
+}
+
+.solar-ui-choice__meta {
+  margin-left: auto;
+  color: var(--sd-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.solar-ui-choice__recommended {
+  align-self: flex-start;
+  border-radius: 999px;
+  background: var(--sd-yellow-400);
+  color: var(--sd-ink);
+  padding: 0.28rem 0.5rem;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.solar-ui-primary,
+.solar-ui-secondary,
+.solar-ui-tertiary {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--sd-radius-md);
+  padding: 0.72rem 1rem;
+  font-weight: 800;
+  line-height: 1.1;
+  transition:
+    background-color var(--sd-motion-normal) var(--sd-motion-ease),
+    border-color var(--sd-motion-normal) var(--sd-motion-ease),
+    box-shadow var(--sd-motion-normal) var(--sd-motion-ease),
+    transform var(--sd-motion-normal) var(--sd-motion-ease);
+}
+
+.solar-ui-primary {
+  border: 1px solid var(--sd-blue-600);
+  background: var(--sd-blue-600);
+  color: var(--sd-white);
+  box-shadow: var(--sd-shadow-1);
+}
+
+.solar-ui-primary:hover:not(:disabled) {
+  background: #0b5be0;
+  box-shadow: var(--sd-shadow-2);
+  transform: translateY(-2px);
+}
+
+.solar-ui-secondary {
+  border: 1px solid var(--sd-blue-600);
+  background: var(--sd-raised);
+  color: var(--sd-blue-600);
+}
+
+.solar-ui-secondary:hover:not(:disabled) {
+  background: var(--sd-soft-solar);
+  transform: translateY(-2px);
+}
+
+.solar-ui-tertiary {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--sd-text);
+}
+
+.solar-ui-tertiary:hover:not(:disabled) {
+  background: var(--sd-soft-solar);
+  color: var(--sd-blue-600);
+}
+
+.solar-ui-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--sd-line);
+  border-radius: 999px;
+  background: var(--sd-raised);
+  color: var(--sd-muted);
+  padding: 0.35rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.solar-ui-status::before {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+
+.solar-ui-status[data-tone="success"] {
+  border-color: rgb(21 115 71 / 0.22);
+  background: rgb(21 115 71 / 0.08);
+  color: var(--sd-success);
+}
+
+.solar-ui-status[data-tone="warning"] {
+  border-color: rgb(154 103 0 / 0.24);
+  background: rgb(255 216 77 / 0.18);
+  color: var(--sd-warning);
+}
+
+.solar-ui-status[data-tone="danger"] {
+  border-color: rgb(180 35 24 / 0.22);
+  background: rgb(180 35 24 / 0.08);
+  color: var(--sd-danger);
+}
+
+.solar-ui-metric {
+  min-width: 0;
+  display: grid;
+  gap: 0.35rem;
+  border-top: 1px solid var(--sd-line);
+  padding-top: 0.75rem;
+}
+
+.solar-ui-metric__label {
+  color: var(--sd-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.solar-ui-metric__value {
+  color: var(--sd-ink);
+  font-size: clamp(1.25rem, 2vw, 1.8rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.solar-live-plan {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  overflow: hidden;
+  padding: 1.25rem;
+}
+
+.solar-live-plan__header,
+.solar-live-plan__hero,
+.solar-live-plan__details > div,
+.solar-live-plan__addons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.solar-live-plan__header {
+  align-items: flex-start;
+}
+
+.solar-live-plan__eyebrow,
+.solar-live-plan__label,
+.solar-live-plan__details dt,
+.solar-live-plan__addons span {
+  color: var(--sd-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.solar-live-plan__title {
+  margin-top: 0.2rem;
+  color: var(--sd-ink);
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.solar-live-plan__description {
+  color: var(--sd-muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.solar-live-plan__hero {
+  border-radius: var(--sd-radius-md);
+  background: var(--sd-soft-solar);
+  padding: 1rem;
+}
+
+.solar-live-plan__hero > div {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.solar-live-plan__size {
+  color: var(--sd-ink);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  line-height: 0.95;
+}
+
+.solar-live-plan__sun {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sd-yellow-400);
+  color: var(--sd-ink);
+}
+
+.solar-live-plan__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.solar-live-plan__metrics .solar-ui-metric {
+  min-width: 0;
+}
+
+.solar-live-plan__metrics .solar-ui-metric__value {
+  overflow: hidden;
+  font-size: clamp(1rem, 2.5vw, 1.35rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.solar-live-plan__details {
+  display: grid;
+  gap: 0.15rem;
+  border-top: 1px solid var(--sd-line);
+  border-bottom: 1px solid var(--sd-line);
+  padding-block: 0.65rem;
+}
+
+.solar-live-plan__details-group {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.solar-live-plan__details-group > h3 {
+  color: var(--sd-text);
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.solar-live-plan__details > div {
+  min-height: 2rem;
+}
+
+.solar-live-plan__details dd {
+  max-width: 58%;
+  overflow: hidden;
+  color: var(--sd-ink);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.solar-live-plan__addons {
+  align-items: flex-end;
+  border-radius: var(--sd-radius-md);
+  background: var(--sd-anime-highlight);
+  padding: 0.75rem;
+}
+
+.solar-live-plan__addons > span {
+  max-width: 58%;
+}
+
+.solar-live-plan__addons strong {
+  color: var(--sd-ink);
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+}
+
+.solar-live-plan__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  color: var(--sd-muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.solar-live-plan__note svg {
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  color: var(--sd-blue-600);
+}
+
+.solar-live-plan__progress {
+  display: grid;
+  gap: 0.4rem;
+  border-top: 1px solid var(--sd-line);
+  padding-top: 0.75rem;
+}
+
+.solar-live-plan__progress > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.solar-live-plan__progress > div:first-child span,
+.solar-live-plan__progress small {
+  color: var(--sd-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.solar-live-plan__progress > div:first-child strong {
+  color: var(--sd-blue-600);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+}
+
+.solar-live-plan__progress-track {
+  height: 0.45rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--sd-line);
+}
+
+.solar-live-plan__progress-track > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--sd-blue-500);
+  transform-origin: left;
+  transition: transform var(--sd-motion-slow) var(--sd-motion-ease);
+}
+
+.solar-live-plan__action {
+  position: relative;
+  z-index: 1;
+}
+
+.solar-live-plan__solia {
+  position: absolute;
+  right: -0.85rem;
+  bottom: 6.5rem;
+  z-index: 0;
+  width: 5.75rem;
+  height: 7.5rem;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.solar-live-plan__solia-image {
+  object-fit: contain;
+  object-position: bottom right;
+}
+
+@media (max-width: 420px) {
+  .solar-live-plan__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .solar-live-plan__solia {
+    display: none;
+  }
+}
+
+.solar-ui-stepper {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.solar-ui-stepper__list {
+  display: grid;
+  grid-template-columns: repeat(var(--solar-step-count, 1), minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.solar-ui-stepper__button {
+  min-height: 3.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  border: 1px solid var(--sd-line);
+  border-radius: var(--sd-radius-md);
+  background: var(--sd-raised);
+  color: var(--sd-text);
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+}
+
+.solar-ui-stepper__button[data-state="current"] {
+  border-color: var(--sd-blue-600);
+  background: var(--sd-selected);
+  color: var(--sd-ink);
+}
+
+.solar-ui-stepper__button[data-state="complete"] {
+  border-color: rgb(21 115 71 / 0.26);
+  background: rgb(21 115 71 / 0.07);
+}
+
+.solar-ui-stepper__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.solar-ui-stepper__index {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sd-soft-solar);
+  color: var(--sd-blue-600);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+}
+
+.solar-ui-stepper__button[data-state="current"] .solar-ui-stepper__index {
+  background: var(--sd-blue-600);
+  color: var(--sd-white);
+}
+
+.solar-ui-stepper__button[data-state="complete"] .solar-ui-stepper__index {
+  background: var(--sd-success);
+  color: var(--sd-white);
+}
+
+.solar-ui-stepper__copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.solar-ui-stepper__label {
+  overflow: hidden;
+  color: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.solar-ui-stepper__description {
+  overflow: hidden;
+  color: var(--sd-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.solar-ui-stepper__status {
+  color: var(--sd-muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.solar-ui-action-bar {
+  position: sticky;
+  bottom: 1rem;
+  z-index: var(--layer-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--sd-line);
+  border-radius: var(--sd-radius-lg);
+  background: color-mix(in srgb, var(--sd-raised) 94%, transparent);
+  box-shadow: var(--sd-shadow-3);
+  padding: 0.75rem 1rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.solar-ui-state {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  max-width: 34rem;
+  margin-inline: auto;
+  padding: var(--sd-space-2xl) var(--sd-space-lg);
+  text-align: center;
+}
+
+.solar-ui-state__icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sd-soft-solar);
+  color: var(--sd-blue-600);
+}
+
+.solar-ui-state__title {
+  color: var(--sd-ink);
+  font-size: 1.25rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.solar-ui-state__description {
+  color: var(--sd-muted);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.solar-ui-stepper__button[data-state="current"] .solar-ui-stepper__description {
+  color: #526477;
+}
+
+.solar-ui-stepper__button[data-state="current"] .solar-ui-stepper__status {
+  color: var(--sd-navy-900);
+}
+
+/* Migrated route adapters may still carry legacy class names from the first
+   builder pass. Keep the canonical panel contract authoritative while those
+   adapters are removed incrementally. */
+.solar-build-live-sidebar {
+  border: 1px solid var(--sd-line) !important;
+  border-radius: var(--sd-radius-panel) !important;
+  background: var(--sd-raised) !important;
+  color: var(--sd-ink) !important;
+  box-shadow: var(--sd-shadow-3) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.solar-wizard-solia {
+  min-height: 10rem;
+  overflow: hidden;
+  border-top: 1px solid var(--sd-line);
+}
+
+.solar-wizard-solia [data-solia-character] {
+  right: 0;
+  left: auto;
+  width: 7.5rem;
+}
+
+.solar-wizard-solia-callout {
+  position: absolute;
+  right: 5.5rem;
+  bottom: 0.65rem;
+  left: 0;
+  max-width: 15rem;
+  border: 1px solid var(--sd-line);
+  border-radius: var(--sd-radius-md);
+  background: var(--sd-raised);
+  box-shadow: var(--sd-shadow-1);
+  color: var(--sd-text);
+  padding: 0.7rem 0.8rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.solar-wizard-solia-callout::after {
+  position: absolute;
+  right: -0.4rem;
+  bottom: 1.1rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-top: 1px solid var(--sd-line);
+  border-right: 1px solid var(--sd-line);
+  background: var(--sd-raised);
+  content: "";
+  transform: rotate(45deg);
+}
+
+@media (max-width: 720px) {
+  .solar-ui-stepper__list {
+    grid-template-columns: 1fr;
+  }
+
+  .solar-ui-action-bar {
+    align-items: stretch;
+    flex-direction: column;
+    bottom: 0.5rem;
+  }
+
+  .solar-ui-action-bar > * {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .solar-ui-choice,
+  .solar-ui-primary,
+  .solar-ui-secondary,
+  .solar-ui-tertiary {
+    transition: none;
+  }
+
+  .solar-ui-choice:hover:not(:disabled),
+  .solar-ui-primary:hover:not(:disabled),
+  .solar-ui-secondary:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .solar-ui-action-bar {
+    background: var(--sd-raised);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* Summary text sits on pale analytical surfaces. Keep the blue signal dark
+   enough for small labels and use the canonical action blue for add-ons. */
+.solar-summary :where(.solar-route-kicker, [class*="text-[#4F7FA8]"]) {
+  color: #315e82 !important;
+}
+
+.solar-summary .solar-recommendation-add {
+  border-color: var(--sd-navy-900) !important;
+  background: var(--sd-blue-600) !important;
+  color: var(--sd-white) !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-ui-stepper__button[data-state="current"]
+  .solar-ui-stepper__description {
+  color: #526477 !important;
+}
+
+/* Final cascade guard: route content is wrapped by BagUI's page container,
+   so the shell is a descendant rather than a direct child of #main-content. */
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  button.solar-wizard-disabled:disabled {
+  border-color: var(--sd-line) !important;
+  background: var(--sd-soft-solar) !important;
+  background-color: var(--sd-soft-solar) !important;
+  box-shadow: none !important;
+  color: var(--sd-muted) !important;
+  cursor: not-allowed;
+  opacity: 0.72;
+  transform: none !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  :is(
+    .solar-route-primary,
+    .wizard-ui-primary,
+    .solar-auth-primary,
+    .solar-works-button,
+    .solar-warranty-primary,
+    .solar-wizard-disabled
+  ):disabled {
+  border-color: var(--sd-line) !important;
+  background: var(--sd-soft-solar) !important;
+  box-shadow: none !important;
+  color: var(--sd-muted) !important;
+  cursor: not-allowed;
+  opacity: 0.72;
+  transform: none !important;
+}
+
+/* Route primitives that predate the semantic layer carry a higher-specificity
+   transparent/cream reset. Re-assert the current contract at the end of the
+   cascade so every customer decision route inherits the same system. */
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"] {
+  --solar-route-ground: var(--sd-page);
+  --solar-route-surface: var(--sd-raised);
+  --solar-route-surface-strong: var(--sd-white);
+  --solar-route-surface-soft: var(--sd-soft-solar);
+  --solar-route-ink: var(--sd-ink);
+  --solar-route-muted: var(--sd-muted);
+  --solar-route-line: var(--sd-line);
+  --solar-route-accent: var(--sd-blue-600);
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  :is(
+    .solar-wizard-step,
+    .solar-wizard-progress-note,
+    .solar-wizard-input-panel
+  ):not(.premium-glass-dark):not([data-liquid-glass="dark"]):not([data-solar-surface="dark"]) {
+  border-color: var(--sd-line) !important;
+  background: var(--sd-raised) !important;
+  color: var(--sd-ink) !important;
+  box-shadow: var(--sd-shadow-1) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-wizard-progress-note, .solar-wizard-input-panel) {
+  background: var(--sd-soft-solar) !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-wizard-step-number {
+  background: rgb(18 107 255 / 0.12) !important;
+  color: var(--sd-blue-600) !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  :is(
+    input.wizard-ui-input,
+    .solar-auth-input,
+    .solar-tracking-reference-input
+  ) {
+  color: var(--sd-ink) !important;
+}
+
+/* Final reading-surface contract -----------------------------------------
+   Legacy route adapters still expose a few old glass/cream class names. A
+   card is a reading surface, so it stays opaque and calm; translucency is
+   reserved for intentional floating layers such as dialogs and action docks.
+   This keeps the customer product inside the SolarDream Anime-Tech system
+   without changing route data, interaction, or portal stacking contracts. */
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  :is(
+    .solar-route-card,
+    .solar-route-card--strong,
+    .solar-build-section,
+    .solar-build-breakdown,
+    .solar-wizard-steps,
+    .solar-wizard-progress,
+    .solar-wizard-input-panel,
+    .solar-wizard-completion,
+    .solar-summary-overview,
+    .solar-summary-loading-panel,
+    .solar-summary-sidebar,
+    .solar-build-live-sidebar,
+    .solar-metric-card,
+    .solar-soft-panel,
+    .wizard-ui-section,
+    .wizard-ui-panel,
+    .solar-summary-legacy-panel,
+    .solar-summary-blueprint-panel,
+    .solar-recommendation-panel
+  ):not(.premium-glass-dark):not([data-liquid-glass="dark"]):not([data-solar-surface="dark"]) {
+  border: 1px solid var(--sd-line) !important;
+  background: var(--sd-raised) !important;
+  color: var(--sd-ink) !important;
+  box-shadow: var(--sd-shadow-2) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  :is(
+    .solar-soft-panel,
+    .solar-build-breakdown,
+    .wizard-ui-panel,
+    .solar-summary-loading-panel
+  ):not(.premium-glass-dark):not([data-liquid-glass="dark"]):not([data-solar-surface="dark"]) {
+  background: var(--sd-soft-solar) !important;
+  box-shadow: var(--sd-shadow-1) !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  :is(
+    .solar-choice-card,
+    .solar-wizard-option,
+    .solar-recommendation-option,
+    .solar-build-step,
+    .solar-summary-feature-card
+  ) {
+  border-color: var(--sd-line) !important;
+  background: var(--sd-raised) !important;
+  color: var(--sd-ink) !important;
+  box-shadow: var(--sd-shadow-1) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  :is(
+    .solar-choice-card[data-selected="true"],
+    .solar-choice-card[aria-checked="true"],
+    .solar-wizard-option[aria-checked="true"],
+    .solar-recommendation-option[aria-checked="true"],
+    .solar-recommendation-option[data-selected="true"],
+    .solar-build-step[data-active="true"]
+  ):not(.premium-glass-dark):not([data-liquid-glass="dark"]):not([data-solar-surface="dark"]) {
+  border-color: var(--sd-blue-600) !important;
+  background: var(--sd-selected) !important;
+  box-shadow: 0 0 0 2px rgb(18 107 255 / 0.12), var(--sd-shadow-1) !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-works-hero-note, .solar-works-filter-kicker, .solar-works-active-filter) {
+  color: #315e82 !important;
+}
+
+.solar-summary .solar-recommendation-add:hover,
+.solar-summary .solar-recommendation-add:focus-visible {
+  background: #0b5be0 !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-summary
+  :where(.solar-route-kicker, [class*="text-[#4F7FA8]"]) {
+  color: #315e82 !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-summary
+  .solar-recommendation-add {
+  border-color: var(--sd-navy-900) !important;
+  background: var(--sd-blue-600) !important;
+  color: var(--sd-white) !important;
+}
+
+/* Final contrast guardrails for customer portal state surfaces. Legacy portal
+   selectors intentionally stay earlier in the cascade; these rules keep the
+   canonical semantic components readable when both systems coexist. */
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-portal-header > div:first-child > a {
+  color: #315e82 !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-portal-surface .solar-ui-primary {
+  background: var(--sd-blue-600) !important;
+  color: var(--sd-white) !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-ui-state__description {
+  color: #526477 !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-ui-stepper__button[data-state="current"]
+  .solar-ui-stepper__description {
+  color: #526477 !important;
+}
+
+/* Final cascade guard: route content is wrapped by BagUI's page container,
+   so the shell is a descendant rather than a direct child of #main-content. */
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-route-shell[data-solar-surface="atelier"] {
+  background:
+    radial-gradient(circle at 8% 4%, rgb(38 140 255 / 0.14), transparent 34%),
+    radial-gradient(circle at 94% 86%, rgb(77 220 255 / 0.12), transparent 30%),
+    var(--sd-page) !important;
+  background-color: var(--sd-page) !important;
+  color: var(--sd-ink) !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-wizard-progress-note {
+  background: var(--sd-soft-solar) !important;
+  background-color: var(--sd-soft-solar) !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-summary-mobile-bar {
+  border-top-color: var(--sd-line) !important;
+  background: var(--sd-raised) !important;
+  box-shadow: var(--sd-shadow-3) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Auth uses the quiet account tone: opaque white controls, cool-white
+   framing, and the same blue action hierarchy as the product routes. Keep
+   this final contract scoped to the customer surface so the staff/admin
+   authentication shells retain their own operational treatment. */
+html body[data-solar-ui="customer"] .solar-auth-shell {
+  background: var(--sd-page) !important;
+  background-color: var(--sd-page) !important;
+  color: var(--sd-ink) !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-panel {
+  background: transparent !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-header {
+  border-bottom-color: var(--sd-line) !important;
+  background: var(--sd-raised) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-form-card {
+  border-color: var(--sd-line) !important;
+  border-radius: var(--sd-radius-panel) !important;
+  background: var(--sd-raised) !important;
+  box-shadow: var(--sd-shadow-2) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-heading h1,
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-form label,
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-form legend {
+  color: var(--sd-ink) !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell :is(.solar-auth-heading p, .solar-auth-support, .solar-auth-mode-switch, .solar-auth-divider) {
+  color: var(--sd-muted) !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-utility {
+  border-color: var(--sd-line) !important;
+  background: var(--sd-raised) !important;
+  color: var(--sd-ink) !important;
+  box-shadow: var(--sd-shadow-1) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-input {
+  border-color: var(--sd-line) !important;
+  border-radius: var(--sd-radius-md) !important;
+  background: var(--sd-raised) !important;
+  color: var(--sd-ink) !important;
+  box-shadow: none !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-input::placeholder {
+  color: var(--sd-muted) !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-input:focus-visible {
+  border-color: var(--sd-blue-600) !important;
+  background: var(--sd-raised) !important;
+  box-shadow: 0 0 0 3px var(--sd-focus) !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-primary {
+  border-color: var(--sd-blue-600) !important;
+  background: var(--sd-blue-600) !important;
+  color: var(--sd-white) !important;
+  box-shadow: var(--sd-shadow-2) !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-primary:hover:not(:disabled),
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-primary:focus-visible {
+  background: var(--sd-blue-500) !important;
+  color: var(--sd-white) !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-secondary {
+  border-color: var(--sd-blue-600) !important;
+  background: transparent !important;
+  color: var(--sd-blue-600) !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-secondary:hover:not(:disabled),
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-secondary:focus-visible {
+  background: var(--sd-selected) !important;
+  color: var(--sd-navy-900) !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-divider > span[aria-hidden="true"] {
+  background: var(--sd-line) !important;
+}
+
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-notice,
+html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-consent {
+  border-color: var(--sd-line) !important;
+  background: var(--sd-soft-solar) !important;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-header,
+  html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-form-card,
+  html body[data-solar-ui="customer"] .solar-auth-shell .solar-auth-utility {
+    background: var(--sd-raised) !important;
+  }
 }

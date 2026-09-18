@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { generatePublicProductName } from "@/lib/productUtils";
 import PageWrapper from "@/components/ui/PageWrapper";
+import { PageShell } from "@/components/ui/page-shell";
 import ProductDetailClient from "./ProductDetailClient";
 import { JsonLd, type JsonLdObject } from "@/components/seo/JsonLd";
 import { getConfiguredPublicSiteUrl } from "@/lib/siteUrl";
@@ -14,6 +15,8 @@ import { getCatalogProduct, type ErpnextCatalogProduct } from "@/lib/erpnextCata
 interface PageProps {
   params: Promise<{ id: string; locale: string }>;
 }
+
+export const instant = false;
 
 type ProductDetail = ErpnextCatalogProduct;
 
@@ -126,9 +129,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
   }
 
   return (
-    <PageWrapper>
-      <JsonLd data={productSchema} />
-      <ProductDetailClient product={product} specs={specs} />
-    </PageWrapper>
+    <PageShell>
+      <PageWrapper>
+        <JsonLd data={productSchema} />
+        <ProductDetailClient product={product} specs={specs} />
+      </PageWrapper>
+    </PageShell>
   );
 }

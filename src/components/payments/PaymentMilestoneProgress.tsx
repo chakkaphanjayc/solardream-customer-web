@@ -1,19 +1,20 @@
 "use client";
 
-import { CheckCircle2, Clock, ShieldCheck, Wallet } from "@/components/ui/icons";
+import { Wallet } from "@/components/ui/icons";
 import { formatPrice } from "@/lib/utils";
 import StatusBadge from "@/components/ui/StatusBadge";
 import type { ClientPaymentRequest } from "@/components/proposals/portalTypes";
+import { useTranslations } from "next-intl";
 
 interface PaymentMilestoneProgressProps {
-  totalProjectPrice: number;
+  totalProjectPrice: number | null;
   paymentRequests: ClientPaymentRequest[];
   onSelectMilestone?: (request: ClientPaymentRequest) => void;
 }
 
-function toNumber(value: string | number | null | undefined) {
-  const parsed = typeof value === "number" ? value : Number(String(value || "0").replace(/,/g, ""));
-  return Number.isFinite(parsed) ? parsed : 0;
+function toPositiveNumber(value: string | number | null | undefined): number | null {
+  const parsed = typeof value === "number" ? value : Number(String(value ?? "").replace(/,/g, ""));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
 export default function PaymentMilestoneProgress({
@@ -21,96 +22,98 @@ export default function PaymentMilestoneProgress({
   paymentRequests,
   onSelectMilestone,
 }: PaymentMilestoneProgressProps) {
-  const totalPaid = paymentRequests
-    .filter((req) => req.status === "PAID")
-    .reduce((acc, req) => acc + toNumber(req.amountRequested), 0);
-
-  const remainingBalance = Math.max(0, totalProjectPrice - totalPaid);
-  const paidPercent = totalProjectPrice > 0
-    ? Math.min(100, Math.round((totalPaid / totalProjectPrice) * 100))
-    : 0;
+  const t = useTranslations("PaymentMilestones");
+  const paidRequests = paymentRequests.filter((req) => req.status === "PAID");
+  const hasPaidRequests = paidRequests.length > 0;
+  const hasUnknownPaidAmount = paidRequests.some((req) => toPositiveNumber(req.amountRequested) === null);
+  const totalPaid = paidRequests.reduce((acc, req) => acc + (toPositiveNumber(req.amountRequested) ?? 0), 0);
+  const hasProjectPrice = Number.isFinite(totalProjectPrice) && (totalProjectPrice ?? 0) > 0;
+  const remainingBalance = hasProjectPrice && hasPaidRequests && !hasUnknownPaidAmount
+    ? Math.max(0, (totalProjectPrice ?? 0) - totalPaid)
+    : null;
+  const paidPercent = hasProjectPrice && hasPaidRequests && !hasUnknownPaidAmount
+    ? Math.min(100, Math.round((totalPaid / (totalProjectPrice ?? 1)) * 100))
+    : null;
 
   const defaultMilestones = [
     {
       stage: 1,
-      title: "มัดจำทำสัญญา",
+      titleKey: "milestone1Title",
       percentLabel: "30%",
-      expectedPercent: 30,
-      description: "เริ่มต้นจองคิววิศวกรและยื่นขออนุญาตขนานไฟ",
+      descriptionKey: "milestone1Description",
     },
     {
       stage: 2,
-      title: "วันส่งมอบอุปกรณ์และติดตั้ง",
+      titleKey: "milestone2Title",
       percentLabel: "60%",
-      expectedPercent: 60,
-      description: "จัดส่งแผงโซลาร์ อินเวอร์เตอร์ และเข้าดำเนินการติดตั้ง",
+      descriptionKey: "milestone2Description",
     },
     {
       stage: 3,
-      title: "วันทดสอบและเปิดใช้งานระบบ",
+      titleKey: "milestone3Title",
       percentLabel: "10%",
-      expectedPercent: 10,
-      description: "ตรวจสอบความปลอดภัยและเปิดใช้งานระบบเต็มรูปแบบ",
+      descriptionKey: "milestone3Description",
     },
-  ];
+  ] as const;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-[#F5F2EB] p-5 md:p-6 shadow-xs space-y-6">
+    <div className="solar-route-card space-y-6 p-5 md:p-6">
       {/* Header Summary */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
+      <div className="flex flex-col justify-between gap-4 border-b border-[var(--sd-line)] pb-5 md:flex-row md:items-center">
         <div>
-          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
-            <Wallet className="h-4 w-4 text-[#0369a1]" />
-            <span>ตารางการชำระเงินตามงวดงาน / Payment Milestones</span>
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--sd-muted)]">
+            <Wallet className="h-4 w-4 text-[var(--sd-blue-600)]" />
+            <span>{t("eyebrow")}</span>
           </div>
-          <h3 className="mt-1 text-lg font-black text-slate-950 tracking-tight">
-            สถานะค่างวดและการชำระเงินโครงการ
-          </h3>
+          <h3 className="mt-1 text-lg font-black tracking-tight text-[var(--sd-ink)]">{t("title")}</h3>
         </div>
 
-        <div className="flex items-center gap-4 bg-white rounded-xl p-3 border border-slate-200 shadow-2xs">
-          <div className="text-right border-r border-slate-200 pr-4">
-            <p className="text-[10px] font-bold uppercase text-slate-400">ชำระแล้วรวม</p>
-            <p className="text-sm font-black text-emerald-600 font-mono">
-              {formatPrice(totalPaid)} ({paidPercent}%)
+        <div className="solar-soft-panel flex items-center gap-4 p-3">
+          <div className="border-r border-[var(--sd-line)] pr-4 text-right">
+            <p className="text-[10px] font-bold uppercase text-[var(--sd-muted)]">{t("paidTotal")}</p>
+            <p className="font-mono text-sm font-black text-emerald-700">
+              {hasUnknownPaidAmount || !hasPaidRequests ? t("noPayments") : formatPrice(totalPaid)} ({paidPercent === null ? t("progressPending") : `${paidPercent}%`})
             </p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase text-slate-400">คงเหลือค้างชำระ</p>
-            <p className="text-sm font-black text-slate-900 font-mono">
-              {formatPrice(remainingBalance)}
-            </p>
+            <p className="text-[10px] font-bold uppercase text-[var(--sd-muted)]">{t("remaining")}</p>
+            <p className="font-mono text-sm font-black text-[var(--sd-ink)]">{remainingBalance === null ? t("amountPending") : formatPrice(remainingBalance)}</p>
           </div>
         </div>
       </div>
 
       {/* Progress Bar */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs font-bold text-slate-600">
-          <span>ความคืบหน้าการชำระเงินทั้งหมด</span>
-          <span className="font-mono text-emerald-700">{paidPercent}% COMPLETED</span>
+        <div className="flex items-center justify-between text-xs font-bold text-[var(--sd-muted)]">
+          <span>{t("paymentProgress")}</span>
+          <span className="font-mono text-emerald-700">{paidPercent === null ? t("progressPending") : `${paidPercent}% ${t("completed")}`}</span>
         </div>
-        <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden p-0.5 border border-slate-300/50">
+        <div className="h-3 w-full overflow-hidden rounded-full border border-[var(--sd-line)] bg-[var(--sd-surface-strong)] p-0.5">
           <div
-            className="h-full bg-gradient-to-r from-[#0369a1] to-emerald-500 rounded-full transition-all duration-500 shadow-xs"
-            style={{ width: `${paidPercent}%` }}
+            className="h-full rounded-full bg-gradient-to-r from-[var(--sd-blue-600)] to-emerald-500 shadow-xs transition-all duration-500 motion-reduce:transition-none"
+            style={{ width: `${paidPercent ?? 0}%` }}
           />
         </div>
       </div>
 
       {/* 3-Step Milestone Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {defaultMilestones.map((m, idx) => {
-          const matchedRequest = paymentRequests[idx] || paymentRequests.find((r) => r.title.includes(m.title));
+          const title = t(m.titleKey);
+          const matchedRequest = paymentRequests[idx] || paymentRequests.find((r) => r.title.includes(title));
           const isPaid = matchedRequest?.status === "PAID";
           const isAwaiting = matchedRequest?.status === "AWAITING_VERIFICATION";
           const isPending = matchedRequest?.status === "PENDING";
+          const matchedAmount = matchedRequest ? toPositiveNumber(matchedRequest.amountRequested) : null;
 
           return (
-            <div
+            <button
+              type="button"
               key={m.stage}
               onClick={() => matchedRequest && onSelectMilestone?.(matchedRequest)}
-              className={`rounded-xl border p-4 transition space-y-3 ${
+              disabled={!matchedRequest}
+              aria-label={matchedRequest ? t("selectMilestone", { stage: m.stage, title }) : undefined}
+              className={`min-h-40 w-full space-y-3 rounded-[var(--sd-radius-lg)] border p-4 text-left transition motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2 ${
                 matchedRequest ? "cursor-pointer hover:shadow-md" : ""
               } ${
                 isPaid
@@ -118,52 +121,50 @@ export default function PaymentMilestoneProgress({
                   : isAwaiting
                   ? "bg-amber-50/60 border-amber-300 ring-1 ring-amber-400/20"
                   : isPending
-                  ? "bg-white border-[#B7D1EA] ring-2 ring-[#B7D1EA]/20"
-                  : "bg-white/60 border-slate-200 opacity-70"
+                  ? "bg-[var(--sd-raised)] border-[var(--sd-blue-500)] ring-2 ring-[var(--sd-blue-500)]/20"
+                  : "bg-[var(--sd-soft-solar)] border-[var(--sd-line)] opacity-70"
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className={`h-7 w-7 rounded-full text-xs font-black flex items-center justify-center ${
-                  isPaid ? "bg-emerald-600 text-white" : "bg-slate-900 text-white"
+                  isPaid ? "bg-emerald-600 text-white" : "bg-[var(--sd-navy-950)] text-white"
                 }`}>
                   {m.stage}
                 </span>
 
                 {isPaid ? (
                   <StatusBadge tone="success" className="text-[10px]">
-                    ✓ ชำระแล้ว ({m.percentLabel})
+                    {t("paid", { percent: m.percentLabel })}
                   </StatusBadge>
                 ) : isAwaiting ? (
                   <StatusBadge tone="warning" className="text-[10px]">
-                    ⏳ รอตรวจสลิป
+                    {t("awaiting")}
                   </StatusBadge>
                 ) : isPending ? (
                   <StatusBadge tone="info" className="text-[10px]">
-                    💳 รอการชำระ ({m.percentLabel})
+                    {t("pending", { percent: m.percentLabel })}
                   </StatusBadge>
                 ) : (
                   <StatusBadge tone="neutral" className="text-[10px]">
-                    งวดถัดไป ({m.percentLabel})
+                    {t("next", { percent: m.percentLabel })}
                   </StatusBadge>
                 )}
               </div>
 
               <div>
-                <p className="text-xs font-black text-slate-950">{m.title}</p>
-                <p className="mt-1 text-[11px] font-semibold text-slate-600 leading-relaxed">
-                  {m.description}
-                </p>
+                <p className="text-xs font-black text-[var(--sd-ink)]">{title}</p>
+                <p className="mt-1 text-[11px] font-semibold leading-relaxed text-[var(--sd-muted)]">{t(m.descriptionKey)}</p>
               </div>
 
               {matchedRequest && (
-                <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-500">จำนวนเงิน:</span>
-                  <span className="font-black font-mono text-slate-900">
-                    {formatPrice(toNumber(matchedRequest.amountRequested))}
+                <div className="flex items-center justify-between border-t border-[var(--sd-line)] pt-2 text-xs">
+                  <span className="font-bold text-[var(--sd-muted)]">{t("amount")}</span>
+                  <span className="font-mono font-black text-[var(--sd-ink)]">
+                    {matchedAmount === null ? t("amountPending") : formatPrice(matchedAmount)}
                   </span>
                 </div>
               )}
-            </div>
+            </button>
           );
         })}
       </div>

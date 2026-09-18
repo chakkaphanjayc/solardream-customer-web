@@ -8,7 +8,6 @@ import {
   ArrowRight,
   Battery,
   Calendar,
-  Check,
   Cpu,
   Gauge,
   Layers,
@@ -42,10 +41,10 @@ import SolarCard from "@/components/ui/SolarCard";
 import MobileActionBar from "@/components/layout/MobileActionBar";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import GsapSlider from "@/components/ui/GsapSlider";
-import { GsapReveal, GsapStagger, GsapCounter } from "@/components/ui/GsapMotion";
+import { GsapReveal, GsapCounter } from "@/components/ui/GsapMotion";
 import { useSmartScroll } from "@/components/ui/ScrollAutoEngine";
 import { SofiaCapsule } from "@/components/ui/LiquidModal";
-import DynamicSoliaChat from "@/components/DynamicSoliaChat";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 import { useSupabaseUser } from "@/hooks/useSupabaseUser";
 import { trackProductEvent } from "@/lib/productAnalytics";
 import {
@@ -58,6 +57,10 @@ import ContactDetailsExpanded from "@/components/build/ContactDetailsExpanded";
 import BuildStepper from "@/components/build/BuildStepper";
 import { BuildLiveSummary } from "@/components/build/build-live-summary";
 import { Button } from "@/components/ui/button";
+import {
+  SolarChoiceCard,
+  SolarDependencyNote,
+} from "@/components/ui/solar-system";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -831,9 +834,11 @@ export default function ConfiguratorClient({
               role="status"
               aria-live="polite"
             >
-              <DynamicSoliaChat
-                type="loading_calc"
-                pose="/solia-thinking.webp"
+              <SoliaGuide
+                alt={locale === "th" ? "Solia กำลังจัดทำแบบแปลนโซลาร์ของคุณ" : "Solia preparing your solar blueprint"}
+                pose="energyStudio"
+                className="h-40 w-32 sm:h-48 sm:w-40"
+                imageSizes="160px"
               />
               <p className="mt-6 text-base font-semibold leading-7 text-[#075985]">
                 {locale === "th"
@@ -898,20 +903,44 @@ export default function ConfiguratorClient({
               <ConfigSection
                 step="1"
                 icon={<Gauge className="h-5 w-5" />}
-                title="System Capacity Choice"
-                description="Choose a raw system size tier. Panel quantity is shown as a planning range using 450W to 550W modules."
+                title={
+                  locale === "th"
+                    ? "เลือกขนาดระบบ"
+                    : "System capacity choice"
+                }
+                description={
+                  locale === "th"
+                    ? "เลือกขนาดระบบเบื้องต้น แล้วดูจำนวนแผงโดยประมาณจากโมดูลขนาด 450W–550W"
+                    : "Choose a starting system size and see the estimated panel range using 450W–550W modules."
+                }
                 isLocked={1 > effectiveMaxUnlockedSubStep}
                 locale={locale}
               >
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 items-stretch">
+                  <div
+                    className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4"
+                    role="radiogroup"
+                    aria-label={
+                      locale === "th" ? "ขนาดระบบโซลาร์" : "Solar system size"
+                    }
+                  >
                     {capacityTiers.map((tier) => {
                       const active =
                         tier.id === capacityId && customKwp === null;
                       return (
-                        <button
+                        <SolarChoiceCard
                           key={tier.id}
-                          type="button"
+                          selectionMode="radio"
+                          label={tier.label}
+                          description={tier.helper}
+                          meta={
+                            <>
+                              {locale === "th" ? "ประมาณ " : "Approx. "}
+                              {Math.ceil((tier.kwp * 1000) / 550)}–
+                              {Math.ceil((tier.kwp * 1000) / 450)} {locale === "th" ? "แผง" : "panels"}
+                            </>
+                          }
+                          selected={active}
                           onClick={() => {
                             setCapacityId(tier.id);
                             if (
@@ -926,32 +955,8 @@ export default function ConfiguratorClient({
                               scrollToBuildStep(2);
                             }
                           }}
-                          data-selected={active}
-                          className={cn(
-                            "solar-choice-card h-full flex flex-col justify-between min-h-[132px] rounded-[24px] border p-5 text-left transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] cursor-pointer active:scale-95",
-                            "lg-tile",
-                            active && "lg-tile--selected",
-                            active
-                              ? "border-[#7CA8D0] bg-[#DCE8F5]/50 ring-2 ring-[#B7D1EA] shadow-md"
-                              : "border-[#8E8B83]/20 bg-[#E6E3DC] hover:border-[#7CA8D0]/40 hover:scale-[1.01] hover:shadow-md",
-                          )}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <p className="text-2xl font-bold text-[#1C1C1A]">
-                                {tier.label}
-                              </p>
-                              <p className="mt-1 text-xs font-medium leading-5 text-[#4E4B44]">
-                                {tier.helper}
-                              </p>
-                            </div>
-                            {active ? <SelectedBadge /> : null}
-                          </div>
-                          <p className="mt-5 text-xs font-bold text-[#4F7FA8]">
-                            Approx. {Math.ceil((tier.kwp * 1000) / 550)} -{" "}
-                            {Math.ceil((tier.kwp * 1000) / 450)} panels
-                          </p>
-                        </button>
+                          className="solar-ui-choice--feature solar-build-capacity-choice"
+                        />
                       );
                     })}
                   </div>
@@ -1065,6 +1070,7 @@ export default function ConfiguratorClient({
                           step={customCapacityConfig.stepKw}
                           ticks={[5, 25, 50, 75, 100]}
                           unit={customCapacityConfig.unit}
+                          ariaLabel={locale === "th" ? "ขนาดระบบแบบกำหนดเอง" : "Custom system size"}
                           onChange={(newKw) => {
                             setCustomKwp(newKw);
                             setCapacityId("custom-review");
@@ -1098,8 +1104,16 @@ export default function ConfiguratorClient({
               <ConfigSection
                 step="2"
                 icon={<Layers className="h-5 w-5" />}
-                title="Solution Tier & Electrical Phase"
-                description="Choose the pricing profile that matches the installation phase and desired solution level."
+                title={
+                  locale === "th"
+                    ? "รุ่นโซลูชันและระบบไฟฟ้า"
+                    : "Solution tier & electrical phase"
+                }
+                description={
+                  locale === "th"
+                    ? "เลือกระดับโซลูชันและระบบไฟฟ้าให้ตรงกับรูปแบบการใช้งานของคุณ"
+                    : "Choose the pricing profile and electrical phase that match your home and intended use."
+                }
                 isLocked={2 > effectiveMaxUnlockedSubStep}
                 locale={locale}
               >
@@ -1112,35 +1126,26 @@ export default function ConfiguratorClient({
                           : "Pricing Profile"}
                       </span>
                     </div>
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 flex-1 items-stretch">
+                    <div
+                      className="grid flex-1 grid-cols-1 items-stretch gap-2 sm:grid-cols-3"
+                      role="radiogroup"
+                      aria-label={locale === "th" ? "รุ่นโซลูชัน" : "Pricing profile"}
+                    >
                       {pricingTiers.map((tier) => {
                         const active = tier.id === pricingTier;
 
                         return (
-                          <button
+                          <SolarChoiceCard
                             key={tier.id}
-                            type="button"
+                            selectionMode="radio"
+                            label={tier.label}
+                            description={tier.helper}
+                            selected={active}
                             onClick={() => {
                               setPricingTier(tier.id);
                             }}
-                            className={cn(
-                              "h-full flex flex-col justify-between rounded-2xl px-4 py-4 text-left transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] cursor-pointer active:scale-95",
-                              "lg-tile",
-                              active && "lg-tile--selected",
-                              active
-                                ? "bg-[#B7D1EA] text-white shadow-md font-bold"
-                                : "text-[#4E4B44] font-medium hover:text-[#1C1C1A] hover:bg-white/60",
-                            )}
-                          >
-                            <div>
-                              <span className={cn("block text-sm font-bold", active ? "text-white" : "text-[#1C1C1A]")}>
-                                {tier.label}
-                              </span>
-                              <span className={cn("mt-1 block text-xs font-medium leading-5", active ? "text-white/80" : "text-[#4E4B44]")}>
-                                {tier.helper}
-                              </span>
-                            </div>
-                          </button>
+                            className="solar-ui-choice--feature solar-build-inline-choice"
+                          />
                         );
                       })}
                     </div>
@@ -1152,35 +1157,26 @@ export default function ConfiguratorClient({
                         {locale === "th" ? "ระบบไฟฟ้า" : "Electrical Phase"}
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 flex-1 items-stretch">
+                    <div
+                      className="grid flex-1 grid-cols-2 items-stretch gap-2"
+                      role="radiogroup"
+                      aria-label={locale === "th" ? "ระบบไฟฟ้า" : "Electrical phase"}
+                    >
                       {phaseOptions.map((phase) => {
                         const active = phase.id === electricalPhase;
 
                         return (
-                          <button
+                          <SolarChoiceCard
                             key={phase.id}
-                            type="button"
+                            selectionMode="radio"
+                            label={phase.label}
+                            description={phase.helper}
+                            selected={active}
                             onClick={() => {
                               setElectricalPhase(phase.id);
                             }}
-                            className={cn(
-                              "h-full flex flex-col justify-between rounded-2xl px-4 py-4 text-left transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] cursor-pointer active:scale-95",
-                              "lg-tile",
-                              active && "lg-tile--selected",
-                              active
-                                ? "bg-[#B7D1EA] text-white shadow-md font-bold"
-                                : "text-[#4E4B44] font-medium hover:text-[#1C1C1A] hover:bg-white/60",
-                            )}
-                          >
-                            <div>
-                              <span className={cn("block text-sm font-bold", active ? "text-white" : "text-[#1C1C1A]")}>
-                                {phase.label}
-                              </span>
-                              <span className={cn("mt-1 block text-xs font-medium leading-5", active ? "text-white/80" : "text-[#4E4B44]")}>
-                                {phase.helper}
-                              </span>
-                            </div>
-                          </button>
+                            className="solar-ui-choice--feature solar-build-inline-choice"
+                          />
                         );
                       })}
                     </div>
@@ -1191,44 +1187,35 @@ export default function ConfiguratorClient({
               <ConfigSection
                 step="3"
                 icon={<Zap className="h-5 w-5" />}
-                title="Inverter Architecture"
-                description="Choose the system behavior first. The specific certified inverter model will be confirmed in the proposal."
+                title={locale === "th" ? "รูปแบบการทำงานของอินเวอร์เตอร์" : "Inverter architecture"}
+                description={
+                  locale === "th"
+                    ? "เลือกรูปแบบการทำงานของระบบก่อน รุ่นอินเวอร์เตอร์ที่ผ่านการรับรองจะยืนยันในใบเสนอราคา"
+                    : "Choose how the system should behave first. The certified inverter model will be confirmed in the proposal."
+                }
                 isLocked={3 > effectiveMaxUnlockedSubStep}
                 locale={locale}
               >
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 items-stretch">
+                <div
+                  className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2"
+                  role="radiogroup"
+                  aria-label={locale === "th" ? "รูปแบบอินเวอร์เตอร์" : "Inverter architecture"}
+                >
                   {architectures.map((option) => {
                     const active = option.id === architectureId;
                     return (
-                      <button
+                      <SolarChoiceCard
                         key={option.id}
-                        type="button"
+                        selectionMode="radio"
+                        label={option.title}
+                        description={option.description}
+                        selected={active}
                         onClick={() => {
                           setArchitectureId(option.id);
                           scrollToBuildStep(4);
                         }}
-                        data-selected={active}
-                        className={cn(
-                          "solar-choice-card h-full flex flex-col justify-between rounded-[24px] border p-6 text-left transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] cursor-pointer active:scale-95",
-                          "lg-tile",
-                          active && "lg-tile--selected",
-                          active
-                            ? "border-[#7CA8D0] bg-[#DCE8F5]/50 ring-2 ring-[#B7D1EA] shadow-md"
-                            : "border-[#8E8B83]/20 bg-[#E6E3DC] hover:border-[#7CA8D0]/40 hover:scale-[1.01] hover:shadow-md",
-                        )}
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="space-y-2">
-                            <h3 className="text-lg font-bold text-[#1C1C1A]">
-                              {option.title}
-                            </h3>
-                            <p className="text-sm font-medium leading-7 text-[#4E4B44]">
-                              {option.description}
-                            </p>
-                          </div>
-                          {active ? <SelectedBadge /> : null}
-                        </div>
-                      </button>
+                        className="solar-ui-choice--feature solar-build-architecture-choice"
+                      />
                     );
                   })}
                 </div>
@@ -1237,8 +1224,12 @@ export default function ConfiguratorClient({
               <ConfigSection
                 step="4"
                 icon={<Smartphone className="h-5 w-5" />}
-                title="Smart Add-ons"
-                description="Select optional readiness modules. These are category-level features, not product SKUs."
+                title={locale === "th" ? "อุปกรณ์เสริมอัจฉริยะ" : "Smart add-ons"}
+                description={
+                  locale === "th"
+                    ? "เลือกฟีเจอร์เสริมที่ต้องการ ระบบจะแสดงเป็นหมวดหมู่เพื่อให้ทีมวิศวกรตรวจสอบต่อ"
+                    : "Select optional readiness modules. These are category-level features, not product SKUs."
+                }
                 isLocked={4 > effectiveMaxUnlockedSubStep}
                 locale={locale}
               >
@@ -1283,47 +1274,28 @@ export default function ConfiguratorClient({
                         : option.priceDelta;
 
                     return (
-                      <div
-                        key={option.id}
-                        onClick={() => {
-                          if (isSelectType && selectedOpt) {
-                            toggleAddOn(selectedOpt.id);
-                          } else {
-                            toggleAddOn(option.id);
-                          }
-                        }}
-                        data-selected={active}
-                        className={cn(
-                          "solar-choice-card flex flex-col justify-between min-h-[175px] rounded-[24px] border bg-[#E6E3DC] p-5 text-left transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] hover:border-[#7CA8D0] hover:scale-[1.01] hover:shadow-md active:scale-95 cursor-pointer",
-                          active
-                            ? "border-[#7CA8D0] bg-[#DCE8F5]/50 ring-2 ring-[#B7D1EA] shadow-md"
-                            : "border-transparent",
-                        )}
-                      >
-                        <div>
-                          <div className="mb-3 flex items-center justify-between gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#DCE8F5] text-[#2E2C27] shadow-xs">
-                              {option.icon}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="rounded-full bg-[#B7D1EA]/15 px-2.5 py-1 text-[11px] font-bold text-[#4F7FA8]">
-                                {priceBadgeText}
-                              </span>
-                              {active ? <SelectedBadge /> : null}
-                            </div>
-                          </div>
-                          <h3 className="text-sm font-bold text-[#1C1C1A]">
-                            {option.title}
-                          </h3>
-                          <p className="mt-1.5 text-xs font-medium leading-5 text-[#4E4B44]">
-                            {option.description}
-                          </p>
-                        </div>
-
+                      <div key={option.id} className="grid gap-3">
+                        <SolarChoiceCard
+                          selectionMode="checkbox"
+                          label={option.title}
+                          description={option.description}
+                          icon={option.icon}
+                          meta={priceBadgeText}
+                          selected={active}
+                          onClick={() => {
+                            if (isSelectType && selectedOpt) {
+                              toggleAddOn(selectedOpt.id);
+                            } else {
+                              toggleAddOn(option.id);
+                            }
+                          }}
+                          className="solar-ui-choice--feature solar-build-addon-choice"
+                        />
                         {isSelectType && active && option.optionsList && (
                           <div
-                            onClick={(e) => e.stopPropagation()}
-                            className="mt-3 flex items-center gap-1 rounded-full bg-[#F7F6F3] p-1 border border-[#8E8B83]/20"
+                            role="group"
+                            aria-label={option.title}
+                            className="solar-build-addon-options flex items-center gap-1 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-1"
                           >
                             {option.optionsList.map((opt) => {
                               const isOptActive =
@@ -1335,15 +1307,13 @@ export default function ConfiguratorClient({
                                 <button
                                   key={opt.id}
                                   type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleAddOn(opt.id);
-                                  }}
+                                  aria-pressed={isOptActive}
+                                  onClick={() => toggleAddOn(opt.id)}
                                   className={cn(
-                                    "flex-1 rounded-full py-1 text-[11px] font-bold transition-all cursor-pointer active:scale-95",
+                                    "min-h-9 flex-1 rounded-[var(--sd-radius-sm)] px-2 py-1 text-[11px] font-bold transition-colors",
                                     isOptActive
-                                      ? "bg-[#B7D1EA] text-white shadow-xs"
-                                      : "text-[#4E4B44] hover:text-[#1C1C1A]",
+                                      ? "bg-[var(--sd-blue-600)] text-white shadow-sm"
+                                      : "text-[var(--sd-muted)] hover:bg-white hover:text-[var(--sd-ink)]",
                                   )}
                                 >
                                   {opt.label}
@@ -1393,60 +1363,65 @@ export default function ConfiguratorClient({
                       (locale === "th"
                         ? "แบตเตอรี่กักเก็บพลังงานสำหรับระบบไฮบริด"
                         : "Optional energy storage sizing for Hybrid-ready projects.");
+                    const batteryDependency =
+                      architectureId === "hybrid"
+                        ? t("dependencies.batteryHybrid")
+                        : t("dependencies.batteryOnGrid");
 
                     return (
-                      <div
-                        onClick={() =>
-                          toggleAddOn(batteryAddon?.id || "battery")
-                        }
-                        data-selected={hasBattery}
-                        className={cn(
-                          "solar-choice-card flex flex-col justify-between min-h-[175px] rounded-[24px] border bg-[#E6E3DC] p-5 text-left transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] hover:border-[#7CA8D0] cursor-pointer hover:scale-[1.01] hover:shadow-md active:scale-95",
-                          hasBattery
-                            ? "border-[#7CA8D0] bg-[#DCE8F5]/50 ring-2 ring-[#B7D1EA] shadow-md"
-                            : "border-transparent",
-                        )}
-                      >
-                        <div>
-                          <div className="mb-3 flex items-center justify-between gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#DCE8F5] text-[#2E2C27] shadow-xs">
-                              <Battery className="h-5 w-5" />
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="rounded-full bg-[#B7D1EA]/15 px-2.5 py-1 text-[11px] font-bold text-[#4F7FA8]">
-                                {hasBattery
-                                  ? activeBattery.priceDelta
-                                  : batterySizes[0].priceDelta}
-                              </span>
-                              {hasBattery ? <SelectedBadge /> : null}
-                            </div>
-                          </div>
-                          <h3 className="text-sm font-bold text-[#1C1C1A]">
-                            {batteryTitle}
-                          </h3>
-                          <p className="mt-1 text-xs font-medium leading-5 text-[#4E4B44]">
-                            {batteryDesc}
-                          </p>
-                        </div>
-
+                      <div className="grid gap-3">
+                        <SolarChoiceCard
+                          selectionMode="checkbox"
+                          label={batteryTitle}
+                          description={
+                            <>
+                              <span>{batteryDesc}</span>
+                              <SolarDependencyNote
+                                className="mt-1"
+                                tone={
+                                  architectureId === "hybrid"
+                                    ? "info"
+                                    : "warning"
+                                }
+                              >
+                                {batteryDependency}
+                              </SolarDependencyNote>
+                            </>
+                          }
+                          icon={<Battery className="h-5 w-5" />}
+                          meta={
+                            hasBattery
+                              ? activeBattery.priceDelta
+                              : batterySizes[0].priceDelta
+                          }
+                          selected={hasBattery}
+                          onClick={() =>
+                            toggleAddOn(batteryAddon?.id || "battery")
+                          }
+                          className="solar-ui-choice--feature solar-build-addon-choice"
+                        />
                         {hasBattery && (
                           <div
-                            onClick={(e) => e.stopPropagation()}
-                            className="mt-3 flex items-center gap-1 rounded-full bg-[#F7F6F3] p-1 border border-[#8E8B83]/20"
+                            role="radiogroup"
+                            aria-label={
+                              locale === "th"
+                                ? "ขนาดแบตเตอรี่"
+                                : "Battery size"
+                            }
+                            className="solar-build-addon-options flex items-center gap-1 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-1"
                           >
                             {batterySizes.map((size) => (
                               <button
                                 key={size.id}
                                 type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleAddOn(size.id);
-                                }}
+                                role="radio"
+                                aria-checked={activeBatteryId === size.id}
+                                onClick={() => toggleAddOn(size.id)}
                                 className={cn(
-                                  "flex-1 rounded-full py-1 text-center text-xs font-bold transition-all cursor-pointer active:scale-95",
+                                  "min-h-9 flex-1 rounded-[var(--sd-radius-sm)] px-2 py-1 text-center text-xs font-bold transition-colors",
                                   activeBatteryId === size.id
-                                    ? "bg-[#B7D1EA] text-white shadow-xs"
-                                    : "text-[#4E4B44] hover:text-[#1C1C1A] hover:bg-white/50",
+                                    ? "bg-[var(--sd-blue-600)] text-white shadow-sm"
+                                    : "text-[var(--sd-muted)] hover:bg-white hover:text-[var(--sd-ink)]",
                                 )}
                               >
                                 {size.label}
@@ -1722,7 +1697,7 @@ export default function ConfiguratorClient({
                           </span>
                         </span>
                         <span className="shrink-0 text-xs font-bold text-[#4E4B44]">
-                          Optional
+                          {t("optional")}
                         </span>
                       </button>
                       {siteLocationOpen && (
@@ -1779,7 +1754,7 @@ export default function ConfiguratorClient({
       </div>
 
       <LayerPortal layer="floating">
-        <div className="solar-build-desktop-action-bar fixed inset-x-0 bottom-0 hidden px-6 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 lg:block">
+        <div role="region" aria-label={t("estimatedBudget")} className="solar-build-desktop-action-bar fixed inset-x-0 bottom-0 hidden px-6 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 lg:block">
           <div className="solar-build-action-dock mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-5">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#4E4B44]">
@@ -2026,14 +2001,6 @@ function ConfigSection({
         {children}
       </div>
     </section>
-  );
-}
-
-function SelectedBadge() {
-  return (
-    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#B7D1EA] text-white shadow-xs">
-      <Check className="h-4 w-4 stroke-[3]" />
-    </span>
   );
 }
 

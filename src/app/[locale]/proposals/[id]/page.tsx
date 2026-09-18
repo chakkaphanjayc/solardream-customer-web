@@ -43,6 +43,8 @@ interface ProposalReviewPageProps {
   }>;
 }
 
+export const instant = false;
+
 function mapProposalRow(row: ProposalPageRow): ClientProposal {
   return {
     id: row.id,

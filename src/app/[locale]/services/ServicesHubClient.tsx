@@ -33,6 +33,7 @@ import { Input } from "@/components/ui/input";
 import Skeleton from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { PageShell } from "@/components/ui/page-shell";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 
 const ServiceLocationPicker = dynamic(
   () => import("@/components/services/ServiceLocationPicker"),
@@ -785,8 +786,16 @@ export default function ServicesHubClient({
   if (step === "SUCCESS" && confirmation)
     return (
       <PageShell className="grid min-h-dvh place-items-center bg-background px-4 py-16">
-        <Card asChild className="w-full max-w-xl bg-white p-8 text-center">
+        <Card asChild className="solar-ui-panel w-full max-w-xl bg-white p-8 text-center">
           <section>
+            <SoliaGuide
+              alt={lang === "th" ? "Solia ฉลองการส่งคำขอบริการสำเร็จ" : "Solia celebrating a successful service request"}
+              loading="eager"
+              pose="greeting"
+              priority
+              className="mx-auto h-28 w-24"
+              imageSizes="96px"
+            />
             <PackageCheck className="mx-auto h-14 w-14 text-[#0D9488]" />
             <h1 className="mt-5 text-3xl font-black text-slate-950">
               {c.requested}
@@ -810,7 +819,7 @@ export default function ServicesHubClient({
                 setStep("CONFIGURE");
                 setSelectedSlugs([]);
               }}
-              className="mt-6 rounded-xl px-6 font-black"
+              className="solar-ui-primary mt-6"
             >
               {c.done}
             </Button>

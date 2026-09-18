@@ -5,9 +5,13 @@ import { db } from "@/db";
 import { proposals, serviceOrders, users, consultationLeads } from "@/db/schema";
 import { getSigningSecret } from "@/lib/portalTokens";
 import { verifyHs256Jwt } from "@/lib/signedJwt";
-import { serviceContactEmailDigest } from "@/lib/servicePortal";
+import {
+  isServicePortalConfigured,
+  serviceContactEmailDigest,
+} from "@/lib/servicePortal";
 import GuestProposalsClient from "./GuestProposalsClient";
 
+export const instant = false;
 
 interface DBProposal {
   id: string;
@@ -85,14 +89,23 @@ export default async function GuestProposalsDashboard({
   }
 
   // Fetch service orders associated with this email digest
-  const emailDigest = serviceContactEmailDigest(email);
-  const matchedServiceOrders = (await db.query.serviceOrders.findMany({
-    where: or(
-      eq(serviceOrders.contactEmailDigest, emailDigest),
-      userIds.length > 0 ? sql`${serviceOrders.customerUserId} IN ${userIds}` : sql`false`
-    ),
-    orderBy: (so, { desc }) => [desc(so.createdAt)],
-  })) as DBServiceOrder[];
+  const serviceOrderConditions = [];
+  if (isServicePortalConfigured()) {
+    serviceOrderConditions.push(
+      eq(serviceOrders.contactEmailDigest, serviceContactEmailDigest(email)),
+    );
+  }
+  if (userIds.length > 0) {
+    serviceOrderConditions.push(sql`${serviceOrders.customerUserId} IN ${userIds}`);
+  }
+
+  let matchedServiceOrders: DBServiceOrder[] = [];
+  if (serviceOrderConditions.length > 0) {
+    matchedServiceOrders = (await db.query.serviceOrders.findMany({
+      where: or(...serviceOrderConditions),
+      orderBy: (so, { desc }) => [desc(so.createdAt)],
+    })) as DBServiceOrder[];
+  }
 
   return (
     <GuestProposalsClient
@@ -102,9 +115,9 @@ export default async function GuestProposalsDashboard({
         id: p.id,
         reference: p.erpnextQuotationId || p.id,
         status: p.status,
-        systemSizeKwp: p.systemSizeKwp,
-        panelCount: p.panelCount,
-        totalPrice: p.totalPrice,
+        systemSizeKwp: p.systemSizeKwp > 0 ? p.systemSizeKwp : null,
+        panelCount: p.panelCount > 0 ? p.panelCount : null,
+        totalPrice: p.totalPrice > 0 ? p.totalPrice : null,
       }))}
       serviceOrders={matchedServiceOrders.map((so) => ({
         id: so.id,

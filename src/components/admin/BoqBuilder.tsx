@@ -115,19 +115,27 @@ export default function BoqBuilder({
   };
 
   useEffect(() => {
+    let isActive = true;
     const cachedBundles = window.sessionStorage.getItem(BUNDLE_CACHE_KEY);
     if (cachedBundles) {
       try {
         const parsed = JSON.parse(cachedBundles) as unknown;
         if (Array.isArray(parsed) && parsed.every((bundle) => bundle && typeof bundle === "object" && "itemCode" in bundle && "label" in bundle)) {
-          setBundles(parsed as BundleOption[]);
-          return;
+          void Promise.resolve().then(() => {
+            if (isActive) setBundles(parsed as BundleOption[]);
+          });
+          return () => {
+            isActive = false;
+          };
         }
       } catch {
         window.sessionStorage.removeItem(BUNDLE_CACHE_KEY);
       }
     }
-    void loadAvailableBundles(false);
+    void Promise.resolve().then(() => loadAvailableBundles(false));
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const loadBundle = async (bundle: BundleOption) => {

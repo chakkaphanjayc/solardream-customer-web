@@ -27,10 +27,10 @@ export function ProposalSignatureCtaCard({
   const isBlocked = !isSigned && (!isSignableStatus || signatureLocked || reviewRequired);
 
   return (
-    <section className="rounded-[28px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-5 shadow-sm sm:p-6">
+    <section className="solar-route-card bg-[var(--sd-raised)] p-5 sm:p-6">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#DCE8F5] text-[#2E2C27] shadow-xs">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--sd-radius-md)] bg-[var(--sd-selected)] text-[var(--sd-blue-600)] shadow-[var(--sd-shadow-1)]">
             {isSigned ? (
               <ShieldCheck className="h-5 w-5 text-emerald-600" />
             ) : isBlocked ? (
@@ -42,7 +42,7 @@ export function ProposalSignatureCtaCard({
 
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-[#1C1C1A]">
+              <h2 className="text-base font-bold text-[var(--sd-ink)]">
                 {isSigned
                   ? t("signedTitle")
                   : reviewRequired
@@ -62,7 +62,7 @@ export function ProposalSignatureCtaCard({
               )}
             </div>
 
-            <p className="max-w-2xl text-sm leading-6 text-[#4E4B44] font-medium">
+            <p className="max-w-2xl text-sm font-medium leading-6 text-[var(--sd-muted)]">
               {isSigned
                 ? t("signedDescription")
                 : reviewRequired
@@ -86,7 +86,7 @@ export function ProposalSignatureCtaCard({
               type="button"
               onClick={onOpenSignModal}
               disabled={reviewRequired}
-              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#B7D1EA] px-8 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-[#A5C2DE] active:scale-95 disabled:cursor-not-allowed disabled:bg-[#F7F6F3] disabled:text-[#4E4B44] disabled:shadow-none sm:w-auto"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--sd-radius-md)] bg-[var(--sd-blue-600)] px-8 py-3 text-sm font-bold text-white shadow-[var(--sd-shadow-1)] transition-all hover:bg-[var(--sd-blue-500)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[var(--sd-soft-solar)] disabled:text-[var(--sd-muted)] disabled:shadow-none sm:w-auto"
             >
               <span>{reviewRequired ? t("reviewRequiredAction") : t("signDocument")}</span>
               <ArrowRight className="h-4 w-4 text-white" />
@@ -97,7 +97,7 @@ export function ProposalSignatureCtaCard({
             <button
               type="button"
               disabled
-              className="inline-flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-full bg-[#F7F6F3] px-8 py-3 text-sm font-bold text-[#4E4B44] sm:w-auto"
+              className="inline-flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] px-8 py-3 text-sm font-bold text-[var(--sd-muted)] sm:w-auto"
             >
               <LockKeyhole className="h-4 w-4" />
               <span>{signatureLocked ? t("lockedAction") : t("notReadyAction")}</span>
@@ -108,7 +108,7 @@ export function ProposalSignatureCtaCard({
             <button
               type="button"
               disabled
-              className="inline-flex min-h-12 w-full cursor-default items-center justify-center gap-2 rounded-full border border-emerald-300 bg-emerald-50 px-8 py-3 text-xs font-bold text-emerald-800 sm:w-auto"
+              className="inline-flex min-h-12 w-full cursor-default items-center justify-center gap-2 rounded-[var(--sd-radius-md)] border border-emerald-300 bg-emerald-50 px-8 py-3 text-xs font-bold text-emerald-800 sm:w-auto"
             >
               <ShieldCheck className="h-4 w-4 text-emerald-600" />
               {t("documentSigned")}

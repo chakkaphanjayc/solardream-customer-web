@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import type { GalleryItem, ProjectCaseStudy } from "@/types/portfolio";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 import VisxImageLightbox from "@/components/ui/VisxImageLightbox";
 
 type ProjectDetailModalProps = Readonly<{
@@ -203,10 +204,10 @@ function ShowcaseGallery({ project, reduceMotion }: ShowcaseGalleryProps) {
   return (
     <section className="rounded-[24px] border border-[#F7F6F3] bg-[#E6E3DC] p-3 sm:p-5 lg:p-6 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#2E2C27]">
+        <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#2E2C27]">
           <Images className="h-4 w-4 text-[#4F7FA8]" />
           <span>{t("gallery")}</span>
-        </h3>
+        </h2>
         <div className="flex items-center gap-2" aria-live="polite">
           <span className="hidden sm:inline text-[11px] font-medium text-[#4E4B44]">
             {t("zoom")}
@@ -332,11 +333,36 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
   const reduceMotion = useReducedMotion() ?? false;
   const isOpen = project !== null;
   const modalScrollerRef = useRef<HTMLDivElement | null>(null);
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
     modalScrollerRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus({ preventScroll: true });
+      if (document.activeElement !== closeButtonRef.current) {
+        modalRef.current?.focus({ preventScroll: true });
+      }
+    });
+
+    return () => window.cancelAnimationFrame(focusFrame);
   }, [isOpen, project?.id]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleModalKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+
+      event.preventDefault();
+      onClose();
+    };
+
+    window.addEventListener("keydown", handleModalKeyDown);
+    return () => window.removeEventListener("keydown", handleModalKeyDown);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -381,7 +407,6 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
       {project ? (
         <motion.div
           key={project.id}
-          aria-label={t("backdrop")}
           data-works-modal-backdrop
           data-solar-surface="atelier"
           className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-2 backdrop-blur-md sm:p-4"
@@ -392,6 +417,7 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
           onClick={onClose}
         >
           <motion.div
+            ref={modalRef}
             aria-labelledby="project-modal-title"
             aria-modal="true"
             data-bagui="works-modal"
@@ -405,16 +431,21 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
             onWheel={(event) => event.stopPropagation()}
             onTouchMove={(event) => event.stopPropagation()}
             role="dialog"
+            tabIndex={-1}
           >
             {/* Modal Header */}
-            <header className="solar-works-modal-header sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-[#F7F6F3] bg-[#E6E3DC] px-4 py-3 sm:px-6 sm:py-4">
+            <div
+              className="solar-works-modal-header sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-[#F7F6F3] bg-[#E6E3DC] px-4 py-3 sm:px-6 sm:py-4"
+              role="group"
+              aria-label={t("caseDossier")}
+            >
               <div className="flex min-w-0 items-center gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#CBC7BE] bg-[#DCE8F5] text-xs font-bold text-[#2E2C27]">
                   SD
                 </span>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full border border-[#7CA8D0]/30 bg-[#DCE8F5] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#4F7FA8]">
+                    <span className="rounded-full border border-[#7CA8D0]/30 bg-[#DCE8F5] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#315E82]">
                       {t("caseDossier")}
                     </span>
                     <span className="text-xs font-medium text-[#4E4B44]">{t("realInstallation")}</span>
@@ -426,6 +457,7 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
               </div>
 
               <button
+                ref={closeButtonRef}
                 type="button"
                 onClick={onClose}
                 className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border border-[#CBC7BE] bg-[#F0EEE9] px-4 py-2 text-xs font-semibold text-[#2E2C27] shadow-xs transition-all hover:bg-[#DCE8F5] active:scale-95"
@@ -434,7 +466,7 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
                 <span>{t("close")}</span>
                 <X className="h-4 w-4 stroke-[2.5]" />
               </button>
-            </header>
+            </div>
 
             {/* Modal Body Container with Scroll */}
             <div ref={modalScrollerRef} className="flex-1 overflow-y-auto overscroll-contain">
@@ -457,8 +489,8 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
                       <MapPin className="h-4 w-4 text-[#A5C2DE]" />
                       {project.location}
                     </span>
-                    <span className="rounded-full bg-[#B7D1EA] px-3.5 py-1.5 text-white">
-                      {project.solarSizeKw} kWp System
+                      <span className="rounded-full bg-[#DCE8F5] px-3.5 py-1.5 font-bold text-[#16324F]">
+                        {project.solarSizeKw} kWp System
                     </span>
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-black/60 backdrop-blur-md px-3.5 py-1.5 text-white">
                       <Calendar className="h-4 w-4 text-white" />
@@ -472,7 +504,7 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
               </section>
 
               {/* Internal Layout Grid */}
-              <main className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-8 sm:px-10 sm:py-10">
+              <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-8 sm:px-10 sm:py-10">
                 {/* Photo Gallery */}
                 <div>
                   <ShowcaseGallery project={project} reduceMotion={reduceMotion} />
@@ -486,10 +518,10 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
 
                     {/* Summary Box */}
                     <section className="rounded-[24px] border border-[#F7F6F3] bg-[#E6E3DC] p-6 shadow-sm">
-                      <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#4F7FA8]">
+                      <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#4F7FA8]">
                         <Sparkles className="h-4 w-4 text-[#4F7FA8]" />
                         <span>{t("summary")}</span>
-                      </h3>
+                      </h2>
                       <p className="mt-4 text-sm font-normal leading-relaxed text-[#2E2C27] sm:text-base">
                         {project.summary}
                       </p>
@@ -505,9 +537,9 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
                     {/* Financial Impact Cards (Cards: ค่าไฟเดิม, ค่าไฟหลังติด, ประหยัดเฉลี่ย) */}
                     {project.showFinancials !== false ? (
                       <section>
-                          <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-[#4E4B44]">
+                          <h2 className="mb-4 text-xs font-bold uppercase tracking-wider text-[#4E4B44]">
                           {t("financialImpact")}
-                        </h3>
+                        </h2>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                           {/* Card 1: ค่าไฟเดิม */}
                           <div className="rounded-[20px] border border-[#F7F6F3] bg-[#F0EEE9] p-4 shadow-sm">
@@ -532,10 +564,10 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
 
                     {/* System Hardware Specifications */}
                     <section className="rounded-[24px] border border-[#F7F6F3] bg-[#F0EEE9] p-6 shadow-sm">
-                      <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#4F7FA8]">
+                      <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#4F7FA8]">
                         <ShieldCheck className="h-4 w-4 text-[#4F7FA8]" />
                         <span>{t("hardware")}</span>
-                      </h3>
+                      </h2>
                       <div className="mt-5 grid grid-cols-1 gap-x-8 gap-y-4 text-xs font-medium sm:grid-cols-2">
                         <div className="flex items-center justify-between border-b border-[#F7F6F3] pb-3">
                           <span className="text-[#4E4B44]">{t("installedCapacity")}</span>
@@ -578,13 +610,32 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
                         </div>
                         <div>
                           <span className="text-[10px] font-bold uppercase tracking-wider text-[#4E4B44]">{t("solarSizing")}</span>
-                          <h3 className="text-base font-bold text-[#2E2C27]">{t("interestedInSystem", { size: project.solarSizeKw })}</h3>
+                          <h2 className="text-base font-bold text-[#2E2C27]">{t("interestedInSystem", { size: project.solarSizeKw })}</h2>
                         </div>
                       </div>
 
                       <p className="text-xs font-normal leading-relaxed text-[#4E4B44]">
                         {t("sidebarDescription")}
                       </p>
+
+                      <div className="solar-ui-soft-panel relative overflow-hidden rounded-2xl p-3">
+                        <div className="flex items-center gap-3">
+                          <SoliaGuide
+                            alt={locale === "th" ? "โซเลียกำลังชี้แนะแนวทางจากผลงานติดตั้งจริง" : "Solia guiding you from a real installation reference"}
+                            pose="blueprint"
+                            className="h-24 w-20 shrink-0"
+                            imageSizes="80px"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#315E82]">
+                              {t("fieldNote")}
+                            </p>
+                            <p className="mt-1 text-xs font-semibold leading-5 text-[#2E2C27]">
+                              {t("fieldNoteBody")}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
 
                       <div className="space-y-2.5 rounded-2xl border border-[#F7F6F3] bg-[#F0EEE9] p-4 text-xs font-medium">
                         <div className="flex items-center justify-between"><span className="text-[#4E4B44]">{t("recommendation")}</span><span className="font-bold text-[#2E2C27]">{project.solarSizeKw} kW</span></div>
@@ -595,7 +646,7 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
                       <Link
                         href={`/${locale}/build?kw=${project.solarSizeKw}`}
                         onClick={onClose}
-                        className="group inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-[#B7D1EA] px-6 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#A5C2DE] hover:shadow active:scale-95 cursor-pointer"
+                        className="solar-ui-primary group inline-flex min-h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold active:scale-95"
                       >
                         <span>{t("designThisCase")}</span>
                         <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1 stroke-[2.5]" />
@@ -603,7 +654,7 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
                     </div>
                   </aside>
                 </div>
-              </main>
+              </div>
             </div>
           </motion.div>
         </motion.div>

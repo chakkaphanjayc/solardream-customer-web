@@ -21,6 +21,14 @@ import {
 import { isLocale, type Locale } from "@/i18n/locales";
 import { getDiscourseSsoStartUrl } from "@/lib/discourseConnect";
 
+const isCloudflareBuild = process.env.SOLARDREAM_CLOUDFLARE_BUILD === "1";
+
+// The locale shell resolves editable SEO settings and locale-aware URL metadata
+// at request time. Keep that intentional runtime boundary explicit under
+// Next.js Cache Components so the metadata stream is not reported as a
+// blocking prerender error in development.
+export const instant = false;
+
 // Use next-intl to pass translations into nested Client Components.
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
@@ -112,7 +120,7 @@ type LocaleRuntimeLayoutProps = {
 
 function LocaleLayoutFallback() {
   return (
-    <div className="min-h-dvh bg-[#F0EEE9]" aria-hidden="true" />
+    <div className="min-h-dvh bg-[var(--sd-page)]" aria-hidden="true" />
   );
 }
 
@@ -170,7 +178,9 @@ export default async function RootLayout({
   // Keep locale routes request-time rendered when the Cloudflare build uses
   // the legacy Next cache model. This prevents build-time data access while
   // retaining the same runtime data boundary used by Cache Components.
-  await connection();
+  if (isCloudflareBuild) {
+    await connection();
+  }
 
   const { locale } = await params;
   const activeLocale = isLocale(locale) ? locale : "th";
@@ -179,7 +189,7 @@ export default async function RootLayout({
     <html lang={locale} data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
         data-bagui="app-shell"
-        className={`${notoSansThai.variable} ${geistMono.variable} ${roboto.variable} antialiased bg-[#F0EEE9] text-[#1C1C1A] selection:bg-[#B7D1EA]/45 selection:text-[#142533]`}
+        className={`${notoSansThai.variable} ${geistMono.variable} ${roboto.variable} antialiased bg-[var(--sd-page)] text-[var(--sd-ink)] selection:bg-[var(--sd-selected)] selection:text-[var(--sd-navy-900)]`}
         style={{
           fontFamily: `var(--font-roboto), var(--font-noto-sans-thai), sans-serif`,
         }}
@@ -189,13 +199,15 @@ export default async function RootLayout({
         <ClarityProvider />
         <RuntimeMessageRefresh />
         <AuthProvider>
-          <LiquidGlassProvider>
-            <Suspense fallback={<LocaleLayoutFallback />}>
-              <LocaleRuntimeLayout activeLocale={activeLocale}>
-                {children}
-              </LocaleRuntimeLayout>
-            </Suspense>
-          </LiquidGlassProvider>
+          <Suspense fallback={<LocaleLayoutFallback />}>
+            <LiquidGlassProvider>
+              <Suspense fallback={<LocaleLayoutFallback />}>
+                <LocaleRuntimeLayout activeLocale={activeLocale}>
+                  {children}
+                </LocaleRuntimeLayout>
+              </Suspense>
+            </LiquidGlassProvider>
+          </Suspense>
         </AuthProvider>
       </body>
     </html>

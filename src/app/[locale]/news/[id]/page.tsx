@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 // Article detail pages resolve a request locale and live publication state;
 // keep the route blocking while the article payload is served from its tag
 // cache in the public read action.
+export const instant = false;
 
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -117,12 +118,12 @@ export default async function ArticleDetailPage({ params }: PageProps) {
         )}
 
         {/* Optimal Reading Column Article Body */}
-        <main className="mx-auto">
+        <div className="mx-auto">
           <article
             className="max-w-prose mx-auto prose prose-slate md:prose-lg prose-img:rounded-[24px] prose-headings:font-bold prose-headings:text-[#1C1C1A] prose-a:text-[#4F7FA8] prose-a:font-medium prose-blockquote:border-l-[#B7D1EA] leading-relaxed text-[#1C1C1A] tracking-normal"
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }}
           />
-        </main>
+        </div>
 
         {/* Author Bio Footer & Bottom Social Share */}
         <footer className="mt-16 pt-8 border-t border-[#8E8B83]/15 max-w-prose mx-auto space-y-6">

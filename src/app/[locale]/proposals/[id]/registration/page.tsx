@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { eq, or } from "drizzle-orm";
 
 import ProjectWarrantyRegistrationForm from "./ProjectWarrantyRegistrationForm";
@@ -10,6 +11,8 @@ import { PORTAL_SESSION_COOKIE, validatePortalToken } from "@/lib/portalTokens";
 import { createClient } from "@/utils/supabase/server";
 import { Card } from "@/components/ui/card";
 import { PageShell } from "@/components/ui/page-shell";
+
+export const instant = false;
 
 interface RegistrationPageProps {
   params: Promise<{ locale: string; id: string }>;
@@ -23,6 +26,7 @@ function textDetail(details: unknown, key: string) {
 
 export default async function RegistrationPage({ params }: RegistrationPageProps) {
   const { locale, id } = await params;
+  const t = await getTranslations({ locale, namespace: "WarrantyRegistration" });
   const proposal = await db.query.proposals.findFirst({
     where: or(eq(proposals.id, id), eq(proposals.magicTokenSlug, id)),
   });
@@ -45,32 +49,31 @@ export default async function RegistrationPage({ params }: RegistrationPageProps
       where: eq(projectWarrantyRegistrations.projectId, project.id),
     })
     : null;
-  const isThai = locale === "th";
   const returnHref = `/${locale}/proposals/${proposal.magicTokenSlug}`;
 
   return (
     <PageShell className="bg-[#F0EEE9] px-4 py-8 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-2xl">
         <Link href={returnHref} className="inline-flex min-h-11 items-center text-sm font-black text-[#0F172A] underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-[#4F7FA8] focus:ring-offset-2">
-          {isThai ? "กลับไปยังโครงการ" : "Back to project"}
+          {t("backToProject")}
         </Link>
         <Card className="mt-5 border-[3px] border-[#000000] bg-[#B7D1EA] p-5 text-[#0F172A] shadow-[5px_5px_0_#000000] sm:p-8">
-          <p className="text-sm font-black uppercase tracking-[0.12em] text-[#4F7FA8]">SolarDream Care</p>
+          <p className="text-sm font-black uppercase tracking-[0.12em] text-[#4F7FA8]">{t("eyebrow")}</p>
           <h1 className="mt-2 text-3xl font-extrabold tracking-[-0.03em] text-balance sm:text-4xl">
-            {isThai ? "ลงทะเบียนการรับประกัน" : "Register your warranty"}
+            {t("title")}
           </h1>
           <p className="mt-3 max-w-[65ch] text-base leading-7 text-[#475569]">
-            {isThai ? "บันทึกข้อมูลโครงการเพื่อให้ทีม SolarDream ดูแลการรับประกันและบริการหลังการติดตั้งได้อย่างรวดเร็ว" : "Keep your completed solar project details with SolarDream for warranty and after-installation support."}
+            {t("description")}
           </p>
         </Card>
 
         {!project || project.status !== "FINISHED" ? (
           <Card className="mt-5 border-[3px] border-[#000000] bg-white p-5 shadow-[4px_4px_0_#000000] sm:p-8">
             <h2 className="text-xl font-bold tracking-[-0.01em] text-[#0F172A]">
-              {isThai ? "เปิดให้ลงทะเบียนหลังส่งมอบโครงการ" : "Available after project handover"}
+              {t("handoverTitle")}
             </h2>
             <p className="mt-2 text-base leading-7 text-[#475569]">
-              {isThai ? "ทีมงานจะเปิดการลงทะเบียนทันทีเมื่อสถานะ Field Project เสร็จสิ้น" : "Your registration will open as soon as the Field Project is marked finished."}
+              {t("handoverDescription")}
             </p>
           </Card>
         ) : (

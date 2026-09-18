@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { isLocale } from "@/i18n/locales";
 import { PageShell } from "@/components/ui/page-shell";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 import { Button } from "@/components/ui/button";
 import {
   Activity,
@@ -12,12 +13,16 @@ import {
   ShieldCheck,
 } from "@/components/ui/icons";
 import TrackRequestFlow from "@/components/tracking/TrackRequestFlow";
+import trackStyles from "@/components/tracking/track-request-flow.module.css";
 
 export const metadata: Metadata = {
   referrer: "no-referrer",
   robots: { index: false, follow: false },
 };
 
+// The tracking form can read request-time/session data through its client
+// island. This route intentionally opts out of instant prerender validation.
+export const instant = false;
 
 export default async function TrackPage({
   params,
@@ -29,7 +34,7 @@ export default async function TrackPage({
   const t = await getTranslations({ locale, namespace: "TrackPage" });
 
   return (
-    <PageShell className="relative isolate min-h-dvh overflow-hidden bg-[#F0EEE9] px-4 pb-20 pt-28 text-[#1C1C1A] sm:px-6 sm:pb-24 lg:px-8">
+    <PageShell className="solar-track-page relative isolate min-h-dvh overflow-hidden bg-[var(--sd-page)] px-4 pb-20 pt-28 text-[var(--sd-ink)] sm:px-6 sm:pb-24 lg:px-8">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -49,7 +54,7 @@ export default async function TrackPage({
 
         <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1.12fr)_minmax(25rem,0.88fr)] lg:gap-16">
           <header className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/55 px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-[#4F7FA8] shadow-[0_12px_30px_-22px_rgba(15,23,42,0.6)] backdrop-blur-xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--sd-navy-900)] shadow-none">
               <ShieldCheck aria-hidden="true" className="size-4" />
               {t("landing.eyebrow")}
             </span>
@@ -59,17 +64,31 @@ export default async function TrackPage({
             <p className="mt-5 max-w-2xl text-pretty text-base leading-7 text-[#4E4B44] sm:text-lg">
               {t("landing.description")}
             </p>
+            <SoliaGuide
+              className="mt-7 h-32 w-full max-w-[18rem]"
+              pose="pointing"
+              alt={
+                locale === "th"
+                  ? "โซเลียชี้ขั้นตอนติดตามคำขอของคุณ"
+                  : "Solia pointing to the next step in your request tracking"
+              }
+              message={
+                locale === "th"
+                  ? "เริ่มจากหมายเลขอ้างอิงก่อน แล้วค่อยเปิดรายละเอียดส่วนตัวเมื่อพร้อมค่ะ"
+                  : "Start with your reference, then unlock private details only when you need them."
+              }
+              speechBubbleClassName="absolute bottom-0 left-0 max-w-[15rem] rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-white/90 p-3 text-xs font-semibold leading-5 text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)]"
+            />
           </header>
 
           <TrackRequestFlow surface="page" presentation="page" />
         </div>
 
         <section
-          data-liquid-glass="surface"
-          className="mt-12 rounded-[2rem] border border-white/75 bg-white/38 p-5 shadow-[0_20px_64px_-46px_rgba(15,23,42,0.48)] backdrop-blur-xl sm:mt-16 sm:p-8"
+          className="solar-ui-panel mt-12 rounded-[2rem] p-5 sm:mt-16 sm:p-8"
         >
           <div className="max-w-2xl">
-            <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#4F7FA8]">
+            <p className={`${trackStyles.trackStepsKicker} text-xs font-extrabold uppercase tracking-[0.12em]`}>
               {t("landing.stepsTitle")}
             </p>
             <h2 className="mt-2 text-2xl font-extrabold tracking-[-0.035em] text-[#1C1C1A] sm:text-3xl">
@@ -81,7 +100,7 @@ export default async function TrackPage({
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <article data-liquid-glass="surface" className="rounded-2xl border border-white/85 bg-white/55 p-5 backdrop-blur-xl">
+            <article className="solar-ui-soft-panel rounded-2xl p-5">
               <Search aria-hidden="true" className="size-5 text-[#4F7FA8]" />
               <h3 className="mt-4 text-base font-extrabold text-[#1C1C1A]">
                 {t("landing.steps.reference.title")}
@@ -90,7 +109,7 @@ export default async function TrackPage({
                 {t("landing.steps.reference.description")}
               </p>
             </article>
-            <article data-liquid-glass="surface" className="rounded-2xl border border-white/85 bg-white/55 p-5 backdrop-blur-xl">
+            <article className="solar-ui-soft-panel rounded-2xl p-5">
               <Activity aria-hidden="true" className="size-5 text-[#4F7FA8]" />
               <h3 className="mt-4 text-base font-extrabold text-[#1C1C1A]">
                 {t("landing.steps.progress.title")}
@@ -99,7 +118,7 @@ export default async function TrackPage({
                 {t("landing.steps.progress.description")}
               </p>
             </article>
-            <article data-liquid-glass="surface" className="rounded-2xl border border-white/85 bg-white/55 p-5 backdrop-blur-xl">
+            <article className="solar-ui-soft-panel rounded-2xl p-5">
               <LockKeyhole aria-hidden="true" className="size-5 text-[#4F7FA8]" />
               <h3 className="mt-4 text-base font-extrabold text-[#1C1C1A]">
                 {t("landing.steps.secure.title")}

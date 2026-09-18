@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { FileText, Calendar } from "@/components/ui/icons";
-import { sanitizeHtml } from "@/lib/htmlSanitizer";
+import { sanitizeLegalContent } from "@/lib/legalContent";
 import { getCachedComplianceSettings } from "@/lib/layout-data";
 import { Card } from "@/components/ui/card";
 import { PageShell } from "@/components/ui/page-shell";
@@ -9,6 +9,8 @@ import { PageShell } from "@/components/ui/page-shell";
 interface PageProps {
   params: Promise<{ locale: string }>;
 }
+
+export const instant = false;
 
 
 export default async function TermsPage({ params }: PageProps) {
@@ -48,7 +50,7 @@ export default async function TermsPage({ params }: PageProps) {
         <section>
         <div 
           className="prose prose-slate max-w-none text-slate-700 leading-relaxed font-sans prose-headings:font-black prose-headings:text-slate-900 prose-a:text-[#1CBBBB] prose-a:underline hover:prose-a:text-[#159999]"
-          dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
+          dangerouslySetInnerHTML={{ __html: sanitizeLegalContent(content) }}
         />
         </section>
       </Card>

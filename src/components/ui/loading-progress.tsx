@@ -201,7 +201,7 @@ export default function LoadingProgress({
           />
         </div>
         <div className="mt-3 flex justify-end">
-          <span className="font-mono text-[11px] font-semibold tracking-[0.16em] text-[#0F172A]/55">
+          <span className="font-mono text-[11px] font-semibold tracking-[0.16em] text-[var(--sd-text)]">
             {Math.round(progress)}%
           </span>
         </div>

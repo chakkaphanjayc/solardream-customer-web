@@ -17,11 +17,35 @@ import type { DocumentVerificationResult } from "@/types/documentSigning";
 
 const MAX_VERIFICATION_PDF_BYTES = 10 * 1024 * 1024;
 
+export type DocumentVerificationLabels = Readonly<{
+  dropzone: string;
+  dropzoneAria: string;
+  limits: string;
+  verify: string;
+  checking: string;
+  checkAnother: string;
+  integrityIntact: string;
+  integrityUnconfirmed: string;
+  integrityPassedDescription: string;
+  integrityFailedDescription: string;
+  integrity: string;
+  certificateTrust: string;
+  overall: string;
+  passed: string;
+  failed: string;
+  untrusted: string;
+  signatureCount: string;
+  expired: string;
+  tooLarge: string;
+  invalid: string;
+  unable: string;
+}>;
+
 function fileSizeLabel(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(bytes < 1024 * 1024 ? 1 : 0)} MB`;
 }
 
-export function DocumentVerificationDropzone() {
+export function DocumentVerificationDropzone({ labels }: { labels: DocumentVerificationLabels }) {
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<DocumentVerificationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +65,7 @@ export function DocumentVerificationDropzone() {
       const code = rejection?.errors[0]?.code;
       setFile(null);
       setResult(null);
-      setError(code === "file-too-large" ? "Choose a PDF smaller than 10 MB." : "Choose one PDF document.");
+      setError(code === "file-too-large" ? labels.tooLarge : labels.invalid);
     },
   });
 
@@ -55,7 +79,7 @@ export function DocumentVerificationDropzone() {
         setResult(await verifyDocument(formData));
       } catch (verificationError: unknown) {
         setResult(null);
-        setError(verificationError instanceof Error ? verificationError.message : "Unable to verify this document.");
+        setError(verificationError instanceof Error ? verificationError.message : labels.unable);
       }
     });
   }
@@ -72,10 +96,10 @@ export function DocumentVerificationDropzone() {
             : "border-[#8E8B83]/30 bg-[#F0EEE9] hover:border-[#7CA8D0]"
         }`}
       >
-        <input {...getInputProps()} />
+        <input {...getInputProps({ "aria-label": labels.dropzoneAria })} />
         <FileUp className="mx-auto h-8 w-8 text-[#4F7FA8]" aria-hidden="true" />
-        <p className="mt-4 text-sm font-bold text-[#1C1C1A]">Drop a signed PDF here, or choose a file</p>
-        <p className="mt-2 text-xs leading-5 text-[#4E4B44]">PDF only · up to 10 MB · examined in memory and never saved</p>
+        <p className="mt-4 text-sm font-bold text-[#1C1C1A]">{labels.dropzone}</p>
+        <p className="mt-2 text-xs leading-5 text-[#4E4B44]">{labels.limits}</p>
       </div>
 
       {file ? (
@@ -88,10 +112,10 @@ export function DocumentVerificationDropzone() {
             type="button"
             onClick={submit}
             disabled={isPending}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#B7D1EA] px-6 text-xs font-medium text-white transition-all duration-300 hover:bg-[#A5C2DE]/90 active:scale-95 shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+            className="solar-ui-primary inline-flex min-h-11 items-center gap-2 rounded-full px-6 text-xs font-medium active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-            Verify document
+            {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ShieldCheck className="h-4 w-4" aria-hidden="true" />}
+            {isPending ? labels.checking : labels.verify}
           </button>
         </div>
       ) : null}
@@ -104,7 +128,7 @@ export function DocumentVerificationDropzone() {
       ) : null}
 
       {result ? (
-        <div className={`mt-4 rounded-2xl border p-5 ${integrityPassed ? "border-[#7CA8D0]/40 bg-[#F0EEE9] shadow-sm" : "border-red-200 bg-red-50/80"}`}>
+        <div role={integrityPassed ? "status" : "alert"} aria-live="polite" className={`mt-4 rounded-2xl border p-5 ${integrityPassed ? "border-[#7CA8D0]/40 bg-[#F0EEE9] shadow-sm" : "border-red-200 bg-red-50/80"}`}>
           <div className="flex items-start gap-3">
             {integrityPassed ? (
               <BadgeCheck className="mt-0.5 h-6 w-6 shrink-0 text-[#4F7FA8]" aria-hidden="true" />
@@ -113,23 +137,23 @@ export function DocumentVerificationDropzone() {
             )}
             <div>
               <h2 className="text-base font-bold text-[#1C1C1A]">
-                {integrityPassed ? "Document integrity intact" : "Document integrity could not be confirmed"}
+                {integrityPassed ? labels.integrityIntact : labels.integrityUnconfirmed}
               </h2>
               <p className="mt-1 text-sm leading-6 text-[#4E4B44]">
                 {integrityPassed
-                  ? "The content covered by the document signature has not changed."
-                  : result.message || "The file is unsigned, malformed, or changed after signing."}
+                  ? labels.integrityPassedDescription
+                  : result.message || labels.integrityFailedDescription}
               </p>
             </div>
           </div>
 
           <dl className="mt-5 grid gap-3 sm:grid-cols-3">
-            <StatusItem label="Integrity" value={result.integrity} />
-            <StatusItem label="Certificate trust" value={result.authenticity} falseLabel="Self-signed or untrusted" />
-            <StatusItem label="Overall verification" value={result.verified} />
+            <StatusItem label={labels.integrity} value={result.integrity} falseLabel={labels.failed} labels={labels} />
+            <StatusItem label={labels.certificateTrust} value={result.authenticity} falseLabel={labels.untrusted} labels={labels} />
+            <StatusItem label={labels.overall} value={result.verified} falseLabel={labels.failed} labels={labels} />
           </dl>
           <p className="mt-4 text-xs leading-5 text-[#4E4B44]">
-            {result.signatureCount} signature{result.signatureCount === 1 ? "" : "s"} found{result.expired ? ". At least one certificate is expired." : "."}
+            {labels.signatureCount.replace("{count}", String(result.signatureCount))}{result.expired ? labels.expired : "."}
           </p>
         </div>
       ) : null}
@@ -145,7 +169,7 @@ export function DocumentVerificationDropzone() {
           className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-xs font-medium text-[#4E4B44] transition-all duration-300 hover:bg-[#A5C2DE]/10 active:scale-95"
         >
           <RefreshCcw className="h-4 w-4" aria-hidden="true" />
-          Check another PDF
+          {labels.checkAnother}
         </button>
       ) : null}
     </section>
@@ -156,15 +180,17 @@ function StatusItem({
   label,
   value,
   falseLabel = "Failed",
+  labels,
 }: {
   label: string;
   value: boolean;
   falseLabel?: string;
+  labels: DocumentVerificationLabels;
 }) {
   return (
     <div className="rounded-xl bg-[#DCE8F5]/40 p-3">
       <dt className="text-[10px] font-bold tracking-[0.08em] text-[#4E4B44] uppercase">{label}</dt>
-      <dd className={`mt-1 text-sm font-bold ${value ? "text-[#1C1C1A]" : "text-red-700"}`}>{value ? "Passed" : falseLabel}</dd>
+      <dd className={`mt-1 text-sm font-bold ${value ? "text-[#1C1C1A]" : "text-red-700"}`}>{value ? labels.passed : falseLabel}</dd>
     </div>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "@/components/ui/icons";
 import { gsap } from "gsap";
 import { useLocale, useTranslations } from "next-intl";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 
 export const SOLIA_NEWS_TIPS_TH = [
   "หน้าข่าวสารกำลังเตรียมข้อมูลเด็ดๆ อยู่ค่ะ! รู้ไหมคะว่าแผงโซลาร์เซลล์ทำงานได้ดีที่สุดตอนอุณหภูมิประมาณ 25 องศา ไม่ใช่ตอนแดดร้อนจัดนะคะ ☀️",
@@ -118,15 +118,16 @@ export default function NewsEmptyState() {
 
         <div
           ref={mascotRef}
-          aria-hidden="true"
           className="pointer-events-none relative mt-5 h-[150px] w-[150px] md:h-[190px] md:w-[190px]"
         >
-          <Image
-            src="/asset/solia-greeting.webp"
-            alt=""
-            fill
-            sizes="(max-width: 768px) 150px, 190px"
-            className="object-contain drop-shadow-[0_16px_22px_rgba(15,23,42,0.14)]"
+          <SoliaGuide
+            pose="greeting"
+            alt={locale === "th" ? "โซเลียกำลังช่วยเตรียมข่าวสารความรู้" : "Solia preparing the next SolarDream guide"}
+            className="h-full w-full"
+            imageClassName="drop-shadow-[0_16px_22px_rgba(15,23,42,0.14)]"
+            imageSizes="(max-width: 768px) 150px, 190px"
+            loading="eager"
+            priority
           />
         </div>
       </div>

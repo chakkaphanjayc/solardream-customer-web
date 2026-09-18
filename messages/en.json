@@ -320,7 +320,8 @@
   },
   "WizardClient": {
     "header": {
-      "badge": "Dynamic Rules Engine"
+      "badge": "Dynamic Rules Engine",
+      "title": "SolarDream Smart Solar Calculator"
     },
     "tooltip": {
       "moreInfo": "View additional knowledge context",
@@ -328,6 +329,11 @@
     },
     "labels": {
       "recommended": "Recommended"
+    },
+    "guide": {
+      "alt": "Solia helping you navigate the solar design steps",
+      "progress": "Start with the home and electricity questions. I’ll keep the technical details clear as we go.",
+      "ready": "Nice work. Your solar brief is ready—let’s review the system that fits your home."
     },
     "slider": {
       "perMonth": "per month"
@@ -952,7 +958,9 @@
       "satelliteMap": "Loading satellite map..."
     },
     "toast": {
-      "aiComplete": "AI analysis complete. Area: {area} m², pitch: {pitch}°."
+      "aiComplete": "AI analysis complete. Area: {area} m², pitch: {pitch}°.",
+      "aiFailed": "AI analysis failed. Please try again.",
+      "networkError": "A network error occurred during AI analysis."
     },
     "orientation": {
       "south": "{deg}°: South (best fit ★★★)",
@@ -965,16 +973,23 @@
       "defaultName": "Roof {count}"
     },
     "header": {
+      "title": "Clean Tech Planner",
+      "version": "v2D CAD",
       "subtitle": "2D layout system & roof analysis",
       "editing": "Editing:",
       "area": "Area:"
     },
     "actions": {
       "config": "Config",
+      "home": "Home",
       "backToBuild": "Go to Build",
       "addRoof": "Add Roof",
       "processing": "Processing...",
       "generate2dRoofs": "Generate 2D Roofs",
+      "satelliteMode": "Satellite mode",
+      "search": "Search",
+      "confirmTariff": "Confirm tariff inputs",
+      "ready": "Ready",
       "hideSettings": "Hide settings panel",
       "showSettings": "Show settings panel"
     },
@@ -984,6 +999,8 @@
       "electrical": "Electrical Circuits"
     },
     "sections": {
+      "configuration": "System configuration",
+      "plannerBadge": "Solar planner",
       "inputs": "System Inputs",
       "satelliteRoofAnalysis": "Satellite Roof Analysis",
       "roofSizingResult": "Roof Sizing Result",
@@ -1010,7 +1027,10 @@
       "electricityRate": "Rate/kWh",
       "addressSearch": "Address Search",
       "timeOfDay": "Time of Day",
-      "month": "Month"
+      "month": "Month",
+      "specifications": "Specifications",
+      "rotation": "Rotation",
+      "tabsLabel": "Tabs"
     },
     "placeholders": {
       "roofName": "Roof name (e.g. Main Roof, Garage)",
@@ -1021,7 +1041,8 @@
       "metersSize": "{width}m x {height}m",
       "thbPerKwh": "{value} THB/kWh",
       "squareMeters": "{value} sq.m.",
-      "panels": "panels"
+      "panels": "panels",
+      "kwp": "kWp"
     },
     "roofTypes": {
       "concrete": "Concrete Tile",
@@ -1038,6 +1059,7 @@
     "warnings": {
       "phaseUpgradeTitle": "Electrical upgrade required",
       "phaseUpgradeDescription": "Systems producing more than 5kW require a 3-phase meter.",
+      "roiLockedTitle": "ROI locked until tariff inputs are confirmed",
       "roiLockedDescription": "Set the average bill and real tariff before showing payback results.",
       "roiNeedsTariff": "ROI is not calculated until the customer’s real monthly bill and tariff are confirmed."
     },
@@ -1048,7 +1070,10 @@
     },
     "ai": {
       "area": "AI Area",
-      "pitch": "AI Pitch"
+      "pitch": "AI Pitch",
+      "sizing": "AI sizing...",
+      "analyzeRoof": "Auto-analyze roof (AI vision)",
+      "manualPolygonArea": "Manual polygon area"
     },
     "timeOfDay": {
       "earlyMorning": "Early morning",
@@ -1076,13 +1101,29 @@
       "monthlySavings": "Monthly Savings",
       "paybackPeriod": "Payback Period",
       "years": "{value} years",
+      "yearShort": "yrs",
+      "locked": "LOCKED",
+      "notAvailable": "N/A",
+      "thailandPsh": "Thailand PSH",
+      "qualityFactor": "Quality factor",
+      "annualYield": "Annual yield",
       "panelMaterialEstimate": "Panel material estimate",
       "materialEstimateNote": "Excludes inverter and installation."
     },
     "canvas": {
       "multiRoofPlanner": "Multi-Roof Planner",
       "satellitePlanner": "Satellite Planner",
-      "traceRoofBoundary": "Trace the roof boundary to process area."
+      "traceRoofBoundary": "Trace the roof boundary to process area.",
+      "freeformPlacement": "Freeform drag-and-drop solar panel placement",
+      "liveRenderer": "Live renderer",
+      "traceBoundary": "Use polygon tools to trace roof boundary"
+    },
+    "electrical": {
+      "stringingOn": "Stringing mode: ON",
+      "stringingOff": "Stringing mode: OFF",
+      "stringOneA": "String 1A (MPPT 1)",
+      "stringOneB": "String 1B (MPPT 1)",
+      "maxVoltage": "Max system voltage: 1000V DC"
     },
     "orientationLock": {
       "title": "Rotate your screen to landscape",
@@ -1115,7 +1156,8 @@
       "roiPerYear": "ROI {value}% / year"
     },
     "units": {
-      "years": "years"
+      "years": "years",
+      "yearsShort": "yrs"
     },
     "energyChart": {
       "title": "Energy Flow Simulation",
@@ -1148,8 +1190,11 @@
       "futureLoadPercentDisplay": "+{value}%",
       "futureLoadPercentMin": "No allowance (0%)",
       "futureLoadPercentMax": "EV charging / extra AC (+100%)",
-      "roofFacing": "Roof Facing",
-      "roofTilt": "Roof Tilt"
+    "roofFacing": "Roof Facing",
+    "roofTilt": "Roof Tilt",
+    "addonsTitle": "Add-ons",
+    "fineTuneLoad": "Fine-tune load (kWh/mo)",
+    "selectAddonOption": "Select add-on option"
     },
     "tariff": {
       "flatLabel": "Flat Rate",
@@ -1200,6 +1245,34 @@
       "current": "Current"
     },
     "preliminarySolarDesign": "Preliminary Solar Design",
+    "packageTitle": "SolarDream {size} kW · {tier} package",
+    "wattProfile": "{watts} W profile",
+    "systemTypes": {
+      "onGrid": "On-grid",
+      "hybrid": "Hybrid"
+    },
+    "profileTiers": {
+      "value": "Value",
+      "balanced": "Balanced",
+      "premium": "Premium"
+    },
+    "profileTierEquipment": {
+      "value": "Essential conversion package with standard monitoring readiness",
+      "balanced": "Reliability-focused system package with site-review preparation",
+      "premium": "Premium smart system with panel-level monitoring"
+    },
+    "included": {
+      "highEfficiencyPanels": "{count} high-efficiency panels",
+      "inverterProfile": "{type} · inverter profile",
+      "roofMounting": "Roof mounting and site-review allowance"
+    },
+    "systemPackages": {
+      "3": { "label": "SolarDream 3 kW · Starter package" },
+      "5": { "label": "SolarDream 5 kW · Balanced package" },
+      "10": { "label": "SolarDream 10 kW · Family package" },
+      "15": { "label": "SolarDream 15 kW · Estate package" },
+      "20": { "label": "SolarDream 20 kW · Signature package" }
+    },
     "designSummary": "Design Summary",
     "requestProposal": "Request Proposal",
     "preliminaryDesc": "A preliminary design profile for consultation, engineering review, and quotation approval.",
@@ -1213,6 +1286,49 @@
     "autoLabel": "Auto",
     "manualLabel": "Manual",
     "systemGoalLabel": "System Goal",
+    "desiredSystemSize": "Desired system size (kWp)",
+    "customSystemSize": "Custom kWp",
+    "systemGoalRoi": "ROI",
+    "systemGoalHybrid": "Hybrid",
+    "systemGoalBackup": "Backup",
+    "systemGoalRoiHelper": "Maximum ROI & fastest payback",
+    "systemGoalHybridHelper": "Balanced savings & backup capability",
+    "systemGoalBackupHelper": "Full backup power during grid outage",
+    "roofSetupLabel": "Roof setup",
+    "daytimeLabel": "Daytime",
+    "excessLabel": "Excess",
+    "environmentalIndexes": "Environmental & financial indexes",
+    "solarFinancingSimulator": "Solar financing simulator",
+    "solarFinancingDescription": "Interactive tool to compare cash purchase and bank loan options.",
+    "paymentMode": "Payment mode",
+    "cashOption": "Cash (cash purchase)",
+    "loanOption": "Loan (financing)",
+    "downPayment": "Down payment",
+    "loanDuration": "Loan duration",
+    "monthlyUnit": "/ mo",
+    "solarSavings": "Solar savings",
+    "loanInstallment": "Loan installment",
+    "netSaving": "Net saving",
+    "netExpense": "Net expense",
+    "payoffYear": "Payoff year",
+    "yearsValue": "{count} years",
+    "over25Years": "Over 25 years",
+    "netLifecycleBenefit": "Net 25-year lifecycle benefit",
+    "environmentalImpact25": "25-year clean impact",
+    "customPricingTitle": "Contact us for a tailored quote",
+    "customPricingDescription": "This system size or electrical phase is outside the starting price matrix. Our engineering team will confirm the price, financing options, and payback after reviewing the site details.",
+    "enterpriseSystemTitle": "Custom enterprise system ({kwp} kWp) — contact us for a quote",
+    "enterpriseSystemDescription": "A {kwp} kWp system is designed for commercial or industrial facilities and needs custom engineering and enterprise pricing.",
+    "panelOutputEfficiency": "Panel output efficiency (%)",
+    "annualSavings": "Annual savings (฿)",
+    "cumulativeSavingsTable": "Cumulative savings (฿)",
+    "cumulativePaymentsTable": "Cumulative payments (฿)",
+    "yearValue": "Year {year}",
+    "yearZero": "Year 0",
+    "lineConnectTitle": "Connect with LINE",
+    "lineConnectDescription": "Create an account and connect LINE to receive your system specification, savings estimate, and quotation directly in chat.",
+    "lineSimulatedLogin": "Log in with LINE",
+    "lineSimulatedNote": "* A temporary simulated member status will be stored in this browser.",
     "customPricingRequired": "Custom pricing required",
     "yearLabel": "Year",
     "cumulativeSavings": "Cumulative Savings",
@@ -1239,7 +1355,70 @@
     "totalInvestment": "Total Investment Cost",
     "checkingMemberAccess": "Checking member access...",
     "designSolarPanels": "Design Rooftop Panels",
-    "loginWithLine": "Log in with LINE"
+    "loginWithLine": "Log in with LINE",
+    "summaryStats": {
+      "systemSize": "System size",
+      "panels": "Panels",
+      "battery": "Battery",
+      "co2AvoidedPerYear": "CO₂ avoided / yr",
+      "treeEquivalentPerYear": "Tree equivalent / yr",
+      "drivingAvoided": "Driving avoided",
+      "payback": "Payback",
+      "monthlySavings": "Monthly savings",
+      "panelsUnit": "units",
+      "treeUnit": "trees",
+      "yearsShort": "yrs"
+    },
+    "journey": {
+      "impactEyebrow": "The impact you carry forward",
+      "impactTitle": "Your Green Legacy",
+      "impactDescription": "See the environmental value of the system you selected in a simple, useful view.",
+      "co2Reduced": "CO₂ reduced",
+      "treeEquivalent": "Tree equivalent",
+      "drivingAvoided": "Driving avoided",
+      "unitPerYear": "tons / year",
+      "treesPerYear": "trees / year",
+      "kmPerYear": "km / year",
+      "nextStepsTitle": "What happens after you request a quote",
+      "nextStepsDescription": "The next steps turn this estimate into a site-reviewed system plan for your home.",
+      "sendPlanTitle": "Send your selected plan",
+      "sendPlanDescription": "We receive the system profile and contact details you chose.",
+      "reviewSiteTitle": "Review the site details",
+      "reviewSiteDescription": "Our engineers confirm roof conditions, equipment, and installation requirements.",
+      "receiveProposalTitle": "Receive a reviewed proposal",
+      "receiveProposalDescription": "You get a clearer design and quotation ready for the next conversation.",
+      "blueprintEyebrow": "Next step",
+      "blueprintAlt": "Solia preparing a solar blueprint",
+      "blueprintTitle": "Your Custom Solar Blueprint",
+      "blueprintDescription": "Our engineering team uses this profile to verify the roof and refine a system that fits the real site.",
+      "profile": "Profile",
+      "estimatedPrice": "Estimated price",
+      "beforeSiteReview": "Before site review",
+      "liveFromSimulator": "Live from simulator",
+      "monthlySavings": "Monthly savings",
+      "currentEstimate": "Current estimate",
+      "review": "Review",
+      "engineering": "Engineering",
+      "siteValidation": "Site-specific validation",
+      "requestEngineeringReview": "Request engineering review"
+    },
+    "addons": {
+      "title": "Engineering Recommended Add-ons",
+      "description": "Advised additions for maximum grid compliance, safety protection, and nighttime autonomy.",
+      "selected": "{count} Selected",
+      "engineerRecommended": "Engineer Recommended",
+      "gridStandard": "Grid Standard",
+      "maxSafety": "Max Safety",
+      "evChargerReady": "EV Charger Ready",
+      "nightAutonomy": "Night Autonomy",
+      "protectionPanel": "Protection Panel",
+      "priceOnRequest": "Price on request",
+      "selectedAction": "Selected",
+      "addOption": "Add Option",
+      "optionSizing": "Option Sizing:",
+      "batteryStorage": "Battery storage",
+      "batteryDescription": "Store energy for nighttime use or power outages."
+    }
   },
   "ProposalsClient": {
     "toast": {
@@ -1345,7 +1524,35 @@
       "reuploadRevision": "Re-upload Revision",
       "uploadDocument": "Upload Document",
       "cancel": "Cancel",
-      "processing": "Processing..."
+      "processing": "Processing...",
+      "backToProposals": "Back to proposals",
+      "openCalculator": "Open calculator",
+      "viewDetails": "View details",
+      "confirmQuote": "Confirm quotation"
+    },
+    "header": {
+      "eyebrow": "SolarDream Project Hub",
+      "title": "My proposals and installation progress",
+      "buildSystem": "Build new system",
+      "startWizard": "Start solar wizard"
+    },
+    "labels": {
+      "serviceProposal": "Service proposal",
+      "installationProposal": "Installation proposal",
+      "service": "Service",
+      "solar": "Solar",
+      "system": "{size} kWp system",
+      "totalInvestment": "Total investment",
+      "pricePending": "Price pending",
+      "securePortal": "Secure SolarDream customer portal"
+    },
+    "common": {
+      "updating": "Updating details…"
+    },
+    "documentReview": {
+      "title": "Review documents and confirm",
+      "description": "Review the documents carefully before confirming the next step.",
+      "simulateComplete": "Simulate signing complete"
     },
     "cancel": {
       "submittedTitle": "Cancellation request submitted",
@@ -1486,7 +1693,126 @@
     "status": "Payment Status",
     "statusPaid": "Paid (Pending Verification)",
     "description": "Our accounting department is currently verifying your payment slip. This typically takes 1-2 hours during business hours. The project status will update automatically once verified.",
-    "buttonHome": "Back to Proposals"
+    "buttonHome": "Back to Proposals",
+    "fullyPaidTitle": "All payments completed",
+    "fullyPaidSubtitle": "Every milestone payment has been received. Thank you for booking with us.",
+    "summaryTitle": "Payment summary",
+    "latestMilestone": "Latest paid milestone",
+    "totalOrder": "Order total",
+    "fullyPaidDescription": "All payments have been checked and verified. Your project is active and has been dispatched to our engineering team for installation.",
+    "amountPending": "Payment amount pending",
+    "paymentComplete": "Payment complete"
+  },
+  "OrderPayment": {
+    "back": "Back to proposals",
+    "loadingTitle": "Preparing secure payment",
+    "loadingDescription": "Loading your order and secure payment verification details.",
+    "loadingSoliaAlt": "Solia preparing secure payment",
+    "processingSignature": "Processing document data and signing the contract…",
+    "updatingLedger": "Updating payment ledger…",
+    "validatingSlip": "Validating the slip with the bank…",
+    "safeProcessing": "Please do not close or refresh this screen. Your transaction is being processed securely.",
+    "successTitle": "Payment successful",
+    "successDescription": "Opening your Project Hub now.",
+    "headings": {
+      "custom": "Custom payment request",
+      "direct": "Direct checkout",
+      "survey": "Site survey status",
+      "contract": "Contract approval",
+      "milestones": "Milestone payments"
+    },
+    "descriptions": {
+      "custom": "Please complete the custom payment request generated by the project administrator.",
+      "direct": "Please complete the payment within the time window to secure inventory stock.",
+      "survey": "We are preparing engineer scheduling for your home solar project.",
+      "contract": "Verify the materials configuration, pin the installation point, and sign the proposal contract.",
+      "milestones": "Complete split payments sequentially to advance project milestones."
+    },
+    "secureTransaction": "Secure transaction",
+    "stockHoldRelease": "If the timer expires, the stock hold will be released automatically.",
+    "amountPending": "Payment amount pending",
+    "locked": "Locked"
+  },
+  "PaymentInvoice": {
+    "amountPending": "Payment amount pending"
+  },
+  "PaymentReceipt": {
+    "amountPending": "Payment amount pending"
+  },
+  "ProposalTracking": {
+    "back": "Back to proposals",
+    "badge": "Site survey progress",
+    "title": "Quotation #{id}",
+    "description": "Review site photos and structural assessment notes from our engineering team.",
+    "soliaAlt": "Solia explaining your site survey progress",
+    "stagesTitle": "Survey pipeline stages",
+    "steps": {
+      "scheduled": {
+        "title": "Survey scheduled",
+        "description": "Site assessment date and time scheduled."
+      },
+      "field": {
+        "title": "Field assessment",
+        "description": "Our engineering crew reviews structural and wiring compatibility."
+      },
+      "evidence": {
+        "title": "Evidence upload",
+        "description": "The field team uploads survey evidence to the project log."
+      },
+      "quotation": {
+        "title": "Quotation generation",
+        "description": "Finalize the customized proposal quotation for signing."
+      }
+    },
+    "surveyCard": {
+      "title": "Scheduled survey date",
+      "dateLabel": "Survey date",
+      "pending": "Scheduling survey",
+      "time": "Estimated time: 9:00 AM – 4:00 PM"
+    },
+    "notesCard": {
+      "title": "Engineer survey notes",
+      "findings": "Structural findings",
+      "empty": "No notes uploaded yet.",
+      "certified": "Safety and structural review by the field engineering team"
+    },
+    "photosTitle": "Site assessment photo evidence"
+  },
+  "PublicTracking": {
+    "backToHome": "Back to home",
+    "trackingKicker": "Request progress tracking",
+    "title": "{type} #{id}",
+    "type": {
+      "serviceOrder": "Service order",
+      "quotation": "Quotation",
+      "consultationLead": "Consultation request"
+    },
+    "privacyDescription": "Review progress linked to this tracking reference without exposing personal or financial details.",
+    "milestonesTitle": "Project milestones",
+    "progressLabel": "Project progress",
+    "percent": "{percent}%",
+    "status": {
+      "completed": "Completed",
+      "active": "In progress",
+      "upcoming": "Pending"
+    },
+    "steps": {
+      "requirementCaptured": "Requirement captured",
+      "serviceApproval": "Pending approval",
+      "serviceReview": "Customer review",
+      "serviceApproved": "Project approved",
+      "engineeringReview": "Engineering review",
+      "quotationIssuance": "Quotation issuance",
+      "projectExecution": "Project execution"
+    },
+    "soliaLabel": "Solia's checkpoint",
+    "soliaMessage": "I’ll keep the next step clear while your project moves forward.",
+    "portal": {
+      "secureLabel": "Secure customer access",
+      "title": "Open the full portal",
+      "description": "System details, documents, and pricing stay hidden here. Enter the registered email to receive a secure access link."
+    },
+    "soliaAlt": "Solia explaining your project tracking steps"
   },
   "Contact": {
     "title": "Contact Us",
@@ -1519,7 +1845,8 @@
     },
     "empty": {
       "title": "Your cart is empty",
-      "description": "Browse the catalog to add products to your cart."
+      "description": "Browse the catalog to add products to your cart.",
+      "browseCatalog": "Browse component catalog"
     },
     "unavailable": {
       "title": "Some saved products are no longer available",
@@ -1533,6 +1860,7 @@
       "deleted": "Deleted",
       "setIncludes": "Set Includes:",
       "removeUnavailableHint": "Remove this item to keep your quote accurate.",
+      "removedToast": "Removed {name} from your cart",
       "decreaseQuantityAriaLabel": "Decrease quantity",
       "increaseQuantityAriaLabel": "Increase quantity",
       "removeAriaLabel": "Remove item"
@@ -1540,7 +1868,18 @@
     "footer": {
       "total": "Total Price",
       "estimated": "Estimated quotation sum",
-      "requestQuote": "Request Quote PDF"
+      "requestQuote": "Request Quote PDF",
+      "backToCatalog": "Back to catalog",
+      "orderSummary": "Order summary",
+      "subtotal": "Subtotal",
+      "estimatedDelivery": "Estimated delivery",
+      "free": "Free",
+      "vatIncluded": "VAT (7% included)",
+      "quoteDescription": "We will prepare your tailored solar engineering blueprint as a PDF. No immediate commitment required.",
+      "qualityVerified": "Quality verified",
+      "qualityVerifiedDescription": "Tier-1 solar components guaranteed",
+      "fastTurnaround": "Fast turnaround",
+      "fastTurnaroundDescription": "Preliminary quote PDF in 24 hours"
     }
   },
   "DigitalSignaturePad": {
@@ -1837,8 +2176,13 @@
       "panelCount": "Panel Count",
       "panelCountValue": "{count, plural, =1 {# panel} other {# panels}}",
       "monthlySavings": "Monthly Savings",
+      "monthlySavingsPending": "Awaiting usage data",
       "paybackPeriod": "Payback Period",
-      "totalInvestment": "Total Investment"
+      "paybackPending": "Awaiting system data",
+      "totalInvestment": "Total Investment",
+      "pricePending": "Price pending",
+      "systemSizePending": "Awaiting system data",
+      "panelCountPending": "Awaiting system data"
     },
     "actions": {
       "downloadSigned": "Download Signed Document",
@@ -1955,13 +2299,19 @@
       "battery": "Battery shaved: Electricity discharged from the battery to reduce nighttime or low-sun load.",
       "grid": "Grid pull: Accumulated energy still required from the utility grid when solar is insufficient."
     },
-    "series": {
+  "series": {
       "load": "Home / Business Load",
       "solarGeneration": "Solar Generation",
       "batterySoc": "Battery Charge Level (SOC)",
-      "gridConsumption": "Grid Consumption"
-    },
-    "insights": {
+    "gridConsumption": "Grid Consumption"
+  },
+  "dataTable": {
+    "toggle": "View data as a table",
+    "description": "Open the table to read the {timeframe} simulation directly with a keyboard or screen reader.",
+    "caption": "{timeframe} energy simulation data",
+    "period": "Period"
+  },
+  "insights": {
       "dailyWithBatteryTitle": "Daily battery analysis:",
       "dailyWithBatteryBody": "A {capacity} kWh battery stores surplus solar energy from 10:00 to 15:00 and offsets evening household load, reducing grid usage efficiently.",
       "dailyNoBatteryTitle": "Daily recommendation:",
@@ -2109,8 +2459,19 @@
       "title": "Shopping order summary",
       "description": "Selected components inside your shopping cart",
       "cartItems": "Cart Items",
+      "blueprintTitle": "Your Custom Solar Blueprint",
+      "blueprintDescription": "A clear summary of the components selected for your official quotation.",
+      "emptyItems": "No items selected. Return to the catalog to choose components.",
       "grandTotal": "Grand Total",
       "taxIncluded": "Includes system service fees and tax"
+    },
+    "navigation": {
+      "backToCart": "Back to cart"
+    },
+    "solia": {
+      "summaryAlt": "Solia helping prepare your SolarDream quotation",
+      "summaryMessage": "I’ll keep the important details clear so the team can plan the right system for your home.",
+      "calculatingMessage": "Solia is calculating the roof geometry that fits your home… Please wait."
     },
     "evaluationSuccess": {
       "title": "Quotation request saved",
@@ -2120,7 +2481,7 @@
     },
     "success": {
       "title": "Request submitted",
-      "description": "Your information has been saved and the quotation PDF has been prepared in a new browser window."
+      "description": "Your information has been saved and the quotation PDF is ready. Opening your customer portal now."
     },
     "form": {
       "badge": "Instant Proposal PDF",
@@ -2132,6 +2493,9 @@
       "taxIdOptional": "(optional, for juristic persons)",
       "emailLabel": "Email",
       "phoneLabel": "Phone",
+      "contactSection": "Contact information",
+      "locationSection": "Project location",
+      "timelineSection": "Installation timeline",
       "pdpaConsent": "I consent to the processing of personal data for quotation preparation and follow-up contact under the company privacy policy.",
       "signatureLabel": "Signature (for digital signing)"
     },
@@ -2141,14 +2505,18 @@
       "purchaseInstallation": "Purchase products + installation service",
       "purchaseInstallationHint": "Purchase & Installation",
       "purchaseOnly": "Purchase products only",
-      "purchaseOnlyHint": "Purchase Only"
+      "purchaseOnlyHint": "Purchase Only",
+      "mapTitle": "Mark roof coordinates",
+      "signatureTitle": "Electronic signature"
     },
     "actions": {
       "done": "Done",
       "processing": "Processing...",
       "submitEvaluation": "Submit Evaluation Request",
       "signSubmit": "Sign & Submit",
-      "downloadSignLater": "Download & Sign Later"
+      "downloadSignLater": "Download & Sign Later",
+      "generateQuote": "Generate official quote",
+      "submissionNote": "By submitting this request, your specifications will be stored in our proposal registry."
     }
   },
   "LeadCaptureModal": {
@@ -2411,6 +2779,165 @@
     "knowledgeBase": {
       "title": "User Manuals & KB",
       "description": "Read documentation and energy saving guides."
+    }
+  },
+  "CustomerPortal": {
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "active": "Active",
+      "scheduled": "Scheduled",
+      "installed": "Installed",
+      "expired": "Expired",
+      "cancelled": "Cancelled",
+      "inProgress": "In progress",
+      "requested": "Requested"
+    },
+    "common": {
+      "datePending": "Pending",
+      "notScheduled": "Not scheduled",
+      "pendingActivation": "Pending activation",
+      "sitePending": "Site details pending",
+      "warrantyUntil": "Warranty until {date}"
+    },
+    "shell": {
+      "brand": "SolarDream customer care",
+      "navLabel": "Customer portal",
+      "projects": "Projects",
+      "warranties": "Warranties",
+      "help": "Get help",
+      "disabledTitle": "Your operations portal is being prepared",
+      "disabledDescription": "Your existing SolarDream portal remains available. This workspace will appear here when the new delivery and after-sales experience is enabled for your account.",
+      "disabledAlt": "Solia guiding you to the current SolarDream warranty portal",
+      "disabledAction": "Open current warranty portal"
+    },
+    "service": {
+      "title": "Service and support",
+      "description": "Tell us what happened. We’ll keep the case, warranty context, and field follow-up together.",
+      "projects": "Project",
+      "generalSupport": "General support",
+      "equipment": "Equipment",
+      "unspecified": "Not specified",
+      "requestType": "Request type",
+      "repair": "Repair",
+      "claim": "Warranty claim",
+      "maintenance": "Maintenance",
+      "question": "Question",
+      "priority": "Priority",
+      "normal": "Normal",
+      "low": "Low",
+      "high": "High",
+      "urgent": "Urgent",
+      "subject": "Subject",
+      "descriptionLabel": "What do you need help with?",
+      "submit": "Submit service case",
+      "submitting": "Submitting…",
+      "openCase": "Open a service case",
+      "formHint": "Include the symptoms, timing, and anything that may help the team prepare.",
+      "cases": "Your cases",
+      "refresh": "Refresh service cases",
+      "noCases": "No service cases yet. If something needs attention, open a case and we’ll take it from there.",
+      "disabledTitle": "After-sales support is being prepared",
+      "disabledDescription": "Service cases and field follow-up will appear here once the after-sales workspace is enabled. Your current support channels remain available in the meantime.",
+      "disabledAlt": "Solia is preparing the after-sales support space",
+      "openWarranty": "Open current warranty portal",
+      "backProjects": "Projects",
+      "submitted": "Your request was submitted. Our service team will follow up through this portal.",
+      "prioritySuffix": "priority",
+      "loadingTitle": "Loading your service workspace",
+      "loadingDescription": "Solia is gathering your projects, equipment, and latest cases.",
+      "loadingAlt": "Solia is loading your service information",
+      "emptyTitle": "No open cases",
+      "emptyAlt": "Solia is ready when you need help with a service case",
+      "tryAgain": "Try again",
+      "errors": {
+        "projects": "Projects could not be loaded.",
+        "assets": "Assets could not be loaded.",
+        "cases": "Service cases could not be loaded.",
+        "load": "Support data could not be loaded.",
+        "submit": "Your service case could not be submitted."
+      },
+      "status": {
+        "OPEN": "Open",
+        "PENDING": "Pending",
+        "IN_PROGRESS": "In progress",
+        "RESOLVED": "Resolved",
+        "CLOSED": "Closed"
+      },
+      "priorityValues": {
+        "NORMAL": "Normal",
+        "LOW": "Low",
+        "HIGH": "High",
+        "URGENT": "Urgent"
+      }
+    },
+    "projects": {
+      "title": "Your solar projects",
+      "description": "Follow every delivery milestone from site review through commissioning, handover, and warranty activation.",
+      "loadingTitle": "Loading your solar projects",
+      "loadingDescription": "Solia is gathering the latest delivery milestones and site details.",
+      "loadingAlt": "Solia loading your SolarDream project milestones",
+      "errorTitle": "Projects could not be loaded",
+      "errorAlt": "Solia helping recover your SolarDream project list",
+      "emptyTitle": "No delivery projects yet",
+      "emptyDescription": "Once a proposal is fully paid and converted, its installation project will appear here.",
+      "emptyAlt": "Solia waiting to guide you to your first SolarDream project",
+      "startPlan": "Start a solar plan",
+      "systemTitle": "{size} kW solar system",
+      "updated": "{panels} panels · Updated {date}",
+      "nextVisitPending": "No field visit scheduled",
+      "warrantyStatus": "Installation warranty: {status}",
+      "viewStatus": "View project status",
+      "tryAgain": "Try again"
+    },
+    "detail": {
+      "title": "Project status",
+      "description": "A clear, customer-safe view of the delivery record and the next action.",
+      "backToProjects": "All projects",
+      "requestSupport": "Request support",
+      "systemTitle": "{size} kW solar system",
+      "system": "{size} kW · {panels} panels",
+      "lastUpdated": "Last updated",
+      "deliveryTimeline": "Delivery timeline",
+      "noTasks": "No delivery steps have been recorded yet.",
+      "checksComplete": "{completed}/{total} checks complete",
+      "fieldVisits": "Field visits",
+      "noFieldVisit": "No field visit has been scheduled yet.",
+      "warranty": "Warranty",
+      "warrantyPending": "Installation warranty details will appear after handover.",
+      "viewAllWarranties": "View all warranties",
+      "equipmentSupport": "Equipment and support",
+      "openCase": "Open a case",
+      "warrantyUntil": "Warranty until {date}",
+      "recentCases": "Recent cases",
+      "tryAgain": "Try again",
+      "loadingTitle": "Loading your project status",
+      "loadingDescription": "Solia is gathering the latest delivery milestones, visits, and coverage details.",
+      "loadingAlt": "Solia loading your SolarDream project status",
+      "errorTitle": "Project status could not be loaded",
+      "errorAlt": "Solia helping recover your SolarDream project status",
+      "emptyTitle": "Project details are not available yet",
+      "emptyDescription": "We will show the project dossier here once the delivery record is ready.",
+      "emptyAlt": "Solia waiting for your SolarDream project details"
+    },
+    "warranties": {
+      "title": "Warranty centre",
+      "description": "Keep installation coverage and equipment warranty records in one clear place.",
+      "loadingTitle": "Loading your warranty records",
+      "loadingDescription": "Solia is checking installation coverage and registered equipment.",
+      "loadingAlt": "Solia loading your SolarDream warranty records",
+      "errorTitle": "Warranty records could not be loaded",
+      "errorAlt": "Solia helping recover your SolarDream warranty records",
+      "emptyTitle": "No warranty records yet",
+      "emptyDescription": "Coverage details will appear here after your SolarDream installation or equipment is registered.",
+      "emptyAlt": "Solia waiting for your SolarDream warranty records",
+      "installationCoverage": "Installation coverage",
+      "noInstallation": "No installation warranty record is available yet.",
+      "equipmentCoverage": "Equipment coverage",
+      "noEquipment": "Registered equipment warranties will appear after commissioning.",
+      "askWarranty": "Ask about a warranty",
+      "backToProjects": "Projects",
+      "tryAgain": "Try again"
     }
   },
   "AgencyNavbar": {
@@ -2726,6 +3253,32 @@
     "lastUpdated": "Last updated: {date}",
     "defaultContent": "<h2>Terms of Service</h2><p>Last updated: July 18, 2026</p><p>By accessing and using the SolarDream platform (\"we\", \"us\", \"our\", the \"Platform\"), you (\"User\") acknowledge that you have read, understood, and agree to be bound by these Terms of Service in their entirety.</p><h3>1. Description of Service</h3><p>SolarDream is a software platform for residential solar system estimation and planning. Our services include solar potential estimation, system sizing calculations, digital quotation generation, and project progress tracking.</p><h3>2. User Accounts</h3><ul><li>Users can create an account through third-party authentication providers (Google or LINE).</li><li>Users are responsible for maintaining the security of their own accounts. If you detect any unauthorized activity, please notify us immediately.</li><li>We reserve the right to suspend or terminate user accounts if we find violations of these terms or misuse of the platform in an illegal manner.</li></ul><h3>3. Disclaimer of Estimates</h3><ul><li><strong>Estimated Information:</strong> Sunlight calculations (Dynamic Weather), monthly electricity bill savings, and payback period are strictly \"statistical and software estimates\" only.</li><li><strong>Final Design and Actual Pricing:</strong> Must be evaluated and verified by qualified engineers through an actual site survey. The platform is not responsible for any financial discrepancy resulting from uncontrollable external factors.</li></ul><h3>4. Intellectual Property</h3><ul><li>Software code, User Interface (UI) design, graphics, mascot (Solia), and all contents on the SolarDream platform are our intellectual property and protected by copyright laws.</li><li>No part of the platform may be copied, modified, or commercially distributed without our express written permission.</li></ul><h3>5. Compliance with Privacy Law</h3><p>The usage of this platform is subject to our Privacy Policy, which details how we handle and protect your personal data.</p><h3>6. Updates to Terms</h3><p>We may update or modify these Terms of Service from time to time. We will notify you of any significant changes via email or platform notifications. Your continued use of the platform after updates indicates your acceptance of the revised terms.</p>"
   },
+  "RefundPolicy": {
+    "badge": "Warranty & return",
+    "title": "Refund & Warranty Policy",
+    "lastUpdated": "Last updated: {date}",
+    "defaultDate": "July 18, 2026",
+    "defaultContent": "<h2>Refund & Warranty Policy</h2><p>Solar Dream Co., Ltd. is committed to providing top-quality solar PV system installations and equipment. This policy details our cancellation, refund, and equipment warranty terms.</p><h3>1. Contract Cancellation & Refunds</h3><ul><li><strong>Pre-installation:</strong> Cancellations made at least 7 business days prior to scheduled installation will receive a full refund of the deposit, minus actual government permitting fees and handling costs already incurred.</li><li><strong>Post-commencement:</strong> Once equipment has been shipped or installation work has commenced, cancellations are no longer eligible for a refund on completed stages.</li><li><strong>Refund Processing:</strong> Refunds are processed via bank transfer within 15–30 business days following cancellation approval.</li></ul><h3>2. System Equipment Warranties</h3><p>All core equipment is covered under official manufacturer warranties:</p><ul><li><strong>Solar Panels:</strong> 25-year linear power output warranty, and 12–15 year product warranty depending on the chosen tier.</li><li><strong>Inverters:</strong> 5–10 year product warranty, extendable up to 20 years.</li><li><strong>Workmanship Warranty:</strong> We provide a 2-year warranty on roof waterproofing and installation quality from the date of final system handover.</li></ul><h3>3. Warranty Exclusions</h3><p>Warranties do not cover damages caused by:</p><ul><li>Modifications, repairs, or maintenance carried out by unauthorized personnel.</li><li>Accidents, force majeure such as lightning strikes, storm damage, or hail, and pests.</li><li>Improper usage or negligence contrary to standard operations manual guidelines.</li></ul><p>To initiate a warranty claim or service request, please submit a ticket in the Support center or reach out to our service hotline.</p>"
+  },
+  "WarrantyRegistration": {
+    "eyebrow": "SolarDream Care",
+    "backToProject": "Back to project",
+    "title": "Register your warranty",
+    "description": "Keep your completed solar project details with SolarDream for warranty and after-installation support.",
+    "handoverTitle": "Available after project handover",
+    "handoverDescription": "Your registration will open as soon as the Field Project is marked finished.",
+    "savedMessage": "Your warranty registration is saved. You can update these details if anything changes.",
+    "fullName": "Full name",
+    "phone": "Phone number",
+    "installationAddress": "Installation address",
+    "serialNumber": "System serial number",
+    "notes": "Notes for the service team",
+    "optional": "optional",
+    "saving": "Saving…",
+    "updateRegistration": "Update registration",
+    "registerWarranty": "Register warranty",
+    "saveError": "Registration could not be saved."
+  },
   "BlogPage": {
     "title": "Insights | SolarDream",
     "metaDesc": "SolarDream notes on residential solar sizing, savings, installation, and support.",
@@ -2751,7 +3304,52 @@
         "title": "Why live weather makes solar planning easier to understand",
         "category": "Weather signal",
         "excerpt": "A sunlight signal translates abstract kW capacity into current production, daily forecast, and monthly savings."
+      },
+      "homepage-feel-expensive-detail": {
+        "lead": "A first estimate is most useful when it makes the next conversation clearer, not when it pretends to be a final design.",
+        "bodyTitle": "Begin with the inputs you already know",
+        "bodyOne": "Start with a recent electricity bill and the patterns you notice at home. The bill gives the planning conversation a real starting point while the advisor checks the assumptions later.",
+        "bodyTwo": "Then look at the roof as a place with constraints: usable area, shade, access, and the way the home is occupied. These details help separate a promising direction from a system that needs a closer site review.",
+        "bodyThree": "Use the guided planner to compare a few directions, save the context, and keep questions ready for the follow-up. The result is a decision aid—actual design and pricing still depend on engineering review."
+      },
+      "brand-system-vs-assets-detail": {
+        "lead": "A good handoff keeps the customer’s context attached from the first choice to the advisor follow-up.",
+        "bodyTitle": "What a connected handoff should preserve",
+        "bodyOne": "The wizard captures the choices that shape the conversation: usage, roof context, preferred system direction, and contact details. Clear labels make it easier to review what was actually submitted.",
+        "bodyTwo": "After submission, that context can support the follow-up workflow, quotation preparation, document signing, and project support. Each stage should add clarity without asking the homeowner to repeat the same story.",
+        "bodyThree": "The practical check is simple: a customer should be able to see what happens next, who owns the next action, and where the latest status will appear. That is the difference between a form and a useful service journey."
+      },
+      "pre-launch-checks-detail": {
+        "lead": "Installation day feels calmer when the physical work, documents, and customer expectations have one shared checklist.",
+        "bodyTitle": "Make the handoff visible before the crew arrives",
+        "bodyOne": "Confirm the selected equipment and the intended system direction against the latest quotation. If something changed during review, surface it before the installation window rather than leaving it to the roof.",
+        "bodyTwo": "Roof access, shade, mounting conditions, electrical context, and safe working space are practical details that deserve a real site conversation. A digital plan can organize these questions; it cannot replace the survey.",
+        "bodyThree": "Close the loop with payment documents, warranty expectations, contact points, and the next update. Customers do not need more status language—they need to know what is ready, what is pending, and what they can do."
+      },
+      "motion-that-clarifies-detail": {
+        "lead": "Weather motion is useful when it translates an abstract solar estimate into a signal people can understand at a glance.",
+        "bodyTitle": "Let the signal explain the decision",
+        "bodyOne": "A live sunlight state gives the plan a sense of place and time. It helps homeowners connect a system size to the conditions around their home instead of reading a number in isolation.",
+        "bodyTwo": "The visual should always be paired with plain-language context: what the signal represents, which inputs can change it, and why it remains an estimate. Movement earns its place when it reduces interpretation effort.",
+        "bodyThree": "Keep the authority hierarchy clear: weather is a helpful planning signal, real installation evidence grounds expectations, and engineering review confirms what can actually be built."
       }
+    },
+    "detail": {
+      "back": "Back to solar insights",
+      "guide": "Solia’s field note",
+      "guideBody": "Keep one clear question in view, then let the next step answer it with real context.",
+      "guideAlt": "Solia pointing to a solar planning note",
+      "evidenceTitle": "Keep the next conversation grounded",
+      "evidenceBody": "Bring the details that make an estimate useful. The planner organizes them; an advisor and site review confirm what comes next.",
+      "evidenceItems": {
+        "bill": "A recent electricity bill or usage pattern",
+        "roof": "Roof shape, shade, access, and space notes",
+        "questions": "The decisions you want an advisor to explain"
+      },
+      "ctaTitle": "Ready to turn the note into a plan?",
+      "ctaBody": "Start with the guided flow, review your choices, and carry the context into the next step.",
+      "cta": "Open the solar planner",
+      "related": "Continue the journey"
     }
   },
   "WorksPage": {
@@ -2791,6 +3389,98 @@
           "Portal",
           "Magic link"
         ]
+      }
+    }
+  },
+  "VerifyDocument": {
+    "eyebrow": "Document check",
+    "title": "Verify a signed document",
+    "description": "Confirm whether a cryptographic PDF signature still protects the document’s contents.",
+    "dropzone": "Drop a signed PDF here, or choose a file",
+    "dropzoneAria": "Choose a signed PDF to verify",
+    "limits": "PDF only · up to 10 MB · examined in memory and never saved",
+    "verify": "Verify document",
+    "checking": "Checking document…",
+    "checkAnother": "Check another PDF",
+    "integrityIntact": "Document integrity intact",
+    "integrityUnconfirmed": "Document integrity could not be confirmed",
+    "integrityPassedDescription": "The content covered by the document signature has not changed.",
+    "integrityFailedDescription": "The file is unsigned, malformed, or changed after signing.",
+    "integrity": "Integrity",
+    "certificateTrust": "Certificate trust",
+    "overall": "Overall verification",
+    "passed": "Passed",
+    "failed": "Failed",
+    "untrusted": "Self-signed or untrusted",
+    "signatureCount": "{count} signature(s) found",
+    "expired": " At least one certificate is expired."
+  },
+  "GuestWarranty": {
+    "memberSignIn": "Member sign in",
+    "eyebrow": "Guest warranty access",
+    "title": "Your system, clearly covered.",
+    "description": "Use the email address or phone number registered with SolarDream. We will verify it before showing project, equipment, and installation warranty details.",
+    "oneTimeCode": "One-time verification code",
+    "scopedAccess": "Scoped, expiring access link",
+    "disabledTitle": "Guest access is being prepared",
+    "disabledDescription": "Your existing member warranty portal remains available while this protected guest experience is rolled out.",
+    "openCurrentPortal": "Open current portal",
+    "findTitle": "Find your warranty",
+    "findDescription": "We never reveal whether a contact is registered. Check your inbox after submitting.",
+    "contactLabel": "Email or phone",
+    "contactPlaceholder": "you@example.com or 08x xxx xxxx",
+    "sending": "Sending…",
+    "sendCode": "Send verification code",
+    "codeLabel": "Six-digit code",
+    "openPortal": "Open warranty portal",
+    "accessNote": "Access links expire automatically and can be revoked by SolarDream. Do not share your link.",
+    "genericMessage": "If the details match a SolarDream warranty record, a verification code will be sent to the registered contact.",
+    "requestUnavailable": "Warranty access is temporarily unavailable.",
+    "invalidCode": "The verification code is invalid or expired.",
+    "soliaAlt": "Solia guiding you through secure warranty access",
+    "soliaMessage": "I’ll keep the verification steps clear and your warranty details protected.",
+    "access": {
+      "headerLabel": "SolarDream warranty",
+      "secureView": "Secure guest view",
+      "disabledTitle": "Secure warranty access is being prepared",
+      "disabledDescription": "Your member portal remains available while this protected guest experience is prepared. Start from the warranty page to find the current access path.",
+      "disabledAction": "Open warranty access",
+      "disabledSoliaAlt": "Solia helping prepare secure warranty access",
+      "disabledSoliaMessage": "The secure link portal is being prepared for you.",
+      "loadingLabel": "Loading your secure warranty portal",
+      "loadingSoliaAlt": "Solia loading your secure warranty portal",
+      "loadingSoliaMessage": "I’m checking your secure access and will bring the latest coverage details into view.",
+      "invalidLink": "This warranty access link is invalid or expired.",
+      "errorTitle": "This link is no longer available",
+      "retry": "Try again",
+      "requestNew": "Request a new link",
+      "portalLabel": "Warranty portal",
+      "systemsTitle": "Your SolarDream systems",
+      "expires": "This secure link expires {date}.",
+      "soliaAlt": "Solia guiding you through your SolarDream warranty details",
+      "soliaMessage": "Your installation and equipment coverage stay together here.",
+      "emptyProjects": "No project warranty record is available for these details yet.",
+      "systemSize": "{size} kWp · {panels} panels",
+      "nextVisit": "{status} · {date}",
+      "installationCoverage": "Installation coverage",
+      "installedEquipment": "Installed equipment",
+      "emptyAssets": "No installed asset record is available yet.",
+      "coveredUntil": "{status} · covered until {date}",
+      "equipmentWarranties": "Equipment warranties",
+      "emptyWarranties": "Product warranty records are still being matched.",
+      "warrantyUntil": "{status} until {date}",
+      "serviceHelp": "Need service help?",
+      "pendingDate": "Pending",
+      "status": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "active": "Active",
+        "scheduled": "Scheduled",
+        "installed": "Installed",
+        "expired": "Expired",
+        "cancelled": "Cancelled",
+        "inProgress": "In progress",
+        "requested": "Requested"
       }
     }
   },
@@ -2880,6 +3570,8 @@
     "detailsLabel": "Service order details",
     "appointment": "Appointment",
     "price": "Confirmed price",
+    "pricePending": "Price pending confirmation",
+    "included": "Included",
     "system": "Solar system",
     "systemFallback": "System details recorded",
     "contact": "Contact",
@@ -2931,11 +3623,14 @@
     },
     "portal": {
       "loading": "Opening your private service portal…",
+      "loadingAlt": "Solia is opening your private service portal",
       "error": "Service status is temporarily unavailable.",
+      "errorAlt": "Solia helping recover your service details",
       "errorTitle": "We could not load this service",
       "retry": "Try again",
       "expiredTitle": "This secure link is invalid or expired",
       "expiredDescription": "Request a fresh link using your service reference and booking email.",
+      "expiredAlt": "Solia helping you recover a fresh service tracking link",
       "recover": "Recover secure link",
       "eyebrow": "Private service portal",
       "copy": "Copy secure link",
@@ -3103,6 +3798,7 @@
     "readyForReview": "Ready for engineering review",
     "back": "Back",
     "contactDetails": "Contact Details",
+    "optional": "Optional",
     "stepLabel": "Step {step}",
     "estimatedBudget": "Estimated Budget",
     "capacity": {
@@ -3153,6 +3849,10 @@
         "title": "Hybrid Inverter",
         "helper": "Battery storage ready, power outage backup"
       }
+    },
+    "dependencies": {
+      "batteryOnGrid": "Choose Hybrid Inverter if you want backup power at night",
+      "batteryHybrid": "Ready for backup power and evening energy use"
     },
     "addons": {
       "rapidshutdown": {
@@ -3210,6 +3910,7 @@
     "description": "Revisit and manage your saved solar system configurations.",
     "untitled": "Build #{id}",
     "total": "Total",
+    "pricePending": "Price pending",
     "viewDetails": "View details"
   },
   "PublicMagicLink": {
@@ -3225,7 +3926,24 @@
     "unavailable": "Portal access unavailable",
     "openWithAccount": "Open with my account",
     "opening": "Opening your secure proposal",
-    "openingDescription": "Verifying access and preparing the latest information."
+    "openingDescription": "Verifying access and preparing the latest information.",
+    "expiredLink": "This secure portal link has expired.",
+    "trackAccessTitle": "Access with your tracking number",
+    "trackAccessDescription": "Enter the tracking number or reference from your quotation to open the proposal portal.",
+    "trackNumberLabel": "Tracking number / access key",
+    "trackNumberPlaceholder": "e.g. TRK-10023 or SD-QT-XXXXXX",
+    "invalidTrackNumber": "Invalid tracking number or access key.",
+    "accessDenied": "Access denied. Check your tracking number and try again.",
+    "verifyAccess": "Verifying…",
+    "accessPortal": "Open customer portal",
+    "replacementDescription": "Request a new secure link using the tracking number and email for this quotation.",
+    "requestTrackNumber": "Tracking number",
+    "emailLabel": "Email address",
+    "securityCheckRequired": "Complete the security check before requesting access.",
+    "replacementRequestFailed": "Unable to request a replacement link. Please try again.",
+    "replacementSent": "If the details match our records, a replacement secure link has been sent to your email.",
+    "requestingLink": "Requesting link…",
+    "requestNewLink": "Request new access link"
   },
   "ProductCTA": {
     "added": "Added {productName} to your quote cart",
@@ -4301,6 +5019,10 @@
     "phone": "Phone number",
     "emailReadonly": "Email address (read-only)",
     "emailLanguage": "Email language preference",
+    "languageThai": "Thai",
+    "languageEnglish": "English",
+    "lineUserId": "LINE user ID",
+    "linkedTo": "Linked to: {name} ({id})",
     "saveChanges": "Save changes",
     "accountLinks": {
       "title": "Account links",
@@ -4309,6 +5031,7 @@
       "linked": "Linked",
       "notLinked": "Not linked",
       "disconnect": "Disconnect",
+      "confirmDisconnect": "Confirm disconnect",
       "disconnecting": "Disconnecting…",
       "disconnected": "Sign-in method disconnected.",
       "keepOne": "Keep at least one sign-in method connected to your account.",
@@ -4318,6 +5041,24 @@
       "title": "LINE connection",
       "description": "Connect LINE to receive service notifications, view active quotes, and track installation progress."
     },
+    "lineLinking": {
+      "authorizeTitle": "Authorize account linking",
+      "authorizeDescription": "We detected a linking request from your LINE app. Bind this web profile to your LINE account now.",
+      "linkAccountNow": "Link account now",
+      "notLinkedDescription": "Connect your LINE account to check order status, view quotations, and follow installation progress on the go.",
+      "hideInstructions": "Hide instructions",
+      "linkLineAccount": "Link LINE account",
+      "instructionsTitle": "How to link your LINE account",
+      "stepOneTitle": "Add SolarDream on LINE",
+      "stepOneDescription": "Scan the QR code or open LINE to add SolarDream’s official account.",
+      "qrAlt": "QR code for SolarDream’s LINE account",
+      "openLineApp": "Open LINE app",
+      "qrUnavailable": "An admin connection check is required before the official QR code can be shown.",
+      "stepTwoTitle": "Send “ผูกบัญชี”",
+      "stepTwoDescription": "In the chatbot, tap “ผูกบัญชีสมาชิก” (Link Account) or send “ผูกบัญชี”.",
+      "stepThreeTitle": "Complete authorization",
+      "stepThreeDescription": "Open the link sent by the bot, then confirm the verification request on this website."
+    },
     "feedback": {
       "lineDisconnected": "Successfully disconnected your LINE account!",
       "lineDisconnectFailed": "Failed to disconnect LINE account.",
@@ -4325,6 +5066,87 @@
       "lineLinkFailed": "Failed to initiate LINE account linking.",
       "profileUpdated": "Profile updated successfully!",
       "avatarUpdated": "Avatar updated successfully!"
+    }
+  },
+  "SolarProfileSummary": {
+    "profileTabsLabel": "Budget and outcome profile",
+    "profileEyebrow": "Budget and outcome profile",
+    "totalInvestment": "Estimated investment",
+    "stats": {
+      "treeEquivalent": "25-year tree equivalent",
+      "co2Avoided": "CO₂ avoided over 25 years",
+      "monthlySavings": "Expected monthly savings"
+    },
+    "units": {
+      "trees": "{count} trees",
+      "tons": "{count} tons"
+    },
+    "profiles": {
+      "value": {
+        "label": "Value",
+        "displayName": "Value Efficiency Plan",
+        "helper": "Lean solar solution for essential daytime savings",
+        "tag": "Essential",
+        "inverterTech": "Essential string conversion",
+        "technologyFocus": "A simplified on-grid architecture for practical savings with core safety protections.",
+        "panelSpec": "Standard high-efficiency solar module technology",
+        "warranty": "Standard warranty and workmanship coverage"
+      },
+      "balanced": {
+        "label": "Balanced",
+        "displayName": "Balanced Normal Budget Plan",
+        "helper": "Normal budget profile with dependable long-term operation",
+        "tag": "Popular",
+        "inverterTech": "Reliability-focused conversion platform",
+        "technologyFocus": "Focused on durability, broad market adoption, and industrial-grade operating standards.",
+        "panelSpec": "High-efficiency residential solar module technology",
+        "warranty": "Enhanced workmanship and equipment support coverage"
+      },
+      "premium": {
+        "label": "Premium",
+        "displayName": "Premium Smart Optimization Plan",
+        "helper": "Smart monitoring and optimization for stronger long-term yield",
+        "tag": "Smart",
+        "inverterTech": "Architectural-grade conversion with smart monitoring",
+        "technologyFocus": "Focused on IP68 outdoor readiness, premium aesthetics, and panel-level performance data.",
+        "panelSpec": "Premium high-efficiency solar module technology",
+        "warranty": "Premium warranty and monitoring support package"
+      }
+    },
+    "features": {
+      "inverter": {
+        "title": "Conversion technology",
+        "valueKeyword": "Essential",
+        "balancedKeyword": "Reliable",
+        "premiumKeyword": "IP68 smart"
+      },
+      "panels": {
+        "title": "Solar surface",
+        "standardKeyword": "High-yield",
+        "premiumKeyword": "Premium",
+        "description": "Configured around clean daytime production, roof fit, and long-term household savings."
+      },
+      "warranty": {
+        "title": "Care coverage",
+        "standardKeyword": "Protected",
+        "premiumKeyword": "Premium",
+        "description": "Support level matched to the solution tier, prepared for staff review before final quotation."
+      },
+      "yield": {
+        "title": "Energy yield",
+        "value": "Profile multiplier",
+        "description": "Simulator output adjusts with the selected solution tier."
+      },
+      "eco": {
+        "title": "Clean impact",
+        "keyword": "25 yr",
+        "value": "Long-term carbon reduction",
+        "description": "A lifestyle-first system profile built around cleaner home energy."
+      }
+    },
+    "change": {
+      "upgraded": "Upgraded feature",
+      "downgraded": "Downgraded feature"
     }
   },
   "ConfiguratorSidebar": {
@@ -4339,6 +5161,7 @@
     "configuration": "Configuration",
     "resetAll": "Reset all",
     "notSelected": "Not selected",
+    "notCalculated": "Select components to estimate",
     "totalEstimate": "Total estimate",
     "requestSurvey": "Request site survey and quote",
     "savedToBuilds": "Saved to builds",
@@ -4452,7 +5275,9 @@
     "quotation": "Quotation",
     "view": "View",
     "systemSize": "System size",
+    "systemSizePending": "Awaiting system data",
     "price": "Price",
+    "pricePending": "Price pending",
     "serviceOrdersTitle": "After-sales service orders",
     "serviceOrder": "Service order",
     "track": "Track",
@@ -4484,8 +5309,10 @@
     "progressUpdate": "Progress update #{count}",
     "systemSnapshot": "System specifications snapshot",
     "quotationValue": "Total quotation value",
+    "quotationPending": "Price pending confirmation",
     "quotationNote": "Includes structural warranties and hardware.",
     "componentsCount": "System components count",
+    "componentsPending": "Component list pending",
     "solarItems": "{count} solar items",
     "componentsNote": "Pre-configured clean-tech layout.",
     "steps": {
@@ -4580,6 +5407,7 @@
     "finalizingDescription": "Please wait while we synchronize your profile and register the account link.",
     "successTitle": "Connection successful!",
     "successDescription": "Your SolarDream profile is securely connected with LINE. You will receive notifications in LINE chat.",
+    "connectionConfirmed": "Connection confirmed",
     "failedTitle": "Connection failed",
     "retry": "Retry verification",
     "pendingTitle": "Verification pending",
@@ -4704,7 +5532,33 @@
     "paymentStep2Title": "Delivery & Mounting (60%)",
     "paymentStep2Desc": "Due upon equipment delivery to site and panel structure installation.",
     "paymentStep3Title": "Handover & Utility Permit (10%)",
-    "paymentStep3Desc": "Final balance upon commissioning, grid connection, and PEA/MEA permit filing."
+    "paymentStep3Desc": "Final balance upon commissioning, grid connection, and PEA/MEA permit filing.",
+    "tabs": {
+      "quotation": "1. Quotation & specs",
+      "payment": "2. Payment & receipts",
+      "progress": "3. Project progress"
+    },
+    "reference": "Reference: {value}",
+    "revision": {
+      "title": "Updated quotation · Version {version}",
+      "description": "SolarDream updated this quotation. Review the latest document below and sign again to approve the revised scope.",
+      "action": "Review & sign"
+    },
+    "progress": {
+      "eyebrow": "Live project view",
+      "title": "Installation progress",
+      "description": "Follow the verified field steps, project documents, and next handoff in one place.",
+      "soliaAlt": "Solia guiding the installation progress",
+      "soliaMessage": "I’ll keep the next project step clear while the installation team updates the record.",
+      "warranty": "Register warranty"
+    },
+    "utilityDocumentsDescription": "Documents for utility approval and grid connection",
+    "footer": {
+      "ariaLabel": "SolarDream customer portal footer",
+      "portalLabel": "Customer Portal",
+      "description": "Official engineering and residential solar quotation portal. Certified Tier-1 hardware, PEA/MEA utility permit management, and lifetime warranty tracking.",
+      "security": "SSL 256-bit encrypted"
+    }
   },
   "ProposalEmbeddedPdfViewer": {
     "defaultTitle": "Official Solar Quotation Document",
@@ -4768,19 +5622,47 @@
   },
   "ProposalFinancials": {
     "title": "Pricing summary",
-    "guaranteed": "Guaranteed quote",
+    "guaranteed": "Quoted price",
     "totalInvestment": "Total investment value",
     "included": "Includes 7% VAT, installation, engineering site survey, and PEA/MEA permit filing.",
+    "pricingPending": "Engineering price review pending",
+    "pricingPendingDescription": "The price and scope will be confirmed in the final quotation after the site review.",
     "systemSize": "System size",
+    "systemSizePending": "System size pending",
     "monthlySavings": "Est. monthly savings",
+    "monthlySavingsPending": "Awaiting usage data",
     "paybackPeriod": "Payback period",
     "years": "{count} years",
-    "paybackFallback": "4.2–5.0 years",
+    "paybackPending": "Needs more information",
     "panelUnits": "Panel units",
     "panels": "{count} panels",
+    "panelsPending": "Panel count pending",
     "paymentOption": "Payment option",
     "standardRate": "standard rate",
     "installment": "Installment up to {months} months at {rate}"
+  },
+  "PaymentMilestones": {
+    "eyebrow": "Payment schedule by project milestone",
+    "title": "Project payment status",
+    "paidTotal": "Total paid",
+    "noPayments": "No verified payments yet",
+    "remaining": "Remaining balance",
+    "paymentProgress": "Overall payment progress",
+    "completed": "COMPLETED",
+    "amountPending": "Payment amount pending",
+    "progressPending": "Project total pending",
+    "milestone1Title": "Contract deposit",
+    "milestone1Description": "Reserve the engineering slot and begin the utility approval process.",
+    "milestone2Title": "Equipment delivery and installation",
+    "milestone2Description": "Solar panels and inverter are delivered before the installation visit.",
+    "milestone3Title": "System testing and activation",
+    "milestone3Description": "Safety checks are completed before the system is fully activated.",
+    "paid": "✓ Paid ({percent})",
+    "awaiting": "⏳ Receipt under review",
+    "pending": "💳 Payment due ({percent})",
+    "next": "Next milestone ({percent})",
+    "amount": "Amount",
+    "selectMilestone": "Select milestone {stage}: {title}"
   },
   "CookiePreferences": {
     "title": "Cookie preferences",
@@ -4830,6 +5712,8 @@
     "notReadyDescription": "This quotation is currently not in a valid state to be signed. Please contact our engineering team.",
     "readyDescription": "You have reviewed the quotation. Sign to begin the installation process.",
     "reviewRequiredAction": "Review quotation",
+    "lockedAction": "Signature locked",
+    "notReadyAction": "Not ready to sign",
     "viewPdf": "View PDF",
     "viewSignedDocument": "View Signed Document",
     "signDocument": "Sign official quotation",
@@ -4851,7 +5735,9 @@
     "switchToLogin": "Already have an account? Sign in"
   },
   "GlobalBanner": {
-    "learnMore": "Learn more"
+    "learnMore": "Learn more",
+    "fallbackBadge": "INFO",
+    "fallbackMessage": "SolarDream is preparing a clearer solar planning experience."
   },
   "CurrencySwitcher": {
     "switchCurrency": "Switch currency",
@@ -4877,7 +5763,11 @@
       "eyebrow": "Revision request",
       "title": "Need our team to revise your quotation?",
       "description": "Tell us what needs to change. We’ll pause signing and return the quotation to the review queue immediately.",
-      "requestAction": "Request quotation changes"
+      "requestAction": "Request quotation changes",
+      "validation": "Tell us what you would like changed.",
+      "submitFailed": "We could not send the revision request. Please try again.",
+      "success": "Your revision request was sent to the SolarDream team.",
+      "failed": "We could not send the revision request. Please try again."
     },
     "billing": {
       "eyebrow": "Billing ledger",
@@ -4887,15 +5777,41 @@
       "paymentRequest": "Payment request",
       "payNowUploadSlip": "Pay now / upload slip",
       "openProof": "Open proof",
+      "invoice": "Open payment request",
+      "receipt": "Open receipt",
+      "amountPending": "Payment amount pending",
       "note": "Note: {detail}",
-      "empty": "There are no active payment requests yet. This list will appear once our team issues an invoice or payment request."
+      "empty": "There are no active payment requests yet. This list will appear once our team issues an invoice or payment request.",
+      "paymentDialogAria": "Pay and attach transfer proof",
+      "paymentDialogTitle": "Pay and attach transfer proof",
+      "bankTransferDescription": "Transfer to the account shown, then upload your receipt to record the payment.",
+      "promptPayDescription": "Scan PromptPay, then upload your receipt to record the payment.",
+      "directBankTransfer": "Direct bank transfer",
+      "bankNotConfigured": "Bank transfer details are not configured yet. Contact the project team for payment instructions.",
+      "promptPayNotConfigured": "PromptPay is not configured yet. Contact the project team for payment instructions.",
+      "amount": "Amount",
+      "transferInstruction": "Transfer only to the account shown above",
+      "promptPayId": "PromptPay ID: {id}",
+      "promptPayNotConfiguredShort": "Not configured",
+      "uploadProof": "Upload transfer proof",
+      "fileSupport": "Image or PDF · up to 12 MB",
+      "revisionDialogAria": "Request quotation changes",
+      "revisionDialogClose": "Close dialog",
+      "revisionDialogTitle": "Request quotation changes",
+      "revisionDialogDescription": "Your request pauses signing and notifies the project team.",
+      "revisionMessageLabel": "What should we change?",
+      "revisionMessagePlaceholder": "For example, update the document name, installation address, equipment, or scope.",
+      "revisionSubmit": "Send revision request",
+      "uploadSuccess": "Transfer proof attached successfully.",
+      "uploadFailed": "We could not upload the transfer proof. Please try again."
     },
     "verification": {
       "paid": "Payment verified & approved",
       "awaiting": "Awaiting finance team verification",
       "failed": "Please re-upload proof of transfer",
       "unpaid": "Awaiting payment"
-    }
+    },
+    "clientFallback": "Customer"
   },
   "DocumentRequestUploadGrid": {
     "eyebrow": "Customer document requests",
@@ -4915,10 +5831,124 @@
     "select": "Select"
   },
   "ProjectHubView": {
+    "progressTitle": "Project progress",
+    "steps": {
+      "approval": "Approval",
+      "payment": "Payment",
+      "engineering": "Engineering",
+      "installation": "Installation",
+      "finish": "Handover"
+    },
+    "tabs": {
+      "label": "Project hub sections",
+      "tracking": "Status",
+      "items": "Equipment",
+      "documents": "Documents"
+    },
+    "milestone": {
+      "active": "Active milestone",
+      "completed": "Project handover completed",
+      "installation": "Installation work is in progress",
+      "preparing": "Engineering is preparing the installation plan"
+    },
+    "labels": {
+      "engineer": "Engineer",
+      "estimatedDate": "Estimated date",
+      "assignmentPending": "Assignment pending",
+      "schedulePending": "Schedule pending"
+    },
+    "actions": {
+      "installationPlan": "View installation plan",
+      "fullActivity": "View full activity",
+      "viewDocument": "View document"
+    },
+    "items": {
+      "title": "Product and equipment details",
+      "empty": "Equipment list is being prepared."
+    },
+    "documents": {
+      "title": "Project documents",
+      "quotationContract": "Quotation / contract",
+      "empty": "No project document available",
+      "paymentHistory": "Payment history",
+      "noPayments": "No payment history yet",
+      "verified": "Verified",
+      "totalAmount": "Total amount",
+      "paidAmount": "Paid amount",
+      "remainingBalance": "Remaining balance"
+    },
+    "guidance": "Solia keeps the project handoff clear while the engineering team prepares the next milestone.",
+    "amountPending": "Amount pending",
+    "soliaAlt": "Solia guiding the project handoff",
     "documentDialog": {
       "title": "Quotation / contract",
       "subtitle": "Quotation / contract",
       "frameTitle": "Quotation / contract document"
+    }
+  },
+  "ProjectTaskStepper": {
+    "noSnapshot": "Installation progress will appear here after the project is scheduled.",
+    "lifecycle": "Installation lifecycle",
+    "progressComplete": "{percent}% complete",
+    "permit": "Utility permit",
+    "permitStatus": {
+      "approved": "Approved",
+      "submitted": "Submitted",
+      "pending": "Not started"
+    },
+    "projectEyebrow": "Installation project · {role}",
+    "title": "Task progress",
+    "description": "Live progress synchronized with the installation team.",
+    "taskCount": "{completed} of {total} tasks complete",
+    "progressPending": "Task schedule pending",
+    "status": {
+      "completed": "Completed",
+      "inProgress": "In progress",
+      "locked": "Locked",
+      "ready": "Evidence ready",
+      "required": "Evidence required",
+      "notApplicable": "Not applicable"
+    },
+    "outcome": "Outcome",
+    "remarks": "Remarks",
+    "verified": "Verified",
+    "by": "by {id}",
+    "checklistOutcome": "Checklist outcome",
+    "required": "required",
+    "optional": "optional",
+    "uploading": "Uploading {progress}%",
+    "replaceEvidence": "Replace evidence",
+    "captureEvidence": "Capture evidence",
+    "save": "Saving…",
+    "submit": "Submit {outcome}",
+    "evidence": "Evidence {status}",
+    "reviewReason": "Review reason",
+    "approve": "Approve",
+    "reject": "Reject",
+    "correctedLabel": "Corrected checklist label",
+    "correctedPlaceholder": "Required correction",
+    "amendmentReason": "Amendment reason",
+    "amendmentPlaceholder": "Reason for amendment",
+    "amend": "Amend item",
+    "submittingTask": "Submitting task…",
+    "completeTask": "Complete task",
+    "errorUpdate": "The installation update failed.",
+    "errorEvidence": "Evidence upload failed.",
+    "stages": {
+      "RAIL_MOUNTING": "Rail mounting",
+      "PV_DC_WIRING": "PV / DC wiring",
+      "PANEL_PLACEMENT": "Panel placement",
+      "INVERTER_WIRING": "Wiring to inverter",
+      "SYSTEM_TIE_IN": "AC tie-in / grid connection",
+      "COMMISSIONING_TEST": "Commissioning and test",
+      "PERMIT_APPLICATION": "Permit application"
+    },
+    "legacyStages": {
+      "contract": { "label": "Contract signed", "description": "Quotation approved" },
+      "permit": { "label": "Permit application", "description": "Utility documents" },
+      "equipment": { "label": "Equipment preparation", "description": "Panels and inverter" },
+      "installation": { "label": "System installation", "description": "Wiring and mounting" },
+      "handover": { "label": "Project handover", "description": "Commissioning and documents" }
     }
   },
   "AdminProductsTable": {
@@ -5564,20 +6594,100 @@
       "primaryHint": "Start with your bill and energy use",
       "secondaryCta": "Choose the spec myself",
       "secondaryHint": "Choose the system size and equipment",
-      "imageAlt": "Contemporary Thai home with rooftop solar panels in warm daylight",
-      "mediaLabel": "Light through structure"
+      "mediaLabel": "Light through structure",
+      "visual": {
+        "kicker": "SOLARDREAM ENERGY SYSTEM",
+        "status": "PLAN IN PROGRESS",
+        "imageLabel": "01 / HOME ENERGY",
+        "home": "Your home",
+        "usage": "Energy use",
+        "roof": "Roof space",
+        "system": "Right-sized system",
+        "tracking": "Track every step",
+        "note": "From your bill to a clearer energy plan",
+        "mascotAlt": "Solia, the solar planning guide, presenting an energy plan"
+      }
     },
     "statement": {
       "eyebrow": "Designed around real life",
       "title": "A good system starts with the life you live.",
-      "body": "Every home uses energy differently. SolarDream helps you begin with what you need before choosing a system size and equipment."
+      "body": "Every home uses energy differently. SolarDream helps you begin with what you need before choosing a system size and equipment.",
+      "signalsLabel": "What SolarDream brings together",
+      "signalOneTitle": "Start with real life",
+      "signalOneBody": "Understand your bill and the moments when your home uses energy.",
+      "signalTwoTitle": "See it before you decide",
+      "signalTwoBody": "Connect usage, roof space, and system size in one clear view.",
+      "signalThreeTitle": "Move forward with confidence",
+      "signalThreeBody": "Follow the path from first estimate to installation in one place."
     },
     "lifestyle": {
       "eyebrow": "Solar in real life",
       "title": "Energy on the roof for everything beneath it.",
-      "body": "Solar belongs in the rhythm of the home, from daylight across the roof to the rooms, routines, and equipment it supports.",
-      "imageAlt": "Sunlight moving across the roof and living spaces of a solar-powered home",
-      "caption": "Designed around the way your home lives"
+      "body": "Solar belongs in the rhythm of the home, from daylight across the roof to the rooms, routines, and equipment it supports."
+    },
+    "studio": {
+      "eyebrow": "SOLIA ENERGY STUDIO",
+      "status": "CONNECTING SIGNALS",
+      "canvasLabel": "Energy path from your bill, home, and sunlight to a right-sized system",
+      "insightLabel": "Solia sees",
+      "controlsLabel": "Choose a signal to see Solia's perspective",
+      "mascotAlt": "Solia connecting your electricity bill, home, sunlight, and solar system",
+      "steps": {
+        "bill": {
+          "label": "01 / BILL",
+          "title": "Start with the real bill",
+          "description": "Begin with the number you already know, then connect it to the way your home uses energy."
+        },
+        "home": {
+          "label": "02 / HOME",
+          "title": "Read the rhythm of home",
+          "description": "Consider the spaces and routines that shape what your home needs from energy."
+        },
+        "sun": {
+          "label": "03 / SUNLIGHT",
+          "title": "See what the roof can receive",
+          "description": "Connect the direction of daylight with the space available before choosing a system size."
+        },
+        "system": {
+          "label": "04 / SYSTEM",
+          "title": "Choose what fits",
+          "description": "Turn the signals you have into a clear starting point for a system that suits your use."
+        }
+      }
+    },
+    "workflow": {
+      "eyebrow": "THE SYSTEM BEHIND THE SYSTEM",
+      "title": "From the first question to a home ready for solar.",
+      "description": "Each step is designed to feel connected and easy to understand, so moving to solar feels like a confident choice.",
+      "status": "SOLARDREAM FLOW",
+      "panelTitle": "Your home energy journey",
+      "panelDescription": "A clear view from first assessment to ongoing support",
+      "outcome": "Every step stays on one connected path",
+      "stepOne": {
+        "index": "01",
+        "title": "Understand your use",
+        "description": "Start with your bill and the way your home uses energy."
+      },
+      "stepTwo": {
+        "index": "02",
+        "title": "Read the roof",
+        "description": "Consider the direction and space that suit your home."
+      },
+      "stepThree": {
+        "index": "03",
+        "title": "Shape the system",
+        "description": "Choose the size and equipment around your goals."
+      },
+      "stepFour": {
+        "index": "04",
+        "title": "Install with care",
+        "description": "Turn the plan into a real system on your roof."
+      },
+      "stepFive": {
+        "index": "05",
+        "title": "Stay in the loop",
+        "description": "Keep the important information and support close by."
+      }
     },
     "beforeAfter": {
       "eyebrow": "A visible change",
@@ -5620,14 +6730,44 @@
         "label": "01 / GUIDED",
         "title": "Not sure how much solar you need?",
         "description": "Start with your electricity bill and usage pattern. The system will help assess an approach that suits you.",
-        "cta": "Start system assessment"
+        "cta": "Start system assessment",
+        "flowLabel": "Guided assessment path",
+        "steps": {
+          "bill": "Bill",
+          "home": "Home",
+          "habits": "Habits",
+          "recommendation": "Recommendation"
+        }
       },
       "build": {
         "index": "02",
         "label": "02 / CUSTOM",
         "title": "Already have a system in mind?",
         "description": "Choose the system size and equipment, then review options that match what you need.",
-        "cta": "Start choosing a spec"
+        "cta": "Start choosing a spec",
+        "flowLabel": "Custom specification path",
+        "steps": {
+          "size": "kWp",
+          "panel": "Panels",
+          "inverter": "Inverter",
+          "addons": "Add-ons"
+        }
+      }
+    },
+    "soliaMoment": {
+      "eyebrow": "Solia helps connect the picture",
+      "title": "You do not need to know everything about solar to begin.",
+      "description": "Start with what you know best—your bill, your home, and your budget. Solia helps connect those signals into a system that fits.",
+      "callout": "Start with what you know. We will find the right system from there.",
+      "cta": "Let Solia help me assess",
+      "alt": "Solia studying a blueprint to help plan a residential solar system",
+      "nodeLabel": "The signals Solia connects",
+      "nodes": {
+        "bill": "Electricity bill",
+        "roof": "Roof space",
+        "habits": "Energy habits",
+        "budget": "Budget",
+        "system": "Right-sized system"
       }
     },
     "projects": {
@@ -5677,8 +6817,10 @@
         "panelWarranty": "Panel warranty",
         "permitProcess": "Permit process",
         "fullService": "Full-service support",
-        "designThisCase": "Design a system like this",
-        "sidebarDescription": "Model the production and request a quote for a system like this one, sized for your roof."
+        "designThisCase": "Start from this inspiration",
+        "sidebarDescription": "Use this installation as a reference, then model production and request a roof-specific quote.",
+        "fieldNote": "Solia's field note",
+        "fieldNoteBody": "A real home is a starting point—not a promise. Your roof, sun, and daily use shape the final system."
       }
     },
     "closing": {
@@ -5686,7 +6828,8 @@
       "title": "YOUR NEXT CHAPTER, POWERED BY THE SUN.",
       "description": "Start planning an energy system in your own way.",
       "primaryCta": "Assess my system",
-      "secondaryCta": "Choose my own spec"
+      "secondaryCta": "Choose my own spec",
+      "mascotAlt": "Solia pointing toward the next step in planning a solar system"
     },
     "footer": {
       "tagline": "Solar energy with character.",
@@ -5698,6 +6841,42 @@
       "copyright": "© {year} SolarDream. All rights reserved.",
       "externalLink": "{name} (opens in a new tab)"
     }
+  },
+  "ExternalAccess": {
+    "loading": "Checking temporary access…",
+    "accessLabel": "SolarDream field access",
+    "title": "Assigned work area",
+    "welcome": "Welcome, {name}. This view is limited to the work record granted to this temporary account.",
+    "closeSession": "Close session",
+    "projectLabel": "Installation project",
+    "workRecord": "Work record",
+    "customerUnavailable": "Customer details are unavailable",
+    "noTasks": "No task details are available for this scope.",
+    "expires": "Access expires {date}. SolarDream records every access session and can revoke it at any time.",
+    "statuses": {
+      "assigned": "Assigned",
+      "active": "Active",
+      "pending": "Pending",
+      "scheduled": "Scheduled",
+      "inProgress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "errors": {
+      "title": "Temporary access unavailable",
+      "invalidLink": "This temporary access link is invalid.",
+      "expiredOrRevoked": "This temporary access link or session is expired or revoked.",
+      "noPermission": "This account does not have permission to view work records.",
+      "unavailable": "Temporary work access is temporarily unavailable.",
+      "closed": "The temporary access session has been closed."
+    }
+  },
+  "MaintenanceView": {
+    "title": "System under maintenance",
+    "description": "Solia and our engineering team are upgrading this feature. Please check back soon.",
+    "soliaAlt": "Solia explaining a temporary system upgrade",
+    "backHome": "Back to home",
+    "tryAgain": "Try again"
   },
   "AgencyFooter": {
     "solutions": "Solutions",

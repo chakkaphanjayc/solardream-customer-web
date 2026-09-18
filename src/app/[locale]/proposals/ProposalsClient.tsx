@@ -63,9 +63,9 @@ import {
 } from "@/components/ui/dialog";
 import { Tooltip } from "@/components/ui/tooltip";
 import TrackingGallery from "@/app/[locale]/my-proposal/[id]/tracking/TrackingGallery";
-import DynamicSoliaChat from "@/components/DynamicSoliaChat";
 import { buildPromptPayPayload } from "@/lib/promptpay";
 import ProposalDetailView from "@/components/proposals/detail/ProposalDetailView";
+import { SolarStatePanel } from "@/components/ui/solar-system";
 import type {
   ClientProposal,
   ProposalFieldChecklistStepDto as FieldChecklistStep,
@@ -162,6 +162,11 @@ function serviceSummary(items: Array<Record<string, unknown>> = []) {
 
 function isObjectUrl(value: string | null): value is string {
   return Boolean(value?.startsWith("blob:"));
+}
+
+function toPositiveAmount(value: number | string | null | undefined): number | null {
+  const parsed = typeof value === "number" ? value : Number(String(value ?? "").replace(/,/g, ""));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
 function formatDate(
@@ -722,12 +727,17 @@ export default function ProposalsClient({
   >([]);
   const [paymentDragActive, setPaymentDragActive] = useState(false);
 
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat(intlLocale, {
+  const formatCurrency = (value: number | null) => {
+    if (value === null || !Number.isFinite(value) || value <= 0) {
+      return t("labels.pricePending");
+    }
+
+    return new Intl.NumberFormat(intlLocale, {
       style: "currency",
       currency: "THB",
       maximumFractionDigits: 0,
     }).format(value);
+  };
   const formatShortDate = (dateInput: string | Date) =>
     new Intl.DateTimeFormat(intlLocale, {
       year: "numeric",
@@ -1466,9 +1476,9 @@ export default function ProposalsClient({
     activePRTitle.includes("down payment") ||
     activePRTitle.includes("downpayment");
   const activeAmount = activePR
-    ? Number(activePR.amountRequested)
-    : activeProposal?.totalPrice || 0;
-  const promptpayPayload = buildPromptPayPayload(activeAmount);
+    ? toPositiveAmount(activePR.amountRequested)
+    : toPositiveAmount(activeProposal?.totalPrice);
+  const promptpayPayload = activeAmount === null ? null : buildPromptPayPayload(activeAmount);
 
   const handleOpenPaymentModal = () => {
     void trackProductEvent("proposal_payment_started", {
@@ -1541,17 +1551,19 @@ export default function ProposalsClient({
   return (
     <div
       ref={workspaceRef}
-      className="sd-safe-pb-26-add min-h-dvh w-full bg-[#F0EEE9] px-4 pt-6 lg:px-6 lg:pb-24 lg:pt-8"
+      data-bagui="proposals-workspace"
+      data-solar-surface="atelier"
+      className="solar-route-page solar-proposals-page sd-safe-pb-26-add min-h-dvh w-full bg-[var(--sd-page)] px-4 pt-6 lg:px-6 lg:pb-24 lg:pt-8"
     >
       <div className="mx-auto flex w-full max-w-7xl flex-col">
         <header className="relative mb-6 shrink-0 py-4 sm:py-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="relative">
               <p className="text-xs font-black uppercase tracking-[0.15em] text-[#4F7FA8]">
-                SolarDream Project Hub
+                {t("header.eyebrow")}
               </p>
               <h1 className="mt-1 text-3xl font-black tracking-tight text-[#000000] sm:text-4xl">
-                My proposals and installation progress
+                {t("header.title")}
               </h1>
               <p className="mt-2 max-w-3xl text-xs font-bold leading-6 text-slate-700">
                 ติดตามใบเสนอราคา ลายเซ็นดิจิทัล การชำระเงิน
@@ -1563,13 +1575,13 @@ export default function ProposalsClient({
                 href={`/${locale}/build`}
                 className="inline-flex min-h-12 items-center justify-center rounded-xl border-[3px] border-[#000000] bg-white px-5 py-2.5 text-xs font-black text-[#000000] shadow-[4px_4px_0_#000000] transition-all duration-200 ease-expo hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
               >
-                Build new system
+                {t("header.buildSystem")}
               </Link>
               <Link
                 href={`/${locale}/wizard`}
                 className="inline-flex min-h-12 items-center justify-center rounded-xl border-[3px] border-[#000000] bg-[#B7D1EA] px-5 py-2.5 text-xs font-black text-[#0F172A] shadow-[4px_4px_0_#000000] transition-all duration-200 ease-expo hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-[#CBE0F4] hover:shadow-[6px_6px_0_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
               >
-                Start solar wizard
+                {t("header.startWizard")}
               </Link>
             </div>
           </div>
@@ -1579,30 +1591,30 @@ export default function ProposalsClient({
             href={`/${locale}/build`}
             className="inline-flex min-h-11 items-center justify-center rounded-xl border-2 border-[#000000] bg-white px-3 py-2 text-center text-xs font-black text-[#000000] shadow-[2px_2px_0_#000000] transition hover:bg-[#000000] hover:text-white"
           >
-            Build new system
+            {t("header.buildSystem")}
           </Link>
           <Link
             href={`/${locale}/wizard`}
             className="inline-flex min-h-11 items-center justify-center rounded-xl border-2 border-[#000000] bg-[#B7D1EA] px-3 py-2 text-center text-xs font-black text-[#0F172A] shadow-[2px_2px_0_#000000] transition hover:bg-[#CBE0F4]"
           >
-            Start solar wizard
+            {t("header.startWizard")}
           </Link>
         </div>
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
           {/* Left Column: Master List */}
           <aside
             className={cn(
-              "flex h-fit min-h-0 flex-col gap-4 rounded-2xl border-[3px] border-[#000000] bg-white p-4 shadow-[6px_6px_0_#000000] lg:sticky lg:top-24 lg:w-[320px] lg:p-5",
+              "solar-ui-panel flex h-fit min-h-0 flex-col gap-4 rounded-2xl border-[3px] border-[#000000] bg-white p-4 shadow-[6px_6px_0_#000000] lg:sticky lg:top-24 lg:w-[320px] lg:p-5",
               mobileDetailOpen ? "hidden lg:flex" : "flex",
             )}
           >
             <div className="shrink-0 pb-2 border-b-[3px] border-[#000000]">
-              <h1 className="flex items-center gap-1.5 text-base font-black text-[#000000]">
+              <h2 className="flex items-center gap-1.5 text-base font-black text-[#000000]">
                 {t("sidebar.titlePrefix")}{" "}
                 <span className="text-[#4F7FA8]">
                   {t("sidebar.titleHighlight")}
                 </span>
-              </h1>
+              </h2>
               <p className="mt-1 text-xs font-bold text-slate-600">
                 {t("sidebar.description")}
               </p>
@@ -1635,25 +1647,17 @@ export default function ProposalsClient({
               className="min-h-0 space-y-3 pr-0 outline-none focus-visible:ring-2 focus-visible:ring-[#4F7FA8] focus-visible:ring-offset-2"
             >
               {displayProposals.length === 0 ? (
-                <div className="rounded-xl border-2 border-black bg-[#F0EEE9] p-6 text-center shadow-none">
-                  <DynamicSoliaChat
-                    type="empty_cart"
-                    pose="/solia-greeting.webp"
-                  />
-                  <h3 className="text-sm font-black text-[#000000]">
-                    {t("sidebar.emptyTitle")}
-                  </h3>
-                  <p className="mt-2 text-xs text-slate-600 font-bold leading-relaxed">
-                    You haven&apos;t requested any quotes yet. Let&apos;s start
-                    planning your solar journey!
-                  </p>
-                  <Link
-                    href={`/${locale}/wizard`}
-                    className="mt-5 inline-flex items-center justify-center rounded-xl border-2 border-black bg-[#B7D1EA] px-4 py-2.5 text-xs font-black uppercase tracking-wider text-[#0F172A] shadow-[3px_3px_0_#000000] hover:bg-[#CBE0F4]"
-                  >
-                    Open Calculator
-                  </Link>
-                </div>
+                <SolarStatePanel
+                  kind="empty"
+                  title={t("sidebar.emptyTitle")}
+                  description={t("sidebar.emptyDescription")}
+                  soliaAlt={locale === "th" ? "โซเลียกำลังรอช่วยเริ่มต้นแผนโซลาร์ของคุณ" : "Solia is ready to help start your solar plan"}
+                  action={
+                    <Link href={`/${locale}/wizard`} className="solar-ui-primary rounded-full px-4 py-2.5 text-xs font-bold">
+                    {t("actions.openCalculator")}
+                    </Link>
+                  }
+                />
               ) : (
                 displayProposals.map((proposal) => {
                   const isActiveCard = proposal.id === activeProposalId;
@@ -1717,8 +1721,8 @@ export default function ProposalsClient({
                           <span
                             aria-label={
                               serviceProposal
-                                ? "Service proposal"
-                                : "Installation proposal"
+                                ? t("labels.serviceProposal")
+                                : t("labels.installationProposal")
                             }
                             className={cn(
                               "inline-flex items-center gap-1 rounded-md border border-black px-2 py-0.5 text-[10px] font-black uppercase",
@@ -1732,7 +1736,7 @@ export default function ProposalsClient({
                             ) : (
                               <SolarPanel className="h-3 w-3 stroke-[2.5]" />
                             )}
-                            {serviceProposal ? "Service" : "Solar"}
+                            {serviceProposal ? t("labels.service") : t("labels.solar")}
                           </span>
                           <span className={cn("text-[10px] font-bold", isActiveCard ? "text-[#334155]" : "text-[#475569]") }>
                             {formatShortDate(proposal.createdAt)}
@@ -1794,7 +1798,7 @@ export default function ProposalsClient({
           <section
             ref={detailPaneRef}
             className={cn(
-              "relative flex min-h-[28rem] w-full min-w-0 flex-col gap-4 rounded-2xl border-[4px] border-[#000000] bg-white p-4 shadow-[8px_8px_0_#000000] sm:p-6",
+              "solar-ui-panel relative flex min-h-[28rem] w-full min-w-0 flex-col gap-4 rounded-2xl border-[4px] border-[#000000] bg-white p-4 shadow-[8px_8px_0_#000000] sm:p-6",
               mobileDetailOpen ? "flex" : "hidden lg:flex",
             )}
           >
@@ -1803,7 +1807,7 @@ export default function ProposalsClient({
                 <div className="flex flex-col items-center gap-3 p-6 border-2 border-black rounded-xl bg-white shadow-[4px_4px_0_#000000]">
                   <GsapSpinner className="h-6 w-6 text-[#000000]" />
                   <p className="text-xs font-black text-[#000000] uppercase tracking-wider">
-                    Updating details...
+                    {t("common.updating")}
                   </p>
                 </div>
               </div>
@@ -1816,7 +1820,7 @@ export default function ProposalsClient({
                   onClick={handleMobileBack}
                   className="inline-flex min-h-11 w-fit items-center justify-center rounded-xl border-2 border-black bg-white px-4 text-xs font-black text-black shadow-[2px_2px_0_#000000] lg:hidden"
                 >
-                  ← Back to proposals
+                  ← {t("actions.backToProposals")}
                 </button>
                 <ProposalDetailView
                   proposal={sharedDetailProposal}
@@ -1825,24 +1829,18 @@ export default function ProposalsClient({
                 />
               </>
             ) : (
-              <div className="flex min-h-[24rem] flex-1 flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#000000] bg-[#F0EEE9] p-6 text-center">
-                <DynamicSoliaChat
-                  type="empty_cart"
-                  pose="/solia-greeting.webp"
-                />
-                <h2 className="mt-2 text-lg font-black text-[#000000]">
-                  {t("emptySelection.title")}
-                </h2>
-                <p className="mt-2 max-w-sm text-sm font-semibold leading-6 text-[#334155]">
-                  {t("emptySelection.description")}
-                </p>
-                <Link
-                  href={`/${locale}/wizard`}
-                  className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border-2 border-[#000000] bg-[#B7D1EA] px-4 py-2.5 text-xs font-black uppercase text-[#0F172A] shadow-[3px_3px_0_#000000] transition-all hover:-translate-y-0.5 hover:bg-[#CBE0F4] hover:shadow-[4px_4px_0_#000000] active:translate-y-0.5 active:shadow-none"
-                >
-                  Open calculator
-                </Link>
-              </div>
+              <SolarStatePanel
+                className="flex min-h-[24rem] flex-1 rounded-xl"
+                kind="empty"
+                title={t("emptySelection.title")}
+                description={t("emptySelection.description")}
+                soliaAlt={locale === "th" ? "โซเลียกำลังรอให้คุณเลือกใบเสนอราคา" : "Solia is waiting for you to select a proposal"}
+                action={
+                  <Link href={`/${locale}/wizard`} className="solar-ui-primary rounded-full px-4 py-2.5 text-xs font-bold">
+                    {locale === "th" ? "เปิดเครื่องมือคำนวณ" : "Open calculator"}
+                  </Link>
+                }
+              />
             )}
           </section>
         </div>
@@ -1856,13 +1854,15 @@ export default function ProposalsClient({
                   {activeProposal.erpnextQuotationId || `SD-QT-${activeProposal.id.slice(0, 8).toUpperCase()}`}
                 </span>
                 <span className="truncate text-xs font-black text-[#000000] sm:text-sm">
-                  {activeProposal.systemSizeKwp.toFixed(2)} kWp System
+                  {t("labels.system", {
+                    size: activeProposal.systemSizeKwp.toFixed(2),
+                  })}
                 </span>
               </div>
               <div className="hidden sm:block h-8 w-[2px] bg-black/20" />
               <div className="hidden flex-col sm:flex">
                 <span className="text-[10px] font-black uppercase tracking-wider text-[#475569]">
-                  Total Investment
+                  {t("labels.totalInvestment")}
                 </span>
                 <span className="font-mono text-sm font-black text-[#0F172A] sm:text-lg">
                   {formatCurrency(activeProposal.totalPrice)}
@@ -1875,7 +1875,11 @@ export default function ProposalsClient({
                 href={`/${locale}/proposals/${activeProposal.id}`}
                 className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-xl border-[3px] border-[#000000] bg-[#B7D1EA] px-3 py-2 text-[11px] font-black uppercase leading-tight text-[#0F172A] shadow-[3px_3px_0_#000000] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-[#CBE0F4] hover:shadow-[5px_5px_0_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none sm:px-4 sm:text-xs"
               >
-                <span>{activeProposal.signedDocumentDriveUrl ? "ดูรายละเอียด" : "ยืนยันใบเสนอราคา"}</span>
+                <span>
+                  {activeProposal.signedDocumentDriveUrl
+                    ? t("actions.viewDetails")
+                    : t("actions.confirmQuote")}
+                </span>
                 <ChevronRight className="h-4 w-4 stroke-[3]" />
               </Link>
             </div>
@@ -1969,16 +1973,14 @@ export default function ProposalsClient({
           onClose={() => setIsDocumentReviewOpen(false)}
           size="full"
           tone="light"
-          ariaLabel="ตรวจสอบเอกสารและยืนยันรายการ"
-          closeLabel="Cancel"
+          ariaLabel={t("documentReview.title")}
+          closeLabel={t("actions.cancel")}
           className="max-w-4xl bg-white"
         >
           <DialogContent>
             <DialogHeader className="border-b-2 border-[#000000] bg-[#F5F2EB]">
-              <DialogTitle>ตรวจสอบเอกสารและยืนยันรายการ</DialogTitle>
-              <DialogDescription>
-                กรุณาตรวจสอบเอกสารให้ครบถ้วนก่อนยืนยันขั้นตอนถัดไป
-              </DialogDescription>
+              <DialogTitle>{t("documentReview.title")}</DialogTitle>
+              <DialogDescription>{t("documentReview.description")}</DialogDescription>
             </DialogHeader>
 
             <DialogBody className="bg-white p-4 sm:p-6">
@@ -1998,7 +2000,7 @@ export default function ProposalsClient({
 
             <DialogFooter className="flex-col items-stretch border-t-2 border-[#000000] bg-[#F5F2EB] sm:flex-row sm:items-center sm:justify-between">
               <span className="text-[10px] font-black uppercase tracking-wider text-[#64748B]">
-                Secure SolarDream customer portal
+                {t("labels.securePortal")}
               </span>
               <div className="flex flex-col-reverse gap-2 sm:flex-row">
                 <button
@@ -2006,14 +2008,14 @@ export default function ProposalsClient({
                   onClick={() => setIsDocumentReviewOpen(false)}
                   className="min-h-11 cursor-pointer rounded-xl border-2 border-[#000000] bg-white px-4 py-2 text-xs font-black text-[#0F172A] transition-[background-color,transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:bg-[#F0EEE9] hover:shadow-[2px_2px_0_#000000] active:translate-y-0.5 active:shadow-none"
                 >
-                  Cancel
+                  {t("actions.cancel")}
                 </button>
                 <button
                   type="button"
                   onClick={handleDocumentReviewComplete}
                   className="min-h-11 cursor-pointer rounded-xl border-2 border-[#000000] bg-[#B7D1EA] px-5 py-2.5 text-xs font-black text-[#0F172A] shadow-[2px_2px_0_#000000] transition-[background-color,transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:bg-[#CBE0F4] hover:shadow-[3px_3px_0_#000000] active:translate-y-0.5 active:shadow-none"
                 >
-                  Simulate Signing Complete
+                  {t("documentReview.simulateComplete")}
                 </button>
               </div>
             </DialogFooter>

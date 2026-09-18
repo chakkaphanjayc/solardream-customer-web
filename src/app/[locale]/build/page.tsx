@@ -6,6 +6,7 @@ import { SolarRouteShell } from "@/components/ui/solar-route-shell";
 // The route receives locale params and runs a feature gate before rendering
 // the interactive configurator. Its backing configuration is cached below,
 // but the route itself should remain request-time.
+export const instant = false;
 
 export default async function BuildPage({
   params,

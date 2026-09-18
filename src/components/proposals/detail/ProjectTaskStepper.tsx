@@ -2,6 +2,7 @@
 
 import { Check, CheckCircle2, Circle, Clock3, ImageIcon, LockKeyhole, Upload } from "@/components/ui/icons";
 import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import type { ClientInstallationChecklistItem, ClientInstallationSnapshot, ClientInstallationTask } from "@/types/proposals";
@@ -52,6 +53,8 @@ function optionalPosition() {
 }
 
 function TaskChecklistPanel({ task, refresh }: { task: ClientInstallationTask; refresh: () => Promise<void> }) {
+  const t = useTranslations("ProjectTaskStepper");
+  const locale = useLocale();
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -66,10 +69,10 @@ function TaskChecklistPanel({ task, refresh }: { task: ClientInstallationTask; r
     setError(null);
     try {
       const response = await action();
-      if (!response.ok) throw new Error(await responseError(response, "The installation update failed."));
+      if (!response.ok) throw new Error(await responseError(response, t("errorUpdate")));
       await refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "The installation update failed.");
+      setError(caught instanceof Error ? caught.message : t("errorUpdate"));
       await refresh();
     } finally {
       setBusyKey(null);
@@ -85,7 +88,7 @@ function TaskChecklistPanel({ task, refresh }: { task: ClientInstallationTask; r
       await uploadEvidence(file, item.id, await optionalPosition(), setProgress);
       await refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Evidence upload failed.");
+      setError(caught instanceof Error ? caught.message : t("errorEvidence"));
       await refresh();
     } finally {
       setBusyKey(null);
@@ -94,7 +97,7 @@ function TaskChecklistPanel({ task, refresh }: { task: ClientInstallationTask; r
   };
 
   return (
-    <div className="mt-4 border-t border-[#F7F6F3] pt-4">
+    <div className="mt-4 border-t border-[var(--sd-line)] pt-4">
       {error ? <p role="alert" className="mb-3 rounded-[16px] border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-800">{error}</p> : null}
       <ul className="space-y-3">
         {task.checklist.map((item) => {
@@ -107,77 +110,77 @@ function TaskChecklistPanel({ task, refresh }: { task: ClientInstallationTask; r
           const needsEvidence = selectedOutcome !== "NA" && item.evidenceRequired;
           const remarksRequired = selectedOutcome === "NA" || selectedOutcome === "FAIL";
           return (
-            <li key={item.id} className="rounded-[20px] border border-[#F7F6F3] bg-[#F0EEE9] p-4 shadow-sm">
-              <div className="flex min-h-11 items-center gap-3 text-xs font-bold text-[#2E2C27]">
-                {verified ? <CheckCircle2 className="h-4 w-4 shrink-0 text-[#4F7FA8] stroke-[2.5]" aria-hidden /> : <LockKeyhole className="h-4 w-4 shrink-0 text-[#8E8B83] stroke-[2]" aria-hidden />}
+            <li key={item.id} className="rounded-[var(--sd-radius-lg)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-4 shadow-[var(--sd-shadow-1)]">
+              <div className="flex min-h-11 items-center gap-3 text-xs font-bold text-[var(--sd-ink)]">
+                {verified ? <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--sd-success)] stroke-[2.5]" aria-hidden /> : <LockKeyhole className="h-4 w-4 shrink-0 text-[var(--sd-muted)] stroke-[2]" aria-hidden />}
                 <span className="min-w-0 flex-1">{item.label}</span>
-                {item.evidenceRequired && item.outcome !== "NA" ? <span className="inline-flex items-center gap-1 rounded-full bg-[#DCE8F5] px-2.5 py-0.5 text-[10px] font-bold uppercase text-[#4F7FA8]"><ImageIcon className="h-3.5 w-3.5" aria-hidden /> {readyEvidence.length > 0 ? "Ready" : "Required"}</span> : null}
+                {item.evidenceRequired && item.outcome !== "NA" ? <span className="inline-flex items-center gap-1 rounded-full bg-[var(--sd-selected)] px-2.5 py-0.5 text-[10px] font-bold uppercase text-[var(--sd-blue-600)]"><ImageIcon className="h-3.5 w-3.5" aria-hidden /> {readyEvidence.length > 0 ? t("status.ready") : t("status.required")}</span> : null}
               </div>
 
               {verified ? (
-                <div className={cn("mt-2 rounded-[16px] border p-3 text-xs", item.outcome === "FAIL" ? "border-rose-200 bg-rose-50 text-rose-900" : "border-[#F7F6F3] bg-[#E6E3DC] text-[#2E2C27]")}>
-                  <p className="font-bold">Outcome: {item.outcome || "VERIFIED"}</p>
-                  {item.remarks ? <p className="mt-1 font-medium">Remarks: {item.remarks}</p> : null}
-                  <p className="mt-1 text-[10px] font-mono opacity-80">Verified {item.verifiedAt ? new Date(item.verifiedAt).toLocaleString() : ""}{item.verifiedByUserId ? ` by ${item.verifiedByUserId}` : ""}</p>
+                <div className={cn("mt-2 rounded-[var(--sd-radius-md)] border p-3 text-xs", item.outcome === "FAIL" ? "border-rose-200 bg-rose-50 text-rose-900" : "border-[var(--sd-line)] bg-[var(--sd-raised)] text-[var(--sd-ink)]")}>
+                  <p className="font-bold">{t("outcome")}: {item.outcome || "VERIFIED"}</p>
+                  {item.remarks ? <p className="mt-1 font-medium">{t("remarks")}: {item.remarks}</p> : null}
+                  <p className="mt-1 font-mono text-[10px] opacity-80">{t("verified")} {item.verifiedAt ? new Date(item.verifiedAt).toLocaleString(locale === "th" ? "th-TH" : "en-US") : ""}{item.verifiedByUserId ? ` ${t("by", { id: item.verifiedByUserId })}` : ""}</p>
                 </div>
               ) : null}
 
               {canSetOutcome ? (
                 <fieldset className="mt-3">
-                  <legend className="text-xs font-bold uppercase tracking-wider text-[#4E4B44]">Checklist outcome</legend>
+                  <legend className="text-xs font-bold uppercase tracking-wider text-[var(--sd-muted)]">{t("checklistOutcome")}</legend>
                   <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {(canExecute ? ["PASS", "FAIL"] as const : []).map((value) => (
-                      <label key={value} className={cn("flex min-h-10 cursor-pointer items-center justify-center rounded-full border px-4 text-xs font-bold uppercase transition-all", selectedOutcome === value ? "border-[#7CA8D0] bg-[#B7D1EA] text-white shadow-sm" : "border-[#CBC7BE] bg-[#F0EEE9] text-[#4E4B44] hover:bg-[#DCE8F5] hover:text-[#2E2C27]")}>
+                      <label key={value} className={cn("flex min-h-10 cursor-pointer items-center justify-center rounded-[var(--sd-radius-md)] border px-4 text-xs font-bold uppercase transition-all focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--sd-blue-600)]", selectedOutcome === value ? "border-[var(--sd-blue-600)] bg-[var(--sd-blue-600)] text-white shadow-[var(--sd-shadow-1)]" : "border-[var(--sd-line)] bg-[var(--sd-raised)] text-[var(--sd-muted)] hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)]")}>
                         <input className="sr-only" type="radio" name={`outcome-${item.id}`} value={value} checked={selectedOutcome === value} onChange={() => setOutcome((current) => ({ ...current, [item.id]: value }))} />
                         {value}
                       </label>
                     ))}
                     {(item.allowsNa || task.capabilities.canReview) ? (
-                      <label className={cn("flex min-h-10 cursor-pointer items-center justify-center rounded-full border px-4 text-xs font-bold uppercase transition-all", selectedOutcome === "NA" ? "border-[#7CA8D0] bg-[#B7D1EA] text-white shadow-sm" : "border-[#CBC7BE] bg-[#F0EEE9] text-[#4E4B44] hover:bg-[#DCE8F5] hover:text-[#2E2C27]")}>
+                      <label className={cn("flex min-h-10 cursor-pointer items-center justify-center rounded-[var(--sd-radius-md)] border px-4 text-xs font-bold uppercase transition-all focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--sd-blue-600)]", selectedOutcome === "NA" ? "border-[var(--sd-blue-600)] bg-[var(--sd-blue-600)] text-white shadow-[var(--sd-shadow-1)]" : "border-[var(--sd-line)] bg-[var(--sd-raised)] text-[var(--sd-muted)] hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)]")}>
                         <input className="sr-only" type="radio" name={`outcome-${item.id}`} value="NA" checked={selectedOutcome === "NA"} onChange={() => setOutcome((current) => ({ ...current, [item.id]: "NA" }))} />
-                        N/A
+                        {t("status.notApplicable")}
                       </label>
                     ) : null}
                   </div>
-                  <label className="mt-3 block text-xs font-bold uppercase text-[#4E4B44]">
-                    Remarks {remarksRequired ? "(required)" : "(optional)"}
-                    <textarea value={itemRemarks} onChange={(event) => setRemarks((current) => ({ ...current, [item.id]: event.target.value }))} className="mt-1 min-h-20 w-full rounded-t-xl rounded-b-none border-b-2 border-[#8E8B83] bg-[#F7F6F3] p-3 text-xs font-semibold text-[#2E2C27] outline-none transition placeholder:text-[#4E4B44] focus:border-[#7CA8D0] focus:bg-[#F0EEE9]" required={remarksRequired} />
+                  <label className="mt-3 block text-xs font-bold uppercase text-[var(--sd-muted)]">
+                    {t("remarks")} {remarksRequired ? `(${t("required")})` : `(${t("optional")})`}
+                    <textarea value={itemRemarks} onChange={(event) => setRemarks((current) => ({ ...current, [item.id]: event.target.value }))} className="mt-1 min-h-20 w-full rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-3 text-xs font-semibold text-[var(--sd-ink)] outline-none transition placeholder:text-[var(--sd-muted)] focus:border-[var(--sd-blue-600)] focus:ring-2 focus:ring-[var(--sd-blue-600)]/20" required={remarksRequired} />
                   </label>
                 </fieldset>
               ) : null}
 
               {canExecute && task.capabilities.canUploadEvidence && needsEvidence ? (
-                <label className="mt-2 inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-full border border-[#CBC7BE] bg-[#F0EEE9] px-5 text-xs font-bold text-[#2E2C27] shadow-sm transition hover:bg-[#DCE8F5] active:scale-95">
-                  <Upload className="h-4 w-4 text-[#4F7FA8]" aria-hidden />
-                  {busyKey === `upload:${item.id}` ? `Uploading ${progress}%` : readyEvidence.length > 0 ? "Replace evidence" : "Capture evidence"}
+                <label className="mt-2 inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-5 text-xs font-bold text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)] transition hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)] active:scale-[0.98]">
+                  <Upload className="h-4 w-4 text-[var(--sd-blue-600)]" aria-hidden />
+                  {busyKey === `upload:${item.id}` ? t("uploading", { progress }) : readyEvidence.length > 0 ? t("replaceEvidence") : t("captureEvidence")}
                   <input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/heic" capture="environment" disabled={busyKey !== null} onChange={(event) => void upload(item, event.currentTarget.files?.[0] || null)} />
                 </label>
               ) : null}
 
               {canSetOutcome ? (
-                <button type="button" disabled={busyKey !== null || (needsEvidence && readyEvidence.length === 0) || (remarksRequired && itemRemarks.trim().length < 3)} onClick={() => void run(`verify:${item.id}`, () => fetch(`/api/installations/checklist/${item.id}/complete`, { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": idempotencyKey("checklist") }, body: JSON.stringify({ outcome: selectedOutcome, remarks: itemRemarks.trim() || undefined }) }))} className="mt-2 inline-flex min-h-10 items-center justify-center rounded-full bg-[#B7D1EA] px-5 text-xs font-bold uppercase text-white shadow-sm transition hover:bg-[#A5C2DE] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">
-                  {busyKey === `verify:${item.id}` ? "Saving…" : `Submit ${selectedOutcome}`}
+                <button type="button" disabled={busyKey !== null || (needsEvidence && readyEvidence.length === 0) || (remarksRequired && itemRemarks.trim().length < 3)} onClick={() => void run(`verify:${item.id}`, () => fetch(`/api/installations/checklist/${item.id}/complete`, { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": idempotencyKey("checklist") }, body: JSON.stringify({ outcome: selectedOutcome, remarks: itemRemarks.trim() || undefined }) }))} className="mt-2 inline-flex min-h-11 items-center justify-center rounded-[var(--sd-radius-md)] bg-[var(--sd-blue-600)] px-5 text-xs font-bold uppercase text-white shadow-[var(--sd-shadow-1)] transition hover:bg-[var(--sd-blue-500)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
+                  {busyKey === `verify:${item.id}` ? t("save") : t("submit", { outcome: selectedOutcome })}
                 </button>
               ) : null}
 
               {task.capabilities.canReview && item.evidence.map((evidence) => (
-                <div key={evidence.id} className="mt-3 rounded-[16px] border border-[#F7F6F3] bg-[#E6E3DC] p-3 shadow-sm">
-                  <p className="text-xs font-bold uppercase text-[#2E2C27]">Evidence {evidence.status}</p>
-                  <label className="mt-2 block text-xs font-medium text-[#4E4B44]">Review reason
-                    <textarea value={reviewReason[evidence.id] || ""} onChange={(event) => setReviewReason((current) => ({ ...current, [evidence.id]: event.target.value }))} className="mt-1 min-h-20 w-full rounded-t-xl rounded-b-none border-b-2 border-[#8E8B83] bg-[#F7F6F3] p-2 text-xs font-semibold text-[#2E2C27] outline-none transition placeholder:text-[#4E4B44] focus:border-[#7CA8D0] focus:bg-[#F0EEE9]" required />
+                <div key={evidence.id} className="mt-3 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-3 shadow-[var(--sd-shadow-1)]">
+                  <p className="text-xs font-bold uppercase text-[var(--sd-ink)]">{t("evidence", { status: evidence.status })}</p>
+                  <label className="mt-2 block text-xs font-medium text-[var(--sd-muted)]">{t("reviewReason")}
+                    <textarea value={reviewReason[evidence.id] || ""} onChange={(event) => setReviewReason((current) => ({ ...current, [evidence.id]: event.target.value }))} className="mt-1 min-h-20 w-full rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-2 text-xs font-semibold text-[var(--sd-ink)] outline-none transition placeholder:text-[var(--sd-muted)] focus:border-[var(--sd-blue-600)] focus:ring-2 focus:ring-[var(--sd-blue-600)]/20" required />
                   </label>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <button type="button" disabled={busyKey !== null || !(reviewReason[evidence.id] || "").trim()} onClick={() => void run(`review:${evidence.id}`, () => fetch("/api/installations/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ evidenceId: evidence.id, decision: "READY", reason: reviewReason[evidence.id], idempotencyKey: idempotencyKey("review") }) }))} className="min-h-9 rounded-full bg-[#B7D1EA] px-4 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#A5C2DE] active:scale-95 disabled:opacity-50">Approve</button>
-                    {task.capabilities.canReject ? <button type="button" disabled={busyKey !== null || !(reviewReason[evidence.id] || "").trim()} onClick={() => void run(`reject:${evidence.id}`, () => fetch("/api/installations/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ evidenceId: evidence.id, decision: "REJECTED", reason: reviewReason[evidence.id], idempotencyKey: idempotencyKey("review") }) }))} className="min-h-9 rounded-full bg-rose-600 px-4 text-xs font-bold text-white shadow-sm hover:bg-rose-700 active:scale-95 disabled:opacity-50">Reject</button> : null}
+                    <button type="button" disabled={busyKey !== null || !(reviewReason[evidence.id] || "").trim()} onClick={() => void run(`review:${evidence.id}`, () => fetch("/api/installations/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ evidenceId: evidence.id, decision: "READY", reason: reviewReason[evidence.id], idempotencyKey: idempotencyKey("review") }) }))} className="min-h-10 rounded-[var(--sd-radius-md)] bg-[var(--sd-blue-600)] px-4 text-xs font-bold text-white shadow-[var(--sd-shadow-1)] transition-colors hover:bg-[var(--sd-blue-500)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2 active:scale-[0.98] disabled:opacity-50">{t("approve")}</button>
+                    {task.capabilities.canReject ? <button type="button" disabled={busyKey !== null || !(reviewReason[evidence.id] || "").trim()} onClick={() => void run(`reject:${evidence.id}`, () => fetch("/api/installations/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ evidenceId: evidence.id, decision: "REJECTED", reason: reviewReason[evidence.id], idempotencyKey: idempotencyKey("review") }) }))} className="min-h-10 rounded-[var(--sd-radius-md)] bg-[var(--sd-danger)] px-4 text-xs font-bold text-white shadow-[var(--sd-shadow-1)] hover:bg-[var(--sd-danger)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-danger)] focus-visible:ring-offset-2 active:scale-[0.98] disabled:opacity-50">{t("reject")}</button> : null}
                   </div>
                 </div>
               ))}
 
               {task.capabilities.canAmend && verified ? (
                 <div className="mt-3 grid gap-2">
-                  <input aria-label="Corrected checklist label" value={amendLabel[item.id] || ""} onChange={(event) => setAmendLabel((current) => ({ ...current, [item.id]: event.target.value }))} placeholder="Required correction" className="min-h-10 flex-1 rounded-t-xl rounded-b-none border-b-2 border-[#8E8B83] bg-[#F7F6F3] px-3.5 text-xs font-semibold text-[#2E2C27] outline-none transition placeholder:text-[#4E4B44] focus:border-[#7CA8D0] focus:bg-[#F0EEE9]" />
-                  <textarea aria-label="Amendment reason" value={amendReason[item.id] || ""} onChange={(event) => setAmendReason((current) => ({ ...current, [item.id]: event.target.value }))} placeholder="Reason for amendment" className="min-h-20 rounded-t-xl rounded-b-none border-b-2 border-[#8E8B83] bg-[#F7F6F3] p-3 text-xs font-semibold text-[#2E2C27] outline-none transition placeholder:text-[#4E4B44] focus:border-[#7CA8D0] focus:bg-[#F0EEE9]" required />
-                  <button type="button" disabled={busyKey !== null || (amendLabel[item.id] || "").trim().length < 3 || (amendReason[item.id] || "").trim().length < 3} onClick={() => void run(`amend:${item.id}`, () => fetch("/api/installations/amend", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemId: item.id, label: amendLabel[item.id], evidenceRequired: item.evidenceRequired, allowsNa: item.allowsNa, reason: amendReason[item.id], idempotencyKey: idempotencyKey("amend") }) }))} className="min-h-10 rounded-full border border-[#CBC7BE] bg-[#F0EEE9] px-4 text-xs font-bold text-[#2E2C27] shadow-sm hover:bg-[#DCE8F5] active:scale-95 disabled:opacity-50">Amend item</button>
+                  <input aria-label={t("correctedLabel")} value={amendLabel[item.id] || ""} onChange={(event) => setAmendLabel((current) => ({ ...current, [item.id]: event.target.value }))} placeholder={t("correctedPlaceholder")} className="min-h-10 flex-1 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-3.5 text-xs font-semibold text-[var(--sd-ink)] outline-none transition placeholder:text-[var(--sd-muted)] focus:border-[var(--sd-blue-600)] focus:ring-2 focus:ring-[var(--sd-blue-600)]/20" />
+                  <textarea aria-label={t("amendmentReason")} value={amendReason[item.id] || ""} onChange={(event) => setAmendReason((current) => ({ ...current, [item.id]: event.target.value }))} placeholder={t("amendmentPlaceholder")} className="min-h-20 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-3 text-xs font-semibold text-[var(--sd-ink)] outline-none transition placeholder:text-[var(--sd-muted)] focus:border-[var(--sd-blue-600)] focus:ring-2 focus:ring-[var(--sd-blue-600)]/20" required />
+                  <button type="button" disabled={busyKey !== null || (amendLabel[item.id] || "").trim().length < 3 || (amendReason[item.id] || "").trim().length < 3} onClick={() => void run(`amend:${item.id}`, () => fetch("/api/installations/amend", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemId: item.id, label: amendLabel[item.id], evidenceRequired: item.evidenceRequired, allowsNa: item.allowsNa, reason: amendReason[item.id], idempotencyKey: idempotencyKey("amend") }) }))} className="min-h-10 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] px-4 text-xs font-bold text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)] hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)] active:scale-[0.98] disabled:opacity-50">{t("amend")}</button>
                 </div>
               ) : null}
             </li>
@@ -186,8 +189,8 @@ function TaskChecklistPanel({ task, refresh }: { task: ClientInstallationTask; r
       </ul>
 
       {task.capabilities.canExecute ? (
-        <button type="button" disabled={busyKey !== null} onClick={() => void run(`task:${task.id}`, () => fetch(`/api/installations/tasks/${task.id}/complete`, { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": idempotencyKey("task") } }))} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[#B7D1EA] px-4 text-xs font-bold uppercase text-white shadow-sm transition hover:bg-[#A5C2DE] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">
-          {busyKey === `task:${task.id}` ? "Submitting task…" : "Complete task"}
+        <button type="button" disabled={busyKey !== null} onClick={() => void run(`task:${task.id}`, () => fetch(`/api/installations/tasks/${task.id}/complete`, { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": idempotencyKey("task") } }))} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-[var(--sd-radius-md)] bg-[var(--sd-blue-600)] px-4 text-xs font-bold uppercase text-white shadow-[var(--sd-shadow-1)] transition hover:bg-[var(--sd-blue-500)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
+          {busyKey === `task:${task.id}` ? t("submittingTask") : t("completeTask")}
         </button>
       ) : null}
     </div>
@@ -195,10 +198,13 @@ function TaskChecklistPanel({ task, refresh }: { task: ClientInstallationTask; r
 }
 
 export function ProjectTaskStepper({ installation, refresh }: { installation: ClientInstallationSnapshot | null; refresh: () => Promise<void> }) {
+  const t = useTranslations("ProjectTaskStepper");
+  const locale = useLocale();
+
   if (!installation) {
     return (
-      <div className="rounded-[24px] border border-dashed border-[#CBC7BE] bg-[#E6E3DC] p-6 text-center text-xs font-medium text-[#4E4B44]">
-        ไม่มีข้อมูลความคืบหน้าการติดตั้ง (No installation snapshot available)
+      <div className="rounded-[var(--sd-radius-lg)] border border-dashed border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-6 text-center text-sm font-medium text-[var(--sd-muted)]">
+        {t("noSnapshot")}
       </div>
     );
   }
@@ -209,42 +215,47 @@ export function ProjectTaskStepper({ installation, refresh }: { installation: Cl
   const canonicalItems = installation.tasks.flatMap((task) => task.checklist);
   const isCanonicalWorkflow = canonicalItems.length > 0;
   const legacyPizzaTrackerStages = [
-    { stage: 1, label: "ลงนามสัญญา", desc: "อนุมัติใบเสนอราคา", isDone: true },
-    { stage: 2, label: "ยื่นขออนุญาต", desc: "เอกสาร กฟน./กฟภ.", isDone: completed >= 1 },
-    { stage: 3, label: "จัดเตรียมอุปกรณ์", desc: "แผง & อินเวอร์เตอร์", isDone: completed >= 2 },
-    { stage: 4, label: "เข้าติดตั้งระบบ", desc: "เดินสายไฟ & โครงสร้าง", isDone: completed >= 3 },
-    { stage: 5, label: "ส่งมอบงาน", desc: "ทดสอบขนานไฟ & PDF", isDone: completed >= installation.tasks.length },
+    { stage: 1, label: t("legacyStages.contract.label"), desc: t("legacyStages.contract.description"), isDone: true },
+    { stage: 2, label: t("legacyStages.permit.label"), desc: t("legacyStages.permit.description"), isDone: completed >= 1 },
+    { stage: 3, label: t("legacyStages.equipment.label"), desc: t("legacyStages.equipment.description"), isDone: completed >= 2 },
+    { stage: 4, label: t("legacyStages.installation.label"), desc: t("legacyStages.installation.description"), isDone: completed >= 3 },
+    { stage: 5, label: t("legacyStages.handover.label"), desc: t("legacyStages.handover.description"), isDone: completed >= installation.tasks.length },
   ];
   const pizzaTrackerStages = isCanonicalWorkflow
     ? INSTALLATION_FIELD_STAGES.map((stage) => ({
       stage: stage.sequence,
-      label: stage.titleTh,
+      label: locale === "th" ? stage.titleTh : t(`stages.${stage.code}`),
       desc: stage.code.replaceAll("_", " "),
       isDone: canonicalItems.some((item) => (item.itemCode === stage.itemCode || stage.aliases.includes(item.itemCode)) && item.status.toUpperCase() === "VERIFIED"),
     }))
     : legacyPizzaTrackerStages;
   const currentStage = pizzaTrackerStages.find((stage) => !stage.isDone)?.stage ?? null;
   const permitStatus = installation.project.permitStatus.toUpperCase();
-  const permitLabel = permitStatus === "APPROVED" ? "Approved" : permitStatus === "SUBMITTED" ? "Submitted" : "Not started";
+  const permitLabel = permitStatus === "APPROVED"
+    ? t("permitStatus.approved")
+    : permitStatus === "SUBMITTED"
+      ? t("permitStatus.submitted")
+      : t("permitStatus.pending");
+  const progressValue = total > 0 ? t("progressComplete", { percent: progress }) : t("progressPending");
 
   return (
-    <section aria-labelledby="installation-progress-title" className="mt-6 rounded-[28px] border border-[#F7F6F3] bg-[#F0EEE9] p-5 sm:p-6 space-y-6 shadow-sm">
+    <section aria-labelledby="installation-progress-title" className="mt-6 space-y-6 rounded-[var(--sd-radius-lg)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-5 shadow-[var(--sd-shadow-1)] sm:p-6">
       {/* 5-Stage Solar Horizontal Panel Tracker UI */}
-      <div className="rounded-[24px] border border-[#F7F6F3] bg-[#E6E3DC] p-5 sm:p-6 space-y-4 shadow-sm">
+      <div className="space-y-4 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-5 shadow-[var(--sd-shadow-1)] sm:p-6">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-wider text-[#2E2C27]">
-            ☀️ สถานะการดำเนินงาน (Installation Lifecycle)
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--sd-ink)]">
+            {t("lifecycle")}
           </p>
-          <span className="text-xs font-mono font-bold text-[#2E2C27] bg-[#DCE8F5] px-3.5 py-1 rounded-full border border-[#CBC7BE]">
-            {progress}% COMPLETED
+          <span className="rounded-full border border-[var(--sd-line)] bg-[var(--sd-selected)] px-3.5 py-1 font-mono text-xs font-bold text-[var(--sd-ink)]">
+            {progressValue}
           </span>
         </div>
 
         {/* Horizontal Progress Line */}
         <div className="relative pt-2 pb-1">
-          <div className="absolute left-0 top-6 h-3 w-full bg-[#F7F6F3] rounded-full overflow-hidden">
+          <div className="absolute left-0 top-6 h-2.5 w-full overflow-hidden rounded-full bg-[var(--sd-line)]">
             <div
-              className="h-full bg-[#B7D1EA] transition-all duration-500 ease-expo"
+              className="h-full bg-[var(--sd-blue-500)] transition-all duration-500 ease-expo motion-reduce:transition-none"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -256,18 +267,18 @@ export function ProjectTaskStepper({ installation, refresh }: { installation: Cl
                   className={cn(
                     "flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold transition-all",
                     st.isDone
-                      ? "bg-[#B7D1EA] text-white shadow-sm"
+                      ? "bg-[var(--sd-blue-600)] text-white shadow-[var(--sd-shadow-1)]"
                       : st.stage === currentStage
-                        ? "border-2 border-[#7CA8D0] bg-[#DCE8F5] text-[#2E2C27] shadow-sm"
-                        : "border border-[#CBC7BE] bg-[#F0EEE9] text-[#8E8B83]",
+                        ? "border-2 border-[var(--sd-blue-600)] bg-[var(--sd-selected)] text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)]"
+                        : "border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] text-[var(--sd-muted)]",
                   )}
                 >
                   {st.isDone ? <Check className="h-4 w-4 stroke-[2.5]" /> : st.stage}
                 </div>
-                <p className={cn("max-w-full truncate px-1 text-[11px] leading-tight", st.isDone ? "font-bold text-[#2E2C27]" : st.stage === currentStage ? "font-bold text-[#2E2C27]" : "font-medium text-[#4E4B44]")}>
+                <p className={cn("max-w-full truncate px-1 text-[11px] leading-tight", st.isDone ? "font-bold text-[var(--sd-ink)]" : st.stage === currentStage ? "font-bold text-[var(--sd-ink)]" : "font-medium text-[var(--sd-muted)]")}>
                   {st.label}
                 </p>
-                <p className="text-[9px] font-medium text-[#8E8B83] hidden sm:block">
+                <p className="hidden text-[9px] font-medium text-[var(--sd-muted)] sm:block">
                   {st.desc}
                 </p>
               </div>
@@ -276,24 +287,24 @@ export function ProjectTaskStepper({ installation, refresh }: { installation: Cl
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[20px] border border-[#F7F6F3] bg-[#E6E3DC] px-4 py-3 text-xs font-medium text-[#4E4B44] shadow-sm">
-        <span className="font-bold text-[#2E2C27]">Permit</span>
-        <span className={cn("rounded-full px-3 py-0.5 text-xs font-bold uppercase", permitStatus === "APPROVED" ? "bg-emerald-100 text-emerald-800" : permitStatus === "SUBMITTED" ? "bg-amber-100 text-amber-800" : "bg-[#F0EEE9] text-[#4E4B44] border border-[#CBC7BE]")}>{permitLabel}</span>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-4 py-3 text-xs font-medium text-[var(--sd-muted)] shadow-[var(--sd-shadow-1)]">
+        <span className="font-bold text-[var(--sd-ink)]">{t("permit")}</span>
+        <span className={cn("rounded-full px-3 py-0.5 text-xs font-bold uppercase", permitStatus === "APPROVED" ? "bg-emerald-100 text-emerald-800" : permitStatus === "SUBMITTED" ? "bg-amber-100 text-amber-800" : "border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] text-[var(--sd-muted)]")}>{permitLabel}</span>
         {installation.project.permitAuthority ? <span>{installation.project.permitAuthority}</span> : null}
         {installation.project.permitApplicationNumber ? <span>{installation.project.permitApplicationNumber}</span> : null}
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-[#4F7FA8]">Installation project · {installation.actor.role}</p>
-          <h2 id="installation-progress-title" className="mt-1 text-lg font-bold uppercase text-[#2E2C27]">Project task progress</h2>
-          <p className="mt-1 text-xs font-medium text-[#4E4B44]">Live progress synchronized with the installation team.</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--sd-blue-600)]">{t("projectEyebrow", { role: installation.actor.role })}</p>
+          <h2 id="installation-progress-title" className="mt-1 text-lg font-bold uppercase text-[var(--sd-ink)]">{t("title")}</h2>
+          <p className="mt-1 text-xs font-medium text-[var(--sd-muted)]">{t("description")}</p>
         </div>
-        <p className="text-xs font-mono font-bold text-[#2E2C27] bg-[#DCE8F5] px-3.5 py-1 rounded-full border border-[#CBC7BE]">{completed}/{total} complete</p>
+        <p className="rounded-full border border-[var(--sd-line)] bg-[var(--sd-selected)] px-3.5 py-1 font-mono text-xs font-bold text-[var(--sd-ink)]">{total > 0 ? t("taskCount", { completed, total }) : t("progressPending")}</p>
       </div>
 
-      <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-[#F7F6F3]" aria-label={`${progress}% complete`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
-        <div className="h-full bg-[#B7D1EA] transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${progress}%` }} />
+      <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-[var(--sd-line)]" aria-label={progressValue} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-valuetext={progressValue}>
+        <div className="h-full bg-[var(--sd-blue-500)] transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${progress}%` }} />
       </div>
 
       <ol className="mt-6 space-y-0">
@@ -304,30 +315,30 @@ export function ProjectTaskStepper({ installation, refresh }: { installation: Cl
           const expands = task.capabilities.canExecute || task.capabilities.canReview || task.capabilities.canAmend;
           return (
             <li key={task.id} className="relative grid grid-cols-[44px_minmax(0,1fr)] gap-3 pb-6 last:pb-0">
-              {index < installation.tasks.length - 1 ? <span aria-hidden className={cn("absolute left-[21px] top-10 h-[calc(100%-1rem)] w-0.5", isComplete ? "bg-[#B7D1EA]" : "bg-[#F7F6F3]")} /> : null}
-              <span className={cn("relative z-10 flex h-11 w-11 items-center justify-center rounded-full transition-all", isComplete ? "bg-[#B7D1EA] text-white shadow-sm" : isActive ? "border-2 border-[#7CA8D0] bg-[#DCE8F5] text-[#2E2C27] shadow-sm" : "border border-[#CBC7BE] bg-[#F0EEE9] text-[#8E8B83]")}>
-                {isComplete ? <Check className="h-5 w-5 stroke-[2.5]" aria-hidden /> : isActive ? <Clock3 className="h-5 w-5 stroke-[2.5] text-[#4F7FA8]" aria-hidden /> : <Circle className="h-4 w-4 stroke-[2]" aria-hidden />}
+              {index < installation.tasks.length - 1 ? <span aria-hidden className={cn("absolute left-[21px] top-10 h-[calc(100%-1rem)] w-0.5", isComplete ? "bg-[var(--sd-blue-500)]" : "bg-[var(--sd-line)]")} /> : null}
+              <span className={cn("relative z-10 flex h-11 w-11 items-center justify-center rounded-full transition-all", isComplete ? "bg-[var(--sd-blue-600)] text-white shadow-[var(--sd-shadow-1)]" : isActive ? "border-2 border-[var(--sd-blue-600)] bg-[var(--sd-selected)] text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)]" : "border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] text-[var(--sd-muted)]")}>
+                {isComplete ? <Check className="h-5 w-5 stroke-[2.5]" aria-hidden /> : isActive ? <Clock3 className="h-5 w-5 stroke-[2.5] text-[var(--sd-blue-600)]" aria-hidden /> : <Circle className="h-4 w-4 stroke-[2]" aria-hidden />}
               </span>
-              <div className="min-w-0 rounded-[24px] border border-[#F7F6F3] bg-[#E6E3DC] p-5 shadow-sm">
+              <div className="min-w-0 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-5 shadow-[var(--sd-shadow-1)]">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <p className="text-sm font-bold text-[#2E2C27] uppercase">{task.title}</p>
-                    <p className="mt-1 text-xs font-mono font-medium text-[#4E4B44]">{task.taskCode.replaceAll("_", " ")}</p>
+                    <p className="text-sm font-bold uppercase text-[var(--sd-ink)]">{task.title}</p>
+                    <p className="mt-1 font-mono text-xs font-medium text-[var(--sd-muted)]">{task.taskCode.replaceAll("_", " ")}</p>
                   </div>
-                  <span className={cn("rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide", isComplete ? "bg-emerald-100 text-emerald-800" : isActive ? "bg-[#DCE8F5] text-[#4F7FA8]" : "bg-[#F0EEE9] border border-[#CBC7BE] text-[#8E8B83]")}>
-                    {isComplete ? "Completed" : isActive ? "In progress" : "Locked"}
+                  <span className={cn("rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide", isComplete ? "bg-emerald-100 text-emerald-800" : isActive ? "bg-[var(--sd-selected)] text-[var(--sd-blue-600)]" : "border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] text-[var(--sd-muted)]")}>
+                    {isComplete ? t("status.completed") : isActive ? t("status.inProgress") : t("status.locked")}
                   </span>
                 </div>
                 {expands ? <TaskChecklistPanel task={task} refresh={refresh} /> : task.checklist.length > 0 ? (
-                  <ul className="mt-4 space-y-2 border-t border-[#F7F6F3] pt-3">
+                  <ul className="mt-4 space-y-2 border-t border-[var(--sd-line)] pt-3">
                     {task.checklist.map((item) => (
-                      <li key={item.id} className="flex min-h-11 items-start gap-3 text-xs font-medium text-[#2E2C27]">
-                        {item.status === "VERIFIED" ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#4F7FA8] stroke-[2.5]" /> : <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-[#8E8B83]" />}
+                      <li key={item.id} className="flex min-h-11 items-start gap-3 text-xs font-medium text-[var(--sd-ink)]">
+                        {item.status === "VERIFIED" ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sd-success)] stroke-[2.5]" /> : <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sd-muted)]" />}
                         <span className="min-w-0 flex-1">
                           {item.label}
                           {item.outcome ? <span className={cn("ml-2 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase", item.outcome === "FAIL" ? "bg-rose-100 text-rose-800" : "bg-emerald-100 text-emerald-800")}>{item.outcome}</span> : null}
-                          {item.remarks ? <span className="mt-1 block text-xs text-[#4E4B44]">{item.remarks}</span> : null}
-                          {item.verifiedAt ? <span className="mt-1 block text-[10px] font-mono text-[#8E8B83]">Verified {new Date(item.verifiedAt).toLocaleString()}{item.verifiedByUserId ? ` by ${item.verifiedByUserId}` : ""}</span> : null}
+                          {item.remarks ? <span className="mt-1 block text-xs text-[var(--sd-muted)]">{item.remarks}</span> : null}
+                          {item.verifiedAt ? <span className="mt-1 block font-mono text-[10px] text-[var(--sd-muted)]">{t("verified")} {new Date(item.verifiedAt).toLocaleString(locale === "th" ? "th-TH" : "en-US")}{item.verifiedByUserId ? ` ${t("by", { id: item.verifiedByUserId })}` : ""}</span> : null}
                         </span>
                       </li>
                     ))}

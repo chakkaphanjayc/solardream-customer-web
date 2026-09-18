@@ -5,7 +5,6 @@ import { Check } from "@/components/ui/icons";
 import { Component } from "@/types";
 import { cn, formatPrice } from "@/lib/utils";
 import { useConfiguratorStore } from "@/store/useConfiguratorStore";
-import { useCurrencyStore } from "@/store/useCurrencyStore";
 import { GsapReveal } from "@/components/ui/GsapMotion";
 import { useTranslations } from "next-intl";
 
@@ -16,7 +15,6 @@ interface ComponentCardProps {
 export default function ComponentCard({ component }: ComponentCardProps) {
   const t = useTranslations("ConfiguratorComponentCard");
   const { selectedComponents, selectComponent } = useConfiguratorStore();
-  const activeCurrency = useCurrencyStore((state) => state.currency);
   const isSelected = selectedComponents[component.category]?.id === component.id;
 
   return (

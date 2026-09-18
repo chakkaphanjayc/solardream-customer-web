@@ -1,17 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  AlertCircle,
-  Calendar,
-  Check,
   CheckCircle2,
   Clock,
-  FileCheck,
   FileText,
   Globe,
   LoaderCircle,
-  Lock,
   MessageSquare,
   Send,
   ShieldCheck,
@@ -63,12 +58,26 @@ function calculateExpiryDate(days: number): string {
 }
 
 export default function PrepareSigningDispatchModal({
-  isOpen,
+  ...props
+}: PrepareSigningDispatchModalProps) {
+  if (!props.isOpen) return null;
+
+  const configKey = JSON.stringify({
+    expiresInDays: props.initialConfig?.expiresInDays ?? 14,
+    locale: props.initialConfig?.locale ?? "th",
+    requireIdUpload: props.initialConfig?.requireIdUpload ?? false,
+    requireDeposit: props.initialConfig?.requireDeposit ?? false,
+    customNote: props.initialConfig?.customNote ?? "",
+  });
+
+  return <PrepareSigningDispatchModalContent key={configKey} {...props} />;
+}
+
+function PrepareSigningDispatchModalContent({
   onClose,
   quotationNumber,
   version = 1,
   customerName,
-  customerEmail,
   totalPrice,
   initialConfig,
   onConfirmDispatch,
@@ -79,18 +88,6 @@ export default function PrepareSigningDispatchModal({
   const [requireIdUpload, setRequireIdUpload] = useState(initialConfig?.requireIdUpload ?? false);
   const [requireDeposit, setRequireDeposit] = useState(initialConfig?.requireDeposit ?? false);
   const [customNote, setCustomNote] = useState(initialConfig?.customNote ?? "");
-
-  useEffect(() => {
-    if (isOpen) {
-      setExpiresInDays(initialConfig?.expiresInDays ?? 14);
-      setLocale(initialConfig?.locale ?? "th");
-      setRequireIdUpload(initialConfig?.requireIdUpload ?? false);
-      setRequireDeposit(initialConfig?.requireDeposit ?? false);
-      setCustomNote(initialConfig?.customNote ?? "");
-    }
-  }, [isOpen, initialConfig]);
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

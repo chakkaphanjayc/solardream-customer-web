@@ -99,7 +99,7 @@ export default function EditorialProjects({ locale, projects, labels }: Editoria
 
   return (
     <>
-      <div className={styles.projectGrid} aria-label={labels.viewAll}>
+      <div className={styles.projectGrid} role="group" aria-label={labels.viewAll}>
         {projects.map((project, index) => {
           const imageAlt = getImageAlt(labels.imageAlt, project.title);
           const isLoading = loadingProjectId === project.id;

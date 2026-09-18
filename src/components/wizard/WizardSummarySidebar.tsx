@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { X, Zap } from "@/components/ui/icons";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 
 interface WizardSummarySidebarProps {
   title: string;
@@ -17,6 +18,8 @@ interface WizardSummarySidebarProps {
   monthlySavings: ReactNode;
   requestQuoteLabel: string;
   onRequestQuote: () => void;
+  soliaMessage?: ReactNode;
+  soliaAlt?: string;
   children: ReactNode;
 }
 
@@ -34,6 +37,8 @@ export function WizardSummarySidebar({
   monthlySavings,
   requestQuoteLabel,
   onRequestQuote,
+  soliaMessage,
+  soliaAlt,
   children,
 }: WizardSummarySidebarProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -72,27 +77,27 @@ export function WizardSummarySidebar({
 
   const summaryMetrics = (
     <>
-      <div className="solar-summary-sidebar-metric min-w-0 rounded-[18px] px-3 py-2 bg-[#E6E3DC] border border-[#F7F6F3]">
-        <p className="truncate text-[8.5px] sm:text-[9px] font-bold uppercase leading-tight tracking-[0.06em] text-[#4E4B44]">
+      <div className="solar-ui-metric solar-summary-sidebar-metric min-w-0 rounded-[var(--sd-radius-sm)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] px-3 py-2">
+        <p className="truncate text-[8.5px] font-bold uppercase leading-tight tracking-[0.06em] text-[var(--sd-muted)] sm:text-[9px]">
           {systemSizeLabel}
         </p>
-        <p className="mt-0.5 sm:mt-1 truncate text-xs font-bold leading-tight text-[#2E2C27] sm:text-sm md:text-base">
+        <p className="mt-0.5 truncate text-xs font-bold leading-tight text-[var(--sd-ink)] sm:mt-1 sm:text-sm md:text-base">
           {systemSize}
         </p>
       </div>
-      <div className="solar-summary-sidebar-metric min-w-0 rounded-[18px] px-3 py-2 bg-[#DCE8F5] border border-[#A5C2DE]/40">
-        <p className="truncate text-[8.5px] sm:text-[9px] font-bold uppercase leading-tight tracking-[0.06em] text-[#4F7FA8]">
+      <div className="solar-ui-metric solar-summary-sidebar-metric min-w-0 rounded-[var(--sd-radius-sm)] border border-[var(--sd-line)] bg-[var(--sd-selected)] px-3 py-2">
+        <p className="truncate text-[8.5px] font-bold uppercase leading-tight tracking-[0.06em] text-[var(--sd-navy-900)] sm:text-[9px]">
           {totalInvestmentLabel}
         </p>
-        <p className="mt-0.5 sm:mt-1 truncate text-xs font-black leading-tight text-[#2E2C27] sm:text-sm md:text-base">
+        <p className="mt-0.5 truncate text-xs font-black leading-tight text-[var(--sd-ink)] sm:mt-1 sm:text-sm md:text-base">
           {totalPrice}
         </p>
       </div>
-      <div className="solar-summary-sidebar-metric min-w-0 rounded-[18px] px-3 py-2 bg-[#E6E3DC] border border-[#F7F6F3]">
-        <p className="truncate text-[8.5px] sm:text-[9px] font-bold uppercase leading-tight tracking-[0.06em] text-[#4E4B44]">
+      <div className="solar-ui-metric solar-summary-sidebar-metric min-w-0 rounded-[var(--sd-radius-sm)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] px-3 py-2">
+        <p className="truncate text-[8.5px] font-bold uppercase leading-tight tracking-[0.06em] text-[var(--sd-muted)] sm:text-[9px]">
           {monthlySavingsLabel}
         </p>
-        <p className="mt-0.5 sm:mt-1 truncate text-xs font-bold leading-tight text-[#2E2C27] sm:text-sm md:text-base">
+        <p className="mt-0.5 truncate text-xs font-bold leading-tight text-[var(--sd-ink)] sm:mt-1 sm:text-sm md:text-base">
           {monthlySavings}
         </p>
       </div>
@@ -112,37 +117,50 @@ export function WizardSummarySidebar({
 
       <aside
         id="wizard-summary-details"
-        data-bagui="sidebar"
+        data-bagui="live-plan"
+        data-solar-component="interactive-live-plan"
         aria-label={title}
         aria-hidden={!isPanelInteractive}
         inert={!isPanelInteractive}
-        className={`solar-summary-sidebar order-first fixed inset-x-0 bottom-0 z-[60] flex h-[min(88dvh,780px)] max-h-[88dvh] w-full min-w-0 flex-col overflow-hidden rounded-t-[28px] border-t border-[#F7F6F3] bg-[#F0EEE9] transition-transform duration-300 ease-[cubic-bezier(0.19,1,0.22,1)] shadow-2xl ${
+        className={`solar-ui-panel solar-summary-sidebar order-first fixed inset-x-0 bottom-0 z-[60] flex h-[min(88dvh,780px)] max-h-[88dvh] w-full min-w-0 flex-col overflow-hidden rounded-t-[var(--sd-radius-panel)] border-t border-[var(--sd-line)] bg-[var(--sd-raised)] shadow-[var(--sd-shadow-4)] transition-transform duration-300 ease-[cubic-bezier(0.19,1,0.22,1)] ${
           isMobileOpen
             ? "translate-y-0 pointer-events-auto"
             : "translate-y-full pointer-events-none"
         } lg:order-last lg:z-auto lg:sticky lg:top-[72px] lg:h-[calc(100dvh-72px)] lg:max-h-[calc(100dvh-72px)] lg:w-full lg:max-w-none lg:translate-y-0 lg:pointer-events-auto`}
       >
-        <header className="solar-summary-sidebar-header sticky top-0 z-10 flex shrink-0 items-start justify-between gap-3 border-b border-[#F7F6F3] bg-[#F0EEE9] px-4 py-3.5 sm:px-6 sm:py-4">
+        <header className="solar-summary-sidebar-header sticky top-0 z-10 flex shrink-0 items-start justify-between gap-3 border-b border-[var(--sd-line)] bg-[var(--sd-raised)] px-4 py-3.5 sm:px-6 sm:py-4">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#4F7FA8]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--sd-blue-600)]">
               {liveLabel}
             </p>
-            <h2 className="font-serif mt-1 text-lg font-bold leading-tight text-[#2E2C27] sm:text-xl">
+            <h2 className="mt-1 font-serif text-lg font-bold leading-tight text-[var(--sd-ink)] sm:text-xl">
               {title}
             </h2>
-            <p className="mt-1 text-sm font-medium leading-5 text-[#4E4B44]">
+            <p className="mt-1 text-sm font-medium leading-5 text-[var(--sd-text)]">
               {description}
             </p>
+            {soliaMessage && soliaAlt ? (
+              <SoliaGuide
+                className="solar-summary-solia mt-3"
+                imageClassName="object-contain"
+                imageSizes="112px"
+                pose="blueprint"
+                size="compact"
+                alt={soliaAlt}
+                message={soliaMessage}
+                speechBubbleClassName="solar-summary-solia-callout"
+              />
+            ) : null}
           </div>
           <div className="flex shrink-0 items-start gap-2">
-            <span className="solar-summary-sidebar-live px-3 py-1 rounded-full bg-[#DCE8F5] text-[#2E2C27] text-[9px] font-bold uppercase tracking-wide">
-              Live
+            <span className="solar-ui-status solar-summary-sidebar-live px-3 py-1 text-[9px] uppercase tracking-wide" data-tone="success">
+              {liveLabel}
             </span>
             <button
               type="button"
               onClick={() => setIsMobileOpen(false)}
               aria-label={closeDetailsLabel}
-              className="solar-summary-sidebar-close inline-flex size-10 items-center justify-center rounded-full text-[#4E4B44] hover:bg-[#E6E3DC] hover:text-[#2E2C27] transition-colors sm:size-11 lg:hidden active:scale-95"
+              className="solar-summary-sidebar-close inline-flex size-10 items-center justify-center rounded-full text-[var(--sd-muted)] transition-colors hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)] active:scale-95 sm:size-11 lg:hidden"
             >
               <X className="size-5" aria-hidden="true" />
             </button>
@@ -153,7 +171,7 @@ export function WizardSummarySidebar({
           {children}
         </div>
 
-        <footer className="solar-summary-sidebar-footer sd-safe-pb-3-max sticky bottom-0 z-10 shrink-0 border-t border-[#F7F6F3] bg-[#F0EEE9] px-4 py-3 sm:px-6 sm:py-4">
+        <footer className="solar-summary-sidebar-footer sd-safe-pb-3-max sticky bottom-0 z-10 shrink-0 border-t border-[var(--sd-line)] bg-[var(--sd-raised)] px-4 py-3 sm:px-6 sm:py-4">
           <div className="grid grid-cols-3 gap-2">
             {summaryMetrics}
           </div>
@@ -161,7 +179,7 @@ export function WizardSummarySidebar({
             <button
               type="button"
               onClick={handleRequestQuote}
-              className="wizard-ui-primary min-h-11 sm:min-h-12 w-full rounded-full bg-[#B7D1EA] hover:bg-[#A5C2DE] text-white px-4 py-3 text-xs font-bold uppercase tracking-wider sm:text-sm cursor-pointer active:scale-95 shadow-md flex items-center justify-center gap-2"
+              className="solar-ui-primary wizard-ui-primary min-h-11 sm:min-h-12 w-full rounded-full px-4 py-3 text-xs font-bold uppercase tracking-wider sm:text-sm cursor-pointer active:scale-95 shadow-md flex items-center justify-center gap-2"
             >
               <Zap className="size-4 shrink-0 fill-current text-white" aria-hidden="true" />
               <span>{requestQuoteLabel}</span>
@@ -170,7 +188,7 @@ export function WizardSummarySidebar({
         </footer>
       </aside>
 
-      <div className="solar-summary-mobile-bar sd-safe-pb-2-max fixed inset-x-0 bottom-0 z-50 border-t border-[#F7F6F3] bg-[#F0EEE9]/95 backdrop-blur-md px-3 pt-2 lg:hidden shadow-lg">
+      <div className="solar-summary-mobile-bar sd-safe-pb-2-max fixed inset-x-0 bottom-0 z-50 border-t border-[var(--sd-line)] bg-[var(--sd-raised)] px-3 pt-2 shadow-[var(--sd-shadow-3)] lg:hidden">
         <div className="mx-auto w-full max-w-7xl">
           <div className="grid grid-cols-3 gap-1.5">
             {summaryMetrics}
@@ -181,14 +199,14 @@ export function WizardSummarySidebar({
               onClick={() => setIsMobileOpen(true)}
               aria-controls="wizard-summary-details"
               aria-expanded={isMobileOpen}
-              className="solar-summary-mobile-details min-h-11 rounded-full px-3 py-2 text-xs font-bold leading-tight text-[#2E2C27] border border-[#CBC7BE] bg-[#F0EEE9] transition-all hover:bg-[#E6E3DC] active:scale-95 truncate"
+              className="solar-ui-secondary solar-summary-mobile-details min-h-11 rounded-full px-3 py-2 text-xs font-bold leading-tight truncate"
             >
               {detailsLabel}
             </button>
             <button
               type="button"
               onClick={handleRequestQuote}
-              className="wizard-ui-primary min-h-11 rounded-full bg-[#B7D1EA] hover:bg-[#A5C2DE] text-white px-3 py-2 text-xs font-bold leading-tight flex items-center justify-center gap-1.5 truncate cursor-pointer active:scale-95 shadow-md"
+              className="solar-ui-primary wizard-ui-primary min-h-11 rounded-full px-3 py-2 text-xs font-bold leading-tight flex items-center justify-center gap-1.5 truncate cursor-pointer active:scale-95 shadow-md"
             >
               <Zap className="size-3.5 shrink-0 fill-current text-white" aria-hidden="true" />
               <span className="truncate">{requestQuoteLabel}</span>

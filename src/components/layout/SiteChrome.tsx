@@ -79,14 +79,14 @@ export default function SiteChrome({
         <GlobalBanner initialData={initialGlobalBanner} />
       )}
       {routePolicy.showNavigation && !routePolicy.isHome && (
-        <header
+        <div
           data-site-header
           className="layer-chrome pointer-events-none fixed inset-x-0 top-0 z-[var(--layer-chrome)]"
         >
           <div className="pointer-events-auto">
             <Navbar forumUrl={forumUrl} navigationItems={navigationItems} />
           </div>
-        </header>
+        </div>
       )}
 
       <main

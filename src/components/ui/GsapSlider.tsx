@@ -15,6 +15,7 @@ export interface GsapSliderProps {
   className?: string;
   disabled?: boolean;
   unit?: string;
+  ariaLabel?: string;
 }
 
 export default function GsapSlider({
@@ -28,6 +29,7 @@ export default function GsapSlider({
   className,
   disabled = false,
   unit = "kWp",
+  ariaLabel,
 }: GsapSliderProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -221,6 +223,7 @@ export default function GsapSlider({
         aria-valuemax={max}
         aria-valuenow={value}
         aria-valuetext={formattedDisplay}
+        aria-label={ariaLabel}
         className="sr-only"
       />
 

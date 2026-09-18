@@ -5,20 +5,25 @@ import { getMyInstalledAssets } from "@/app/actions/afterSales";
 import MyAssetsClient from "./MyAssetsClient";
 import { PageShell } from "@/components/ui/page-shell";
 
+export const instant = false;
+
 
 function getQueryValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
 export default async function MyAssetsPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const { locale } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) redirect(`/${locale}/login`);
 
   const [purchasedResult, installedResult] = await Promise.all([
     getMyPurchasedProducts(),
@@ -31,7 +36,7 @@ export default async function MyAssetsPage({
   const systemId = getQueryValue(query.systemId)?.trim() || "";
 
   return (
-    <PageShell className="bg-background px-4 py-8 md:px-8">
+    <PageShell className="px-4 pb-20 pt-20 text-[var(--sd-ink)] sm:px-6 sm:pt-24 md:px-8 md:pt-28">
       <MyAssetsClient
         initialAssets={purchasedResult.success ? purchasedResult.assets || [] : []}
         initialInstalledAssets={installedResult.success ? installedResult.assets || [] : []}

@@ -35,6 +35,8 @@ interface KnowledgePageProps {
   searchParams: Promise<{ q?: string | string[] }>;
 }
 
+export const instant = false;
+
 function isIconType(value: unknown): value is IconType {
   return typeof value === "function";
 }

@@ -131,7 +131,7 @@ export default function WarrantyCardClient() {
 
   if (loading) {
     return (
-      <main
+      <div
         data-bagui="page"
         data-solar-surface="atelier"
         className="solar-warranty-portal min-h-dvh px-4 py-8 md:px-8"
@@ -141,13 +141,13 @@ export default function WarrantyCardClient() {
           <div className="solar-warranty-skeleton h-80 rounded-[1.5rem]" />
           <div className="solar-warranty-skeleton h-56 rounded-[1.5rem]" />
         </div>
-      </main>
+      </div>
     );
   }
 
   if (error || !card) {
     return (
-      <main
+      <div
         data-bagui="page"
         data-solar-surface="atelier"
         className="solar-warranty-portal grid min-h-dvh place-items-center px-5 py-12"
@@ -164,7 +164,7 @@ export default function WarrantyCardClient() {
             {t("backToAssets")}
           </Link>
         </section>
-      </main>
+      </div>
     );
   }
 
@@ -172,7 +172,7 @@ export default function WarrantyCardClient() {
   const progress = Math.min(100, Math.max(0, card.warranty.daysRemaining / 730 * 100));
 
   return (
-    <main
+    <div
       data-bagui="page"
       data-solar-surface="atelier"
       className="solar-warranty-portal min-h-dvh px-4 py-6 md:px-8 md:py-10"
@@ -370,6 +370,6 @@ export default function WarrantyCardClient() {
           </div>
         </section>
       </div>
-    </main>
+    </div>
   );
 }

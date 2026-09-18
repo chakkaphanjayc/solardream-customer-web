@@ -45,7 +45,7 @@ export function SolarNextSteps({
       <ol className="mt-5 grid gap-4 md:grid-cols-3 md:gap-3">
         {steps.map((step, index) => (
           <li key={step.title} className="relative flex gap-3 md:block">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#B7D1EA] text-xs font-black text-white md:mb-3 shadow-xs">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--sd-navy-900)] text-xs font-black text-white md:mb-3 shadow-xs">
               {index + 1}
             </span>
             <div className="min-w-0">

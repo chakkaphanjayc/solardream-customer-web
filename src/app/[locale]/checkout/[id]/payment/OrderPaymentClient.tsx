@@ -31,6 +31,8 @@ import { buildPromptPayPayload } from "@/lib/promptpay";
 import ProgressiveImage from "@/components/ui/progressive-image";
 import { GsapPulse, GsapReveal, GsapSpinner } from "@/components/ui/GsapMotion";
 import SmartBackButton from "@/components/ui/SmartBackButton";
+import { SolarStatePanel } from "@/components/ui/solar-system";
+import { useTranslations } from "next-intl";
 
 // Load InstallationMapPicker dynamically with SSR disabled due to Leaflet window requirement
 const InstallationMapPicker = dynamic(
@@ -75,7 +77,7 @@ interface PaymentMilestone {
 
 interface ActivePaymentRequest {
   id: string;
-  amountRequested: number;
+  amountRequested: number | null;
   title: string;
 }
 
@@ -119,8 +121,13 @@ interface OrderPaymentClientProps {
     id: string;
     qrString: string;
     expiresAt: string;
-    amount: number;
+    amount: number | null;
   } | null;
+}
+
+function toPositiveAmount(value: number | string | null | undefined): number | null {
+  const parsed = typeof value === "number" ? value : Number(String(value ?? "").replace(/,/g, ""));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
 export default function OrderPaymentClient({
@@ -136,6 +143,7 @@ export default function OrderPaymentClient({
   paymentSession,
 }: OrderPaymentClientProps) {
   const router = useRouter();
+  const t = useTranslations("OrderPayment");
   const [isPending, startTransition] = useTransition();
   const mounted = useSyncExternalStore(
     subscribeToHydration,
@@ -240,15 +248,16 @@ export default function OrderPaymentClient({
 
   // Find active milestone
   const activeMilestone = milestones.find((m) => m.status === "ACTIVE");
-  const activeAmount =
+  const rawActiveAmount =
     activePaymentRequest
       ? activePaymentRequest.amountRequested
       : (paymentSession?.amount ??
-         (activeMilestone ? Number(activeMilestone.amount) : 0));
+         (activeMilestone?.amount ?? null));
+  const activeAmount = toPositiveAmount(rawActiveAmount);
 
   const promptpayPayload =
     paymentSession?.qrString ||
-    buildPromptPayPayload(activeAmount);
+    (activeAmount !== null ? buildPromptPayPayload(activeAmount) : null);
 
   const handlePaymentConfirmed = useCallback(() => {
     if (paymentVerificationState === "SUCCESS") return;
@@ -316,7 +325,11 @@ export default function OrderPaymentClient({
     };
   }, [activePaymentRequest, handlePaymentConfirmed, paymentVerificationState, locale]);
 
-  const formatMoney = (value: number) => {
+  const formatMoney = (value: number | null) => {
+    if (value === null || !Number.isFinite(value) || value <= 0) {
+      return t("amountPending");
+    }
+
     return value.toLocaleString("th-TH", {
       style: "currency",
       currency: "THB",
@@ -588,9 +601,13 @@ export default function OrderPaymentClient({
   // Prevent SSR hydration checks from crashing map picker
   if (!mounted) {
     return (
-      <div className="flex justify-center items-center py-20 bg-transparent">
-        <GsapSpinner className="w-10 h-10 text-[#B7D1EA]" />
-      </div>
+      <SolarStatePanel
+        kind="loading"
+        title={t("loadingTitle")}
+        description={t("loadingDescription")}
+        soliaAlt={t("loadingSoliaAlt")}
+        className="my-8"
+      />
     );
   }
 
@@ -603,14 +620,14 @@ export default function OrderPaymentClient({
           <GsapSpinner className="w-16 h-16 text-[#B7D1EA] mb-4" />
           <h2 className="text-xl font-black text-white tracking-wider text-center px-4">
             {isWaitingSignature
-              ? "กำลังประมวลผลข้อมูลเอกสารและลงนามสัญญา..."
+              ? t("processingSignature")
               : paymentVerificationState === "LEDGER"
-                ? locale === "th" ? "กำลังอัปเดตบัญชีการชำระเงิน..." : "Updating Payment Ledger..."
-                : locale === "th" ? "กำลังตรวจสอบสลิปกับธนาคาร..." : "Validating slip with Bank..."
+                ? t("updatingLedger")
+                : t("validatingSlip")
             }
           </h2>
           <p className="text-xs text-slate-350 font-semibold tracking-wide mt-2 text-center px-4">
-            กรุณาอย่าปิดหรือรีเฟรชหน้าจอนี้ ระบบกำลังทำรายการอย่างปลอดภัย
+            {t("safeProcessing")}
           </p>
         </GsapReveal>
       )}
@@ -622,12 +639,10 @@ export default function OrderPaymentClient({
                 <CheckCircle2 className="h-10 w-10" />
               </span>
               <h2 className="mt-5 text-3xl font-black text-slate-950">
-                {locale === "th" ? "ชำระเงินสำเร็จ" : "Payment Successful"}
+                {t("successTitle")}
               </h2>
               <p className="mt-2 text-sm font-medium leading-6 text-slate-600">
-                {locale === "th"
-                  ? "กำลังเปิดศูนย์ติดตามโครงการของคุณ"
-                  : "Opening your Project Hub now."}
+                {t("successDescription")}
               </p>
             </div>
           </GsapSuccessOverlay>
@@ -636,37 +651,37 @@ export default function OrderPaymentClient({
       {/* Shared Portal Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div className="space-y-1">
-          <SmartBackButton fallbackHref="/proposals" label="ย้อนกลับไปยังข้อเสนอ" />
+          <SmartBackButton fallbackHref="/proposals" label={t("back")} />
           <h1 className="text-3xl font-black tracking-tight text-slate-900 font-sans">
             {activePaymentRequest ? (
-              <>ชำระเงินตามคำขอพิเศษ <span className="text-[#2C486A]">Custom Payment Request</span></>
+              t("headings.custom")
             ) : isSupplyOnly ? (
-              <>ชำระเงินค่าสินค้า <span className="text-[#2C486A]">Direct Checkout</span></>
+              t("headings.direct")
             ) : isUnderSurvey ? (
-              <>สถานะโครงการจัดเตรียมงาน <span className="text-[#2C486A]">Site Survey Status</span></>
+              t("headings.survey")
             ) : isWaitingSignature ? (
-              <>ยืนยันลายมือชื่อและเอกสารจัดจ้าง <span className="text-[#2C486A]">Contract Approval</span></>
+              t("headings.contract")
             ) : (
-              <>การชำระเงินตามงวดงาน <span className="text-[#2C486A]">Milestone Payments</span></>
+              t("headings.milestones")
             )}
           </h1>
           <p className="text-slate-500 text-xs mt-1 uppercase font-black tracking-widest leading-relaxed">
             {activePaymentRequest
-              ? "Please complete the custom payment request generated by the project administrator."
+              ? t("descriptions.custom")
               : isSupplyOnly 
-              ? "Please complete the payment within the time window to secure inventory stock."
+              ? t("descriptions.direct")
               : isUnderSurvey
-              ? "We are preparing engineer scheduling for your home solar project."
+              ? t("descriptions.survey")
               : isWaitingSignature
-              ? "Verify materials configuration, pin installation point, and sign proposal contract."
-              : "Complete split-payments sequentially to advance project milestones."
+              ? t("descriptions.contract")
+              : t("descriptions.milestones")
             }
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 bg-[#F5F2EB] border border-slate-200 px-4 py-2.5 rounded-2xl text-[10px] font-mono font-black uppercase text-slate-650 self-start sm:self-auto shadow-xs">
           <ShieldCheck className="w-4 h-4 text-emerald-500" />
-          <span>SSL Secured Transaction</span>
+          <span>{t("secureTransaction")}</span>
         </div>
       </div>
 
@@ -689,7 +704,7 @@ export default function OrderPaymentClient({
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div className="solar-route-card rounded-[2rem] border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 bg-[#F5F2EB]/50">
               <div className="space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-wider text-[#2C486A]">
@@ -824,7 +839,7 @@ export default function OrderPaymentClient({
                   กรุณาชำระเงินภายใน {formatTimer(timeLeft)} นาทีเพื่อล็อกสต็อกสินค้า
                 </p>
                 <p className="text-[10px] text-amber-700/80 font-bold tracking-wide mt-0.5">
-                  If the timer expires, stock holds will release automatically.
+                  {t("stockHoldRelease")}
                 </p>
               </div>
             </div>
@@ -833,7 +848,7 @@ export default function OrderPaymentClient({
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div className="solar-route-card rounded-[2rem] border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 bg-[#F5F2EB]/50">
               <div className="space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-wider text-[#2C486A]">
@@ -960,7 +975,7 @@ export default function OrderPaymentClient({
           
           {/* Subcase 2.1: PENDING_SALES_REVIEW, WAITING_SURVEY or BOM_ADJUSTING status board (Under Survey) */}
           {isUnderSurvey && (
-            <div className="rounded-3xl border border-amber-250 bg-[#F1D6B8]/10 p-8 sm:p-12 text-center shadow-xs max-w-2xl mx-auto space-y-6">
+            <div className="solar-route-card rounded-3xl border border-amber-250 bg-[#F1D6B8]/10 p-8 sm:p-12 text-center shadow-xs max-w-2xl mx-auto space-y-6">
               <div className="mx-auto w-16 h-16 rounded-full bg-[#F1D6B8]/20 flex items-center justify-center text-amber-800">
                 <GsapSlowRotate>
                   <Clock className="w-8 h-8" />
@@ -995,7 +1010,7 @@ export default function OrderPaymentClient({
             <div className="space-y-8">
               
               {/* 1. Live Dynamic Quote Materials Card */}
-              <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="solar-route-card rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                 <div className="p-6 bg-[#F5F2EB]/50 border-b border-slate-100">
                   <h3 className="text-base font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                     <FileText className="w-5 h-5 text-[#2C486A]" />
@@ -1033,11 +1048,12 @@ export default function OrderPaymentClient({
                               : typeof item.qty === "number"
                                 ? item.qty
                                 : 1;
-                            const price = typeof item.unitPrice === "number"
+                            const priceValue = typeof item.unitPrice === "number"
                               ? item.unitPrice
                               : typeof item.price === "number"
                                 ? item.price
-                                : 0;
+                                : null;
+                            const price = toPositiveAmount(priceValue);
                             const itemKey = typeof item.id === "string" && item.id.trim()
                               ? item.id
                               : typeof item.productId === "string" && item.productId.trim()
@@ -1048,7 +1064,7 @@ export default function OrderPaymentClient({
                                 <td className="py-3 font-bold text-slate-800 pr-4">{name}</td>
                                 <td className="py-3 text-center font-mono">{qty}</td>
                                 <td className="py-3 text-right font-mono">{formatMoney(price)}</td>
-                                <td className="py-3 text-right font-mono font-bold text-slate-900">{formatMoney(price * qty)}</td>
+                                <td className="py-3 text-right font-mono font-bold text-slate-900">{formatMoney(price === null ? null : price * qty)}</td>
                               </tr>
                             );
                           })}
@@ -1068,7 +1084,7 @@ export default function OrderPaymentClient({
                     <div className="text-right">
                       <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">ยอดงวดรวมจัดจ้างโครงการ (Grand Total)</span>
                       <h4 className="text-2xl font-black text-[#D8A87B] font-mono tracking-tight mt-0.5">
-                        {formatMoney(activeAmount || 0)}
+                        {formatMoney(activeAmount)}
                       </h4>
                     </div>
                   </div>
@@ -1315,7 +1331,7 @@ export default function OrderPaymentClient({
                     {stepMarker}
 
                     <div
-                      className={`rounded-[2rem] border transition-all ${
+                      className={`solar-route-card rounded-[2rem] border transition-all ${
                         isPaid
                           ? "border-slate-200 bg-[#F0EEE9]/15 opacity-85"
                           : isActive
@@ -1342,7 +1358,7 @@ export default function OrderPaymentClient({
                             )}
                             {isPending && (
                               <span className="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-500 text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5 font-mono">
-                                <LockKeyhole className="w-2.5 h-2.5" /> Locked
+                                <LockKeyhole className="w-2.5 h-2.5" /> {t("locked")}
                               </span>
                             )}
                           </div>

@@ -71,7 +71,7 @@ export default function PublicMagicLinkForm({
       aria-describedby={complete || error ? feedbackId : undefined}
     >
       <div className="space-y-2">
-        <Label htmlFor={emailId}>{t("label")}</Label>
+        <Label htmlFor={emailId} className="text-[var(--sd-ink)]">{t("label")}</Label>
         <Input
           id={emailId}
           required
@@ -96,7 +96,7 @@ export default function PublicMagicLinkForm({
           id={feedbackId}
           role="status"
           aria-live="polite"
-          className="rounded-lg bg-primary/20 p-4 text-sm font-semibold leading-6 text-foreground"
+          className="rounded-[var(--sd-radius-surface)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-4 text-sm font-semibold leading-6 text-[var(--sd-ink)]"
         >
           {t("success")}
         </p>

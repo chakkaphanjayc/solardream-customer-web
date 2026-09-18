@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useSyncExternalStore } from "react";
 import { useFeatureFlagStore } from "@/store/useFeatureFlagStore";
 import MaintenanceView from "@/components/ui/MaintenanceView";
 
@@ -17,11 +17,14 @@ export default function FeatureGuard({
   children,
   fallback,
 }: FeatureGuardProps) {
-  const { flags, loaded, fetchFlags, isEnabled } = useFeatureFlagStore();
-  const [mounted, setMounted] = useState(false);
+  const { loaded, fetchFlags, isEnabled } = useFeatureFlagStore();
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
 
   useEffect(() => {
-    setMounted(true);
     if (!loaded) {
       fetchFlags();
     }

@@ -467,9 +467,9 @@ export interface GuestProposalSummaryDto {
   id: string;
   reference: string;
   status: string;
-  systemSizeKwp: number;
-  panelCount: number;
-  totalPrice: number;
+  systemSizeKwp: number | null;
+  panelCount: number | null;
+  totalPrice: number | null;
 }
 
 export interface GuestServiceOrderSummaryDto {

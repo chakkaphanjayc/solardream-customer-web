@@ -9,6 +9,7 @@ import AskInChatButton from "@/components/chat/AskInChatButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 
 interface BundleItem {
   id: string;
@@ -79,14 +80,20 @@ export default function ProductBundlesList({ bundles }: ProductBundlesListProps)
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#B7D1EA]/25 text-[#2E6A93]">
+        <SoliaGuide
+          alt={locale === "th" ? "Solia แนะนำชุดอุปกรณ์โซลาร์" : "Solia presenting solar equipment bundles"}
+          pose="presenting"
+          className="h-20 w-16 shrink-0"
+          imageSizes="64px"
+        />
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--sd-selected)] text-[var(--sd-blue-600)]">
           <Gift className="w-5 h-5 stroke-[1.5]" />
         </div>
         <div>
-          <h2 className="text-xl font-black uppercase tracking-wider text-slate-800 font-sans">
-            {t("header.title")} <span className="text-[#2E6A93]">{t("header.titleAccent")}</span>
+          <h2 className="font-sans text-xl font-black uppercase tracking-wider text-[var(--sd-ink)]">
+            {t("header.title")} <span className="text-[var(--sd-navy-900)]">{t("header.titleAccent")}</span>
           </h2>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-700">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--sd-text)]">
             {t("header.description")}
           </p>
         </div>
@@ -105,7 +112,7 @@ export default function ProductBundlesList({ bundles }: ProductBundlesListProps)
               key={bundle.id}
               tone="subtle"
               interactive
-              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-background p-6 lg:p-8"
+              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-[var(--sd-raised)] p-6 lg:p-8"
             >
               {/* Promo Badge */}
               <Badge variant="dark" className="absolute right-6 top-6 z-10 border-0 text-[9px] tracking-widest">
@@ -126,45 +133,45 @@ export default function ProductBundlesList({ bundles }: ProductBundlesListProps)
                     </div>
                   )}
 
-                  <h3 className="text-lg font-black text-slate-850 font-sans group-hover:text-slate-900 transition-colors">
+                  <h3 className="font-sans text-lg font-black text-[var(--sd-ink)] transition-colors group-hover:text-[var(--sd-navy-900)]">
                     {bundle.name}
                   </h3>
                   
                   {bundle.promoText && (
-                    <p className="text-xs font-extrabold uppercase tracking-wider text-[#2E6A93]">
+                    <p className="text-xs font-extrabold uppercase tracking-wider text-[var(--sd-navy-900)]">
                       ✨ {bundle.promoText}
                     </p>
                   )}
 
                   {bundle.description && (
-                    <p className="mt-1 text-xs leading-relaxed text-slate-700">
+                    <p className="mt-1 text-xs leading-relaxed text-[var(--sd-text)]">
                       {bundle.description}
                     </p>
                   )}
 
                   {bundle.validUntil && (
-                    <p className="mt-1 font-mono text-[9px] text-slate-700">
+                    <p className="mt-1 font-mono text-[9px] text-[var(--sd-text)]">
                       {t("validUntil", { date: new Date(bundle.validUntil).toLocaleDateString(intlLocale) })}
                     </p>
                   )}
                 </div>
 
                 {/* Included items */}
-                <div className="space-y-2 bg-white/40 p-4 rounded-2xl">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-700">
+                <div className="space-y-2 rounded-2xl bg-[var(--sd-soft-solar)] p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--sd-text)]">
                     {t("includedTitle")}
                   </p>
                   <ul className="space-y-2.5">
                     {bundle.items.map((item) => (
-                      <li key={item.id} className="flex items-start gap-2.5 text-xs text-slate-650">
-                        <div className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#B7D1EA]/30 text-slate-700">
+                      <li key={item.id} className="flex items-start gap-2.5 text-xs text-[var(--sd-text)]">
+                        <div className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[var(--sd-selected)] text-[var(--sd-navy-900)]">
                           <Check className="w-2.5 h-2.5 stroke-[3]" />
                         </div>
                         <div className="flex-1 flex justify-between gap-2">
-                          <span className="font-semibold text-slate-750">
+                          <span className="font-semibold text-[var(--sd-ink)]">
                             {item.product?.name || `${item.product?.brand} ${item.product?.model}`}
                           </span>
-                            <span className="shrink-0 font-mono text-slate-700">
+                            <span className="shrink-0 font-mono text-[var(--sd-text)]">
                               x{item.quantity}
                           </span>
                         </div>
@@ -175,14 +182,14 @@ export default function ProductBundlesList({ bundles }: ProductBundlesListProps)
               </div>
 
               {/* Pricing & Checkout Area */}
-              <div className="mt-6 pt-5 border-t border-slate-200/50 flex items-center justify-between gap-4">
+              <div className="mt-6 flex items-center justify-between gap-4 border-t border-[var(--sd-line)] pt-5">
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-700">{t("specialPrice")}</p>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-[var(--sd-text)]">{t("specialPrice")}</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-black text-slate-950 font-mono">
+                    <span className="font-mono text-lg font-black text-[var(--sd-ink)]">
                       {currencyFormatter.format(bundle.price)}
                     </span>
-                    <span className="font-mono text-xs text-slate-700 line-through">
+                    <span className="font-mono text-xs text-[var(--sd-text)] line-through">
                       {currencyFormatter.format(originalSum)}
                     </span>
                   </div>
@@ -205,7 +212,7 @@ export default function ProductBundlesList({ bundles }: ProductBundlesListProps)
                     onClick={() => handleAddBundleToCart(bundle)}
                     variant="secondary"
                     size="sm"
-                    className="rounded-xl bg-slate-900 px-5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-800"
+                    className="rounded-xl bg-[var(--sd-technical)] px-5 text-[10px] font-black uppercase tracking-widest text-[var(--sd-white)] hover:bg-[var(--sd-navy-900)]"
                   >
                     <ShoppingBag className="w-3.5 h-3.5" />
                     {t("orderBundle")}

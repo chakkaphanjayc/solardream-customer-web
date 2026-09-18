@@ -31,12 +31,12 @@ export function SolarRouteHeader({
     >
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0 max-w-3xl">
-          <p className="solar-route-kicker text-xs font-bold uppercase tracking-wider text-[#4F7FA8]">{eyebrow}</p>
-          <h1 className="mt-3 max-w-3xl text-balance text-4xl font-extrabold leading-[1.15] tracking-tight text-[#1C1C1A] sm:text-5xl lg:text-6xl">
+          <p className="solar-route-kicker text-xs font-bold uppercase tracking-wider text-[var(--sd-navy-900)]">{eyebrow}</p>
+          <h1 className="mt-3 max-w-3xl text-balance text-4xl font-extrabold leading-[1.15] tracking-tight text-[var(--sd-ink)] sm:text-5xl lg:text-6xl">
             {title}
           </h1>
           {description ? (
-            <p className="mt-4 max-w-2xl text-pretty text-sm font-normal leading-7 text-[#4E4B44] sm:text-base">
+            <p className="mt-4 max-w-2xl text-pretty text-sm font-normal leading-7 text-[var(--sd-text)] sm:text-base">
               {description}
             </p>
           ) : null}

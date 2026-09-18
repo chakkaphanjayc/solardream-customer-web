@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useId } from "react";
 import { useTranslations } from "next-intl";
 import {
   calculateSolarOutput,
@@ -208,6 +208,14 @@ interface EnergyFlowChartProps {
   selfConsumedDailyKwh?: number;
   wastedExcessDailyKwh?: number;
 }
+
+type EnergyTableRow = {
+  label: string;
+  load: number;
+  solarGeneration: number;
+  batterySoc?: number;
+  gridConsumption?: number;
+};
 
 // ── Visx 24-Hour Manga Neo-Brutalist Reactor Chart ──
 function Visx24HourChart({
@@ -783,6 +791,9 @@ export default function EnergyFlowChart({
   wastedExcessDailyKwh,
 }: EnergyFlowChartProps) {
   const t = useTranslations("EnergyFlowChart");
+  const chartId = useId();
+  const chartTitleId = `${chartId}-title`;
+  const chartDescriptionId = `${chartId}-description`;
   const [mounted, setMounted] = useState(false);
   const [timeframe, setTimeframe] = useState<"24h" | "week" | "month" | "year">(
     "24h",
@@ -1003,6 +1014,43 @@ export default function EnergyFlowChart({
     yearlyData,
   ]);
 
+  const chartTableRows = useMemo<EnergyTableRow[]>(() => {
+    if (timeframe === "24h") {
+      return simulationData.map((point) => ({
+        label: point.hour,
+        load: point.load,
+        solarGeneration: point.solarGeneration,
+        batterySoc:
+          activeBatteryCapacityKwh > 0 ? point.batterySoc : undefined,
+        gridConsumption: point.gridConsumption,
+      }));
+    }
+
+    const source =
+      timeframe === "week"
+        ? weeklyData
+        : timeframe === "month"
+          ? monthlyData
+          : yearlyData;
+
+    return source.map((point) => ({
+      label: point.name,
+      load: point.load,
+      solarGeneration: point.solarGeneration,
+    }));
+  }, [
+    activeBatteryCapacityKwh,
+    monthlyData,
+    simulationData,
+    timeframe,
+    weeklyData,
+    yearlyData,
+  ]);
+
+  const timeframeLabel = t(`timeframes.${timeframe}`);
+  const hasBatteryTableColumn =
+    timeframe === "24h" && activeBatteryCapacityKwh > 0;
+
   if (!mounted) {
     return (
       <div className="solar-energy-flow-loading flex aspect-[16/9] w-full min-w-0 items-center justify-center rounded-xl p-6">
@@ -1025,14 +1073,17 @@ export default function EnergyFlowChart({
               </GsapPulse>
               {t("live")}
             </span>
-            <h3 className="text-base font-black uppercase tracking-wider text-[#000000]">
+            <h3
+              id={chartTitleId}
+              className="text-base font-black uppercase tracking-wider text-[#000000]"
+            >
               {timeframe === "24h" && t("titles.24h")}
               {timeframe === "week" && t("titles.week")}
               {timeframe === "month" && t("titles.month")}
               {timeframe === "year" && t("titles.year")}
             </h3>
           </div>
-          <p className="mt-1 text-xs font-bold text-slate-700">
+          <p id={chartDescriptionId} className="mt-1 text-xs font-bold text-slate-700">
             {timeframe === "24h" && t("descriptions.24h")}
             {timeframe === "week" && t("descriptions.week")}
             {timeframe === "month" && t("descriptions.month")}
@@ -1207,7 +1258,12 @@ export default function EnergyFlowChart({
         </div>
 
         {/* Visx Reactor Simulation Chart Container */}
-        <div className="aspect-[16/11] sm:aspect-[16/9] min-h-[220px] sm:min-h-[280px] w-full min-w-0">
+        <div
+          role="img"
+          aria-labelledby={chartTitleId}
+          aria-describedby={chartDescriptionId}
+          className="aspect-[16/11] sm:aspect-[16/9] min-h-[220px] sm:min-h-[280px] w-full min-w-0"
+        >
           {mounted ? (
             <ParentSize debounceTime={10}>
               {({ width, height }) =>
@@ -1238,6 +1294,60 @@ export default function EnergyFlowChart({
           ) : null}
         </div>
       </div>
+
+      <details className="solar-energy-flow-data-table rounded-lg border border-slate-200 bg-white/70">
+        <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 px-3 py-2.5 text-xs font-black text-slate-900 outline-none transition-colors hover:bg-white focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-inset sm:px-4">
+          <span>{t("dataTable.toggle")}</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            {timeframeLabel}
+          </span>
+        </summary>
+        <div className="border-t border-slate-200 px-3 pb-3 pt-2 sm:px-4">
+          <p className="mb-2 text-xs leading-5 text-slate-600">
+            {t("dataTable.description", { timeframe: timeframeLabel })}
+          </p>
+          <div
+            className="max-w-full overflow-x-auto rounded-md border border-slate-200"
+            tabIndex={0}
+            role="region"
+            aria-label={t("dataTable.caption", { timeframe: timeframeLabel })}
+          >
+            <table className="w-full min-w-[34rem] border-collapse text-left text-xs">
+              <caption className="sr-only">
+                {t("dataTable.caption", { timeframe: timeframeLabel })}
+              </caption>
+              <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-wider text-slate-600">
+                <tr>
+                  <th scope="col" className="px-3 py-2">{t("dataTable.period")}</th>
+                  <th scope="col" className="px-3 py-2 text-right">{t("series.load")}</th>
+                  <th scope="col" className="px-3 py-2 text-right">{t("series.solarGeneration")}</th>
+                  {hasBatteryTableColumn ? (
+                    <th scope="col" className="px-3 py-2 text-right">{t("series.batterySoc")}</th>
+                  ) : null}
+                  {timeframe === "24h" ? (
+                    <th scope="col" className="px-3 py-2 text-right">{t("series.gridConsumption")}</th>
+                  ) : null}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-800">
+                {chartTableRows.map((row) => (
+                  <tr key={row.label}>
+                    <th scope="row" className="whitespace-nowrap px-3 py-2 font-bold">{row.label}</th>
+                    <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{row.load.toFixed(1)} kWh</td>
+                    <td className="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums text-blue-700">{row.solarGeneration.toFixed(1)} kWh</td>
+                    {hasBatteryTableColumn ? (
+                      <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-amber-700">{row.batterySoc?.toFixed(1) ?? "—"} kWh</td>
+                    ) : null}
+                    {timeframe === "24h" ? (
+                      <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-orange-800">{row.gridConsumption?.toFixed(1) ?? "—"} kWh</td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
 
       {/* Insights Footer Box */}
       <div className="solar-energy-flow-insight rounded-lg p-3 text-xs font-bold leading-relaxed text-slate-800">

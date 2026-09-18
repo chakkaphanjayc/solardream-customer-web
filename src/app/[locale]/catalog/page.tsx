@@ -1,11 +1,12 @@
 import CatalogClient, { type CatalogProduct } from "./CatalogClient";
 import Link from "next/link";
-import { LayoutGrid, PackageOpen } from "@/components/ui/icons";
+import { LayoutGrid } from "@/components/ui/icons";
 import { getTranslations } from "next-intl/server";
 import { getInfiniteProducts } from "@/app/actions/product";
 import PageWrapper from "@/components/ui/PageWrapper";
 import { Button } from "@/components/ui/button";
 import { PageHeader, PageShell } from "@/components/ui/page-shell";
+import { SolarStatePanel } from "@/components/ui/solar-system";
 import { getCachedPageSeo } from "@/app/actions/seo";
 import type { Metadata } from "next";
 import {
@@ -15,12 +16,12 @@ import {
 } from "@/lib/erpnextCatalog";
 import type {
   ErpnextCatalogBundle,
-  ErpnextCatalogCategory,
 } from "@/lib/erpnextCatalog";
 
 // The catalog combines URL filters, live inventory, and editable bundles.
 // Keep the filtered feed request-time; its independent public reads can be
 // cached without serving stale inventory to a customer.
+export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getCachedPageSeo("catalog");
@@ -62,7 +63,7 @@ interface PageProps {
 
 export default async function CatalogPage({ params, searchParams }: PageProps) {
   const t = await getTranslations("CatalogPage");
-  await params;
+  const { locale } = await params;
 
   const resolvedParams = await searchParams;
   const search = resolvedParams.search || "";
@@ -111,27 +112,24 @@ export default async function CatalogPage({ params, searchParams }: PageProps) {
 
   if (errorOccurred) {
     return (
-      <PageShell className="flex items-center justify-center bg-[#F0EEE9] px-6 pb-20 pt-24 text-[#1C1C1A] lg:px-8">
-        <div className="max-w-md space-y-6 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#8E8B83]/20 bg-[#DCE8F5] text-[#4F7FA8] shadow-sm">
-            <PackageOpen className="h-7 w-7" aria-hidden="true" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-xl font-bold text-[#1C1C1A]">
-              {t("connectionIssue.title")}
-            </h1>
-            <p className="text-sm font-medium leading-relaxed text-[#4E4B44]">
-              {t("connectionIssue.description")}
-            </p>
-          </div>
-          <Button
-            asChild
-            size="lg"
-            className="rounded-full bg-[#B7D1EA] px-6 text-sm font-medium text-white shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/90 hover:shadow-md active:scale-95"
-          >
-            <Link href="/catalog">{t("connectionIssue.retryBtn")}</Link>
-          </Button>
-        </div>
+      <PageShell className="flex items-center justify-center px-6 pb-20 pt-24 lg:px-8">
+        <SolarStatePanel
+          kind="error"
+          className="w-full max-w-lg"
+          title={t("connectionIssue.title")}
+          description={t("connectionIssue.description")}
+          headingLevel={1}
+          soliaAlt={
+            locale === "th"
+              ? "โซเลียกำลังช่วยกู้คืนแคตตาล็อกอุปกรณ์"
+              : "Solia helping recover the SolarDream component catalog"
+          }
+          action={
+            <Button asChild size="lg" className="mt-2">
+              <Link href={`/${locale}/catalog`}>{t("connectionIssue.retryBtn")}</Link>
+            </Button>
+          }
+        />
       </PageShell>
     );
   }

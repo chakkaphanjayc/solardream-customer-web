@@ -28,6 +28,7 @@ interface VisxCashFlowChartProps {
   breakevenYear: number | null;
   formatCurrency: (value: number) => string;
   formatCompactCurrency: (value: number) => string;
+  ariaLabel?: string;
 }
 
 const defaultMargin = { top: 20, right: 24, bottom: 32, left: 56 };
@@ -37,6 +38,7 @@ function CashFlowChartInner({
   breakevenYear,
   formatCurrency,
   formatCompactCurrency,
+  ariaLabel,
   width,
   height,
 }: VisxCashFlowChartProps & { width: number; height: number }) {
@@ -114,7 +116,13 @@ function CashFlowChartInner({
 
   return (
     <div className="relative w-full h-full select-none">
-      <svg width={width} height={height} className="overflow-visible">
+      <svg
+        width={width}
+        height={height}
+        role={ariaLabel ? "img" : undefined}
+        aria-label={ariaLabel}
+        className="overflow-visible"
+      >
         <defs>
           <LinearGradient
             id="visx-cf-savings-grad"

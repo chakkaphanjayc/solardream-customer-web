@@ -121,7 +121,7 @@ export default function PreviewSidebar() {
           <div className="flex justify-between items-end">
             <span className="text-muted-foreground font-medium">{t("totalEstimate")}</span>
             <span className="text-3xl font-black text-primary tracking-tight">
-              {formatPrice(totalPrice)}
+              {selectedCount > 0 ? formatPrice(totalPrice) : t("notCalculated")}
             </span>
           </div>
 

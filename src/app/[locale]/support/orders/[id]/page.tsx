@@ -21,6 +21,7 @@ import { createClient } from "@/utils/supabase/server";
 
 type JsonRecord = Record<string, unknown>;
 
+export const instant = false;
 
 export default async function ServiceOrderPage({
   params,
@@ -59,13 +60,20 @@ export default async function ServiceOrderPage({
   const customQuote =
     order.checkoutDisposition === "CUSTOM_QUOTE" ||
     order.paymentRequirement === "NOT_REQUIRED";
-  const money = customQuote
-    ? ""
-    : new Intl.NumberFormat(locale === "th" ? "th-TH" : "en-US", {
-        style: "currency",
-        currency: order.currency,
-        maximumFractionDigits: 0,
-      }).format(Number(order.priceSnapshot));
+  const formatMoney = (value: unknown) => {
+    if (value === null || value === undefined || value === "") {
+      return t("pricePending");
+    }
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) return t("pricePending");
+    if (numericValue === 0) return t("included");
+    return new Intl.NumberFormat(locale === "th" ? "th-TH" : "en-US", {
+      style: "currency",
+      currency: order.currency,
+      maximumFractionDigits: 0,
+    }).format(numericValue);
+  };
+  const money = customQuote ? "" : formatMoney(order.priceSnapshot);
   const appointment = new Intl.DateTimeFormat(locale === "th" ? "th-TH" : "en-US", {
     dateStyle: "long",
     timeStyle: "short",
@@ -149,13 +157,13 @@ export default async function ServiceOrderPage({
                     className="flex min-h-12 items-center justify-between gap-4 py-3 text-sm font-semibold"
                   >
                     <span>{localized(item.name, locale) || stringValue(item.slug)}</span>
-                    {!customQuote && typeof item.totalSatang === "number" ? (
+                    {!customQuote ? (
                       <span className="shrink-0 text-foreground">
-                        {new Intl.NumberFormat(locale === "th" ? "th-TH" : "en-US", {
-                          style: "currency",
-                          currency: order.currency,
-                          maximumFractionDigits: 0,
-                        }).format(item.totalSatang / 100)}
+                        {formatMoney(
+                          typeof item.totalSatang === "number"
+                            ? item.totalSatang / 100
+                            : null,
+                        )}
                       </span>
                     ) : null}
                   </li>

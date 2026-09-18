@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { formatPrice } from "@/lib/utils";
 import { buildPromptPayPayload } from "@/lib/promptpay";
 import { applyPaymentPromoCodeAction } from "@/app/actions/paymentRequests";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogBody,
@@ -30,7 +31,7 @@ export interface InvoicePaymentRequestData {
   id: string;
   proposalId?: string;
   title: string;
-  amountRequested: number | string;
+  amountRequested: number | string | null;
   paymentType?: string;
   paymentMethod?: string;
   status: "PENDING" | "AWAITING_VERIFICATION" | "PAID" | "EXPIRED" | "FAILED" | string;
@@ -59,9 +60,14 @@ interface PaymentInvoiceModalProps {
   isUploading?: boolean;
 }
 
-function formatMoney(amount: number | string) {
-  const num = typeof amount === "number" ? amount : Number(String(amount || "0").replace(/,/g, ""));
-  return formatPrice(Number.isFinite(num) ? num : 0);
+function toPositiveAmount(amount: number | string | null | undefined): number | null {
+  const num = typeof amount === "number" ? amount : Number(String(amount ?? "").replace(/,/g, ""));
+  return Number.isFinite(num) && num > 0 ? num : null;
+}
+
+function formatMoney(amount: number | string | null, pendingLabel: string) {
+  const num = toPositiveAmount(amount);
+  return num === null ? pendingLabel : formatPrice(num);
 }
 
 export default function PaymentInvoiceModal({
@@ -72,6 +78,7 @@ export default function PaymentInvoiceModal({
   onUploadSlip,
   isUploading = false,
 }: PaymentInvoiceModalProps) {
+  const t = useTranslations("PaymentInvoice");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const printContentRef = useRef<HTMLDivElement | null>(null);
   const fileInputId = useId();
@@ -82,10 +89,8 @@ export default function PaymentInvoiceModal({
 
   if (!paymentRequest) return null;
 
-  const numAmount = typeof paymentRequest.amountRequested === "number"
-    ? paymentRequest.amountRequested
-    : Number(String(paymentRequest.amountRequested || "0").replace(/,/g, ""));
-  const qrPayload = buildPromptPayPayload(numAmount);
+  const numAmount = toPositiveAmount(paymentRequest.amountRequested);
+  const qrPayload = numAmount === null ? null : buildPromptPayPayload(numAmount);
 
   const invoiceNo = `INV-${paymentRequest.id.slice(0, 8).toUpperCase()}`;
   const issueDate = paymentRequest.createdAt
@@ -105,7 +110,7 @@ export default function PaymentInvoiceModal({
   };
 
   const handleCopyShareLink = () => {
-    const message = `☀️ SolarDream ใบแจ้งชำระเงิน (${paymentRequest.title})\nยอดชำระ: ${formatMoney(numAmount)}\nเลขที่ใบแจ้งชำระ: ${invoiceNo}\nกรุณาชำระเงินผ่าน QR PromptPay หรือ บัญชีธนาคารกสิกรไทย 123-4-56789-0`;
+    const message = `☀️ SolarDream ใบแจ้งชำระเงิน (${paymentRequest.title})\nยอดชำระ: ${formatMoney(numAmount, t("amountPending"))}\nเลขที่ใบแจ้งชำระ: ${invoiceNo}\nกรุณาชำระเงินผ่าน QR PromptPay หรือ บัญชีธนาคารกสิกรไทย 123-4-56789-0`;
     navigator.clipboard.writeText(message);
     setCopiedShareLink(true);
     toast.success("คัดลอกข้อความแจ้งชำระเงินเรียบร้อยแล้ว");
@@ -299,7 +304,7 @@ export default function PaymentInvoiceModal({
                     </span>
                   </td>
                   <td className="p-3.5 text-right font-black font-mono text-sm text-[#2E2C27] print:text-black">
-                    {formatMoney(numAmount)}
+                    {formatMoney(numAmount, t("amountPending"))}
                   </td>
                 </tr>
               </tbody>
@@ -309,7 +314,7 @@ export default function PaymentInvoiceModal({
                     ยอดรวมสุทธิที่ต้องชำระ (Total Net Amount Payable):
                   </td>
                   <td className="p-3.5 text-right font-black font-mono text-base text-[#4F7FA8] print:text-black">
-                    {formatMoney(numAmount)}
+                  {formatMoney(numAmount, t("amountPending"))}
                   </td>
                 </tr>
               </tfoot>
@@ -361,7 +366,7 @@ export default function PaymentInvoiceModal({
                   </div>
                 )}
                 <p className="mt-2 text-[11px] font-black text-[#2E2C27]">
-                  สแกนชำระเงิน {formatMoney(numAmount)}
+                  สแกนชำระเงิน {formatMoney(numAmount, t("amountPending"))}
                 </p>
                 <p className="text-[10px] text-[#4E4B44] font-semibold">
                   รองรับทุกแอปธนาคารไทย (ไม่เสียค่าธรรมเนียม)

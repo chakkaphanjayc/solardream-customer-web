@@ -6,6 +6,7 @@ import { ArrowUpRight, Images, MapPin, SunMedium } from "@/components/ui/icons";
 import { isPortfolioProject, type PortfolioProjectListItem, type ProjectCaseStudy, type ProjectFilter } from "@/types/portfolio";
 import ProjectDetailModal from "@/components/agency/sections/ProjectDetailModal";
 import { cn } from "@/lib/utils";
+import { SolarStatePanel } from "@/components/ui/solar-system";
 
 type WorksGalleryClientProps = Readonly<{
   locale: string;
@@ -48,8 +49,8 @@ function ImageWithFallback({
 
   if (error || !src) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center bg-[#F5F2EB] p-6 text-center text-[#0F172A]">
-        <SunMedium className="h-8 w-8 text-[#4F7FA8]" aria-hidden="true" />
+      <div className="flex h-full w-full flex-col items-center justify-center bg-[var(--sd-soft-solar)] p-6 text-center text-[var(--sd-ink)]">
+        <SunMedium className="h-8 w-8 text-[var(--sd-blue-600)]" aria-hidden="true" />
         <span className="mt-2 text-xs font-black">SolarDream rooftop</span>
       </div>
     );
@@ -92,7 +93,7 @@ const WorksProjectCard = memo(function WorksProjectCard({
     <article
       data-works-card={project.id}
       className={cn(
-        "solar-works-card group relative min-h-[27rem] overflow-hidden rounded-2xl bg-[#1C1C1A] transition-[box-shadow,transform] duration-300 ease-expo-out hover:-translate-y-1",
+        "solar-works-card group relative min-h-[27rem] overflow-hidden rounded-[var(--sd-radius-lg)] bg-[var(--sd-navy-950)] transition-[box-shadow,transform] duration-300 ease-expo-out hover:-translate-y-1",
         isFeatured && "md:col-span-2 md:min-h-[34rem] xl:col-span-2",
       )}
     >
@@ -106,11 +107,11 @@ const WorksProjectCard = memo(function WorksProjectCard({
           className="object-cover transition-transform duration-700 ease-expo-out group-hover:scale-[1.04]"
         />
       </div>
-      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/5 to-black/95" />
+      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-[rgb(7_27_61_/_0.2)] via-transparent to-[rgb(7_27_61_/_0.96)]" />
 
       <div className="absolute inset-x-4 top-4 z-10 flex items-start justify-between gap-3 sm:inset-x-5 sm:top-5">
         <div className="solar-works-pill inline-flex max-w-[65%] items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-black">
-          <MapPin className="h-3.5 w-3.5 shrink-0 text-[#4F7FA8]" aria-hidden="true" />
+          <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--sd-blue-600)]" aria-hidden="true" />
           <span className="truncate">{project.location || (isTh ? "ประเทศไทย" : "Thailand")}</span>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -125,7 +126,7 @@ const WorksProjectCard = memo(function WorksProjectCard({
       </div>
 
       <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-5">
-        <div className="flex items-center justify-between gap-3 text-[10px] font-black uppercase tracking-[0.12em] text-[#B7D1EA]">
+        <div className="flex items-center justify-between gap-3 text-[10px] font-black uppercase tracking-[0.12em] text-[var(--sd-cyan-100)]">
           <span>{isTh ? `ติดตั้งแล้ว ${project.completionYear}` : `Installed ${project.completionYear}`}</span>
           <span>{String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}</span>
         </div>
@@ -139,7 +140,7 @@ const WorksProjectCard = memo(function WorksProjectCard({
               <span className="block text-[10px] font-black uppercase tracking-[0.08em] text-slate-300">
                 {isTh ? "ประหยัดค่าไฟโดยประมาณ" : "Estimated monthly savings"}
               </span>
-              <span className="mt-1 block text-base font-black text-[#B7D1EA] sm:text-lg">
+              <span className="mt-1 block text-base font-black text-[var(--sd-cyan-100)] sm:text-lg">
                 ฿{project.monthlySavingsThb.toLocaleString("th-TH")} / {isTh ? "เดือน" : "month"}
               </span>
             </div>
@@ -168,6 +169,8 @@ export default function WorksGalleryClient({ locale, initialProjects }: WorksGal
   const [filter, setFilter] = useState<ProjectFilter>("all");
   const [selectedProject, setSelectedProject] = useState<ProjectCaseStudy | null>(null);
   const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null);
+  const [projectLoadError, setProjectLoadError] = useState(false);
+  const [failedProject, setFailedProject] = useState<PortfolioProjectListItem | null>(null);
   const projectDetailsCache = useRef(new Map<string, ProjectCaseStudy>());
   const filterOptions = useMemo(
     () => FILTER_DEFINITIONS.map((item) => ({
@@ -201,11 +204,15 @@ export default function WorksGalleryClient({ locale, initialProjects }: WorksGal
   const handleProjectSelect = useCallback(async (project: PortfolioProjectListItem) => {
     const cachedProject = projectDetailsCache.current.get(project.id);
     if (cachedProject) {
+      setProjectLoadError(false);
+      setFailedProject(null);
       setSelectedProject(cachedProject);
       return;
     }
 
     if (loadingProjectId === project.id) return;
+    setProjectLoadError(false);
+    setFailedProject(null);
     setLoadingProjectId(project.id);
 
     try {
@@ -223,6 +230,8 @@ export default function WorksGalleryClient({ locale, initialProjects }: WorksGal
       setSelectedProject(payloadProject);
     } catch (error: unknown) {
       console.error("[WorksGalleryClient] Failed to load project details:", error);
+      setProjectLoadError(true);
+      setFailedProject(project);
     } finally {
       setLoadingProjectId((current) => current === project.id ? null : current);
     }
@@ -241,14 +250,14 @@ export default function WorksGalleryClient({ locale, initialProjects }: WorksGal
       >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
-            <p id="works-filter-title" className="text-[10px] font-black uppercase tracking-[0.14em] text-[#4F7FA8]">
+            <p id="works-filter-title" className="solar-works-filter-kicker text-[10px] font-black uppercase tracking-[0.14em] text-[var(--sd-blue-600)]">
               {isTh ? "เลือกดูผลงาน" : "Browse installations"}
             </p>
             <div className="mt-1 flex items-baseline gap-2">
-              <p className="text-lg font-black text-[#0F172A]">
+              <p className="text-lg font-black text-[var(--sd-ink)]">
                 {isTh ? "ภาพงานติดตั้งจริง" : "Installation archive"}
               </p>
-              <span aria-live="polite" className="text-xs font-bold text-[#475569]">
+              <span aria-live="polite" className="text-xs font-bold text-[var(--sd-muted)]">
                 {filteredProjects.length} {isTh ? "แสดงผล" : "shown"}
               </span>
             </div>
@@ -265,7 +274,7 @@ export default function WorksGalleryClient({ locale, initialProjects }: WorksGal
                   aria-pressed={isActive}
                   data-works-filter={item.id}
                   className={cn(
-                    "solar-works-filter min-h-10 cursor-pointer rounded-full px-3 py-2 text-xs font-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#B7D1EA]/70",
+                    "solar-works-filter min-h-10 cursor-pointer rounded-full px-3 py-2 text-xs font-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--sd-focus)]",
                     isActive
                       ? "solar-works-filter--active"
                       : "solar-works-filter--idle",
@@ -279,10 +288,20 @@ export default function WorksGalleryClient({ locale, initialProjects }: WorksGal
         </div>
       </section>
 
-      <div className="solar-works-results-meta flex items-center justify-between gap-4 border-b pb-3 text-xs font-semibold text-[#4E4B44]">
+      <div className="solar-works-results-meta flex items-center justify-between gap-4 border-b pb-3 text-xs font-semibold text-[var(--sd-text)]">
         <span>{isTh ? "เลื่อนดูภาพติดตั้งจริง แล้วเปิดดูรายละเอียดแต่ละบ้าน" : "Browse the photography, then open a home for the full case study."}</span>
-        <span className="shrink-0 font-black text-[#4F7FA8]">{activeFilterLabel}</span>
+        <span className="solar-works-active-filter shrink-0 font-black text-[var(--sd-blue-600)]">{activeFilterLabel}</span>
       </div>
+
+      {projectLoadError ? (
+        <SolarStatePanel
+          kind="error"
+          title={isTh ? "เปิดรายละเอียดผลงานไม่สำเร็จ" : "This case study could not be opened"}
+          description={isTh ? "ข้อมูลโครงการยังโหลดไม่ครบ ลองอีกครั้งเพื่อเปิดรายละเอียดบ้านหลังนี้" : "The project details did not finish loading. Try again to open this installation case study."}
+          soliaAlt={isTh ? "โซเลียกำลังช่วยเปิดรายละเอียดผลงานติดตั้ง" : "Solia helping reopen the installation case study"}
+          action={failedProject ? <button type="button" className="solar-ui-secondary rounded-full px-4 py-2.5 text-xs font-bold" onClick={() => void handleProjectSelect(failedProject)}>{isTh ? "ลองอีกครั้ง" : "Try again"}</button> : undefined}
+        />
+      ) : null}
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         {filteredProjects.map((project, index) => (
@@ -299,9 +318,13 @@ export default function WorksGalleryClient({ locale, initialProjects }: WorksGal
       </div>
 
       {filteredProjects.length === 0 ? (
-        <div className="solar-works-empty rounded-2xl px-6 py-16 text-center text-sm font-semibold text-[#4E4B44]">
-          {isTh ? "ยังไม่มีผลงานในหมวดนี้" : "No installations match this filter."}
-        </div>
+        <SolarStatePanel
+          kind="empty"
+          className="solar-works-empty"
+          title={isTh ? "ยังไม่มีผลงานในหมวดนี้" : "No installations match this filter"}
+          description={isTh ? "ลองเปลี่ยนตัวกรองเพื่อดูบ้านที่ติดตั้งจริงในหมวดอื่น" : "Try another filter to browse more real SolarDream installations."}
+          soliaAlt={isTh ? "โซเลียกำลังช่วยเลือกหมวดผลงานติดตั้ง" : "Solia helping choose another installation category"}
+        />
       ) : null}
 
       <ProjectDetailModal

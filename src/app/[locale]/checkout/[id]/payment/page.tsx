@@ -5,11 +5,14 @@ import { paymentTransactions, paymentRequests } from "@/db/schema";
 import { getPaymentMilestones } from "@/app/actions/payments";
 import OrderPaymentClient from "./OrderPaymentClient";
 import { PageShell } from "@/components/ui/page-shell";
+import { createClient } from "@/utils/supabase/server";
 
 interface PageProps {
   params: Promise<{ id: string; locale: string }>;
   searchParams: Promise<{ paymentSession?: string; paymentRequest?: string }>;
 }
+
+export const instant = false;
 
 function toConfigurationData(value: unknown): Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -17,13 +20,51 @@ function toConfigurationData(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function toPositiveAmount(value: unknown): number | null {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function getLoginPath(
+  locale: string,
+  id: string,
+  paymentSession?: string,
+  paymentRequest?: string,
+) {
+  const query = new URLSearchParams();
+  if (paymentSession) query.set("paymentSession", paymentSession);
+  if (paymentRequest) query.set("paymentRequest", paymentRequest);
+
+  const paymentPath = `/${locale}/checkout/${id}/payment${
+    query.size > 0 ? `?${query.toString()}` : ""
+  }`;
+  return `/${locale}/login?next=${encodeURIComponent(paymentPath)}`;
+}
+
 
 export default async function OrderPaymentPage({ params, searchParams }: PageProps) {
   const { id, locale } = await params;
   const { paymentSession, paymentRequest } = await searchParams;
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(getLoginPath(locale, id, paymentSession, paymentRequest));
+  }
+
   // 1. Fetch payment milestones for this order
-  const result = await getPaymentMilestones(id);
+  let result: Awaited<ReturnType<typeof getPaymentMilestones>>;
+  try {
+    result = await getPaymentMilestones(id);
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === "UnauthorizedError") {
+      notFound();
+    }
+    throw error;
+  }
 
   if (!result.success || !result.milestones || !result.order) {
     notFound();
@@ -65,13 +106,13 @@ export default async function OrderPaymentPage({ params, searchParams }: PagePro
   const activePaymentRequest = activePR
     ? {
         id: activePR.id,
-        amountRequested: Number(activePR.amountRequested),
+        amountRequested: toPositiveAmount(activePR.amountRequested),
         title: activePR.title,
       }
     : null;
 
   return (
-    <PageShell className="bg-background px-4 py-10 text-slate-800 sm:px-6 lg:px-8">
+    <PageShell className="solar-transaction-page bg-background px-4 py-10 text-slate-800 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <OrderPaymentClient
           orderId={order.id}
@@ -89,7 +130,7 @@ export default async function OrderPaymentPage({ params, searchParams }: PagePro
                   id: paymentSessionRecord.id,
                   qrString: paymentSessionRecord.qrString,
                   expiresAt: paymentSessionRecord.expiresAt.toISOString(),
-                  amount: Number(paymentSessionRecord.amount),
+                  amount: toPositiveAmount(paymentSessionRecord.amount),
                 }
               : null
           }

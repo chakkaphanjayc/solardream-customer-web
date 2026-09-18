@@ -27,8 +27,6 @@ function SystemFlowConnectorInner({
   totalSteps?: number;
   accentColor?: string;
 }) {
-  if (width < 50 || height < 10) return null;
-
   // Step button center calculation (4 columns in grid)
   const columnWidth = width / totalSteps;
   const startX = columnWidth * activeStepIndex + columnWidth / 2;
@@ -46,6 +44,8 @@ function SystemFlowConnectorInner({
       { x: targetX, y: targetY },
     ];
   }, [startX, startY, targetX, targetY, height]);
+
+  if (width < 50 || height < 10) return null;
 
   return (
     <svg width={width} height={height} className="overflow-visible select-none pointer-events-none">

@@ -270,15 +270,15 @@ export default function SimulatorOverlay({
   };
 
   const getEfficiencyColor = (eff: number) => {
-    if (eff >= 70) return "text-emerald-500";
-    if (eff >= 40) return "text-amber-500";
-    return "text-rose-500";
+    if (eff >= 70) return "text-[var(--sd-success)]";
+    if (eff >= 40) return "text-amber-700";
+    return "text-rose-700";
   };
 
   const getEfficiencyBadge = (eff: number) => {
-    if (eff >= 70) return { label: t("efficiency.excellent"), cls: "bg-emerald-50 text-emerald-600 border-emerald-200" };
-    if (eff >= 40) return { label: t("efficiency.fair"), cls: "bg-amber-50 text-amber-600 border-amber-200" };
-    return { label: t("efficiency.low"), cls: "bg-rose-50 text-rose-600 border-rose-200" };
+    if (eff >= 70) return { label: t("efficiency.excellent"), cls: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+    if (eff >= 40) return { label: t("efficiency.fair"), cls: "bg-amber-50 text-amber-700 border-amber-200" };
+    return { label: t("efficiency.low"), cls: "bg-rose-50 text-rose-700 border-rose-200" };
   };
 
   const handleCanvasClick = (e: React.MouseEvent<SVGSVGElement>) => {
@@ -952,14 +952,14 @@ export default function SimulatorOverlay({
                 </div>
               </TransformComponent>
               <div className="absolute top-4 right-4 z-50 flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-brand-surface/90 p-1.5 shadow-lg backdrop-blur pointer-events-auto">
-                <button type="button" onClick={() => zoomOut(0.25)} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-[#1CBBBB] hover:text-[#1CBBBB]">
-                  <ZoomOut className="w-4 h-4" />
+                <button type="button" onClick={() => zoomOut(0.25)} aria-label={locale === "th" ? "ลดการซูมแคนวาส" : "Zoom out canvas"} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-[#1CBBBB] hover:text-[#1CBBBB]">
+                  <ZoomOut className="w-4 h-4" aria-hidden="true" />
                 </button>
-                <button type="button" onClick={() => resetTransform()} className="h-11 min-w-16 rounded-xl border border-slate-200 px-2 font-mono text-[10px] font-black text-slate-700">
+                <button type="button" onClick={() => resetTransform()} aria-label={locale === "th" ? "รีเซ็ตการซูมแคนวาส" : "Reset canvas zoom"} className="h-11 min-w-16 rounded-xl border border-slate-200 px-2 font-mono text-[10px] font-black text-slate-700">
                   {(manualScale * 100).toFixed(0)}%
                 </button>
-                <button type="button" onClick={() => zoomIn(0.25)} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-[#1CBBBB] hover:text-[#1CBBBB]">
-                  <ZoomIn className="w-4 h-4" />
+                <button type="button" onClick={() => zoomIn(0.25)} aria-label={locale === "th" ? "เพิ่มการซูมแคนวาส" : "Zoom in canvas"} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-[#1CBBBB] hover:text-[#1CBBBB]">
+                  <ZoomIn className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
@@ -971,8 +971,11 @@ export default function SimulatorOverlay({
                       : "border-slate-200 text-slate-600 hover:text-[#1CBBBB] hover:border-[#1CBBBB]",
                   )}
                   title="Lock viewport"
+                  aria-label={isViewportLocked
+                    ? (locale === "th" ? "ปลดล็อกมุมมองแคนวาส" : "Unlock canvas viewport")
+                    : (locale === "th" ? "ล็อกมุมมองแคนวาส" : "Lock canvas viewport")}
                 >
-                  {isViewportLocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                  {isViewportLocked ? <Lock className="w-4 h-4" aria-hidden="true" /> : <Unlock className="w-4 h-4" aria-hidden="true" />}
                 </button>
               </div>
             </>
@@ -1102,21 +1105,21 @@ export default function SimulatorOverlay({
             {/* Global Aggregate Metrics */}
             <div className="px-4 pt-3 pb-2 grid grid-cols-3 gap-2 border-b border-slate-200/30">
               <div className="col-span-1">
-                <div className="text-[7px] font-black uppercase text-slate-400 leading-none mb-1">{t("metrics.totalPanels")}</div>
+                <div className="text-[7px] font-black uppercase text-slate-700 leading-none mb-1">{t("metrics.totalPanels")}</div>
                 <div className="text-lg font-black font-mono text-slate-900 leading-none">
 	                  <AnimatedNumber value={aggregate.totalPanels} />
                   <span className="text-[9px] text-slate-500 font-bold ml-0.5">{t("units.panels")}</span>
                 </div>
               </div>
               <div className="col-span-1">
-                <div className="text-[7px] font-black uppercase text-slate-400 leading-none mb-1">System kWp</div>
-                <div className="text-lg font-black font-mono text-[#D8A87B] leading-none">
+                <div className="text-[7px] font-black uppercase text-slate-700 leading-none mb-1">System kWp</div>
+                <div className="text-lg font-black font-mono text-[var(--sd-navy-900)] leading-none">
 	                  <AnimatedNumber value={aggregate.totalKwp} decimals={2} />
                   <span className="text-[9px] text-slate-500 font-bold ml-0.5">kWp</span>
                 </div>
               </div>
               <div className="col-span-1">
-                <div className="text-[7px] font-black uppercase text-slate-400 leading-none mb-1">{t("metrics.activeRoof")}</div>
+                <div className="text-[7px] font-black uppercase text-slate-700 leading-none mb-1">{t("metrics.activeRoof")}</div>
                 <div className="text-[9px] font-black font-mono text-slate-700 leading-none">
 	                  <AnimatedNumber value={incidenceAngleDeg} decimals={1} suffix="°" />
                 </div>
@@ -1129,11 +1132,11 @@ export default function SimulatorOverlay({
             {/* Financial Summary */}
             <div className="px-4 py-3 flex items-center gap-3 border-b border-slate-200/30">
               <div className="flex-1">
-                <div className="text-[7px] font-black uppercase text-slate-400 leading-none mb-1 flex items-center gap-1">
+                <div className="text-[7px] font-black uppercase text-slate-700 leading-none mb-1 flex items-center gap-1">
                   <Zap className="w-2.5 h-2.5 text-amber-500" />
                   {t("metrics.monthlySavings")}
                 </div>
-                <div className="text-base font-black font-mono text-[#D8A87B] leading-none">
+                <div className="text-base font-black font-mono text-[var(--sd-navy-900)] leading-none">
 	                  {financialInputsReady ? (
 	                    <AnimatedNumber
 	                      value={aggregate.estMonthlySavings}
@@ -1143,11 +1146,11 @@ export default function SimulatorOverlay({
                 </div>
               </div>
               <div className="flex-1">
-                <div className="text-[7px] font-black uppercase text-slate-400 leading-none mb-1 flex items-center gap-1">
+                <div className="text-[7px] font-black uppercase text-slate-700 leading-none mb-1 flex items-center gap-1">
                   <TrendingUp className="w-2.5 h-2.5 text-emerald-500" />
                   {t("metrics.payback")}
                 </div>
-                <div className="text-base font-black font-mono text-emerald-600 leading-none">
+                <div className="text-base font-black font-mono text-[var(--sd-success)] leading-none">
 	                  {financialInputsReady && paybackYears > 0 ? (
 	                    <AnimatedNumber value={paybackYears} decimals={1} suffix=" yrs" />
 	                  ) : "N/A"}
@@ -1157,7 +1160,7 @@ export default function SimulatorOverlay({
 
             {/* Per-Roof Breakdown */}
             <div className="px-4 py-2.5 flex flex-col gap-1.5">
-              <div className="text-[8px] font-black uppercase tracking-wider text-slate-400 mb-0.5">
+              <div className="text-[8px] font-black uppercase tracking-wider text-slate-700 mb-0.5">
                 {t("hud.roofBreakdown")}
               </div>
               {aggregate.perRoof.map((r) => {
@@ -1180,7 +1183,7 @@ export default function SimulatorOverlay({
                       <div className={`text-[9px] font-black truncate ${isActive ? "text-slate-800" : "text-slate-700"}`}>
                         {r.name.length > 14 ? r.name.slice(0, 14) + "…" : r.name}
                       </div>
-                      <div className="text-[8px] text-slate-400 font-semibold font-mono">
+                      <div className="text-[8px] text-slate-600 font-semibold font-mono">
                         {t("metrics.roofPanelSummary", { count: r.panelCount, kwp: r.kwp.toFixed(2) })}
                       </div>
                     </div>
@@ -1193,7 +1196,7 @@ export default function SimulatorOverlay({
                 );
               })}
               {aggregate.perRoof.length === 0 && (
-                <div className="text-[9px] text-slate-400 font-semibold text-center py-2">
+                <div className="text-[9px] text-slate-600 font-semibold text-center py-2">
                   {t("empty.noPanels")}
                 </div>
               )}

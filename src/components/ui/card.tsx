@@ -11,13 +11,13 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const cardToneClasses: Record<NonNullable<CardProps["tone"]>, string> = {
   default:
-    "border border-[#CBC7BE] bg-[#E6E3DC] text-[#1C1C1A] shadow-[0_2px_8px_rgba(28,28,26,0.08)]",
+    "border border-[var(--sd-line)] bg-[var(--sd-raised)] text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)]",
   subtle:
-    "border border-[#CBC7BE] bg-[#F7F6F3] text-[#1C1C1A] shadow-[0_1px_3px_rgba(28,28,26,0.08)]",
+    "border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] text-[var(--sd-ink)] shadow-none",
   dark:
-    "border border-[#30363D] bg-[#161B22] text-[#F0F6FC] shadow-sm",
+    "border border-white/15 bg-[var(--sd-technical)] text-white shadow-[var(--sd-shadow-2)]",
   accent:
-    "border border-[#7CA8D0] bg-[#DCE8F5] text-[#0E2336] shadow-[0_2px_8px_rgba(28,28,26,0.08)]",
+    "border border-[var(--sd-blue-600)] bg-[var(--sd-selected)] text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)]",
 };
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
@@ -31,10 +31,10 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
         data-md-surface="card"
         data-liquid-glass={tone === "dark" ? "dark" : "surface"}
         className={cn(
-          "sd-surface rounded-2xl text-sm transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)]",
+          "sd-surface rounded-[var(--sd-radius-lg)] text-sm transition-[background-color,border-color,box-shadow,transform] duration-200 ease-expo-out",
           cardToneClasses[tone],
           interactive &&
-            "cursor-pointer hover:shadow-md hover:scale-[1.01] active:scale-[0.99]",
+            "cursor-pointer hover:-translate-y-0.5 hover:shadow-[var(--sd-shadow-2)] active:translate-y-0",
           className,
         )}
         {...props}

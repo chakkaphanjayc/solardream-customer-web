@@ -15,6 +15,8 @@ type AccountSetupPageProps = {
   searchParams: Promise<{ next?: string }>;
 };
 
+export const instant = false;
+
 export default async function AccountSetupPage({
   params,
   searchParams,

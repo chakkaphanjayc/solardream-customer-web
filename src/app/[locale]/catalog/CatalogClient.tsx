@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import {
-  ArrowLeft,
   ArrowRight,
   ChevronLeft,
   ChevronRight,
@@ -33,6 +32,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { LayerPortal } from "@/components/ui/layer-portal";
+import { SolarStatePanel } from "@/components/ui/solar-system";
 
 export type CatalogProduct = {
   id: string;
@@ -335,10 +335,6 @@ function ProductDetailDialog({
 }) {
   const t = useTranslations("CatalogFilters");
   const [activeIndex, setActiveIndex] = useState(0);
-
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [product?.id]);
 
   if (!product) return null;
 
@@ -886,19 +882,12 @@ export default function CatalogClient({
             )}
           </div>
         ) : (
-          <div className="space-y-4 rounded-[28px] border border-dashed border-[#8E8B83]/30 bg-[#E6E3DC]/70 py-24 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[#8E8B83]/30 bg-[#DCE8F5]">
-              <ArrowLeft className="h-5 w-5 text-[#4F7FA8]" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-[#1C1C1A]">
-                {t("emptyState.title")}
-              </h3>
-              <p className="mx-auto max-w-xs text-xs font-medium leading-relaxed text-[#4E4B44]">
-                {t("emptyState.description")}
-              </p>
-            </div>
-          </div>
+          <SolarStatePanel
+            kind="empty"
+            title={t("emptyState.title")}
+            description={t("emptyState.description")}
+            soliaAlt="Solia helping you refine the SolarDream catalog filters"
+          />
         )}
       </div>
 

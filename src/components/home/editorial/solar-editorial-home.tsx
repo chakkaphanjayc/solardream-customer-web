@@ -1,20 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { FiArrowUpRight } from "react-icons/fi";
+import { FiArrowRight, FiArrowUpRight } from "react-icons/fi";
 
+import { AnimeMascot } from "@/components/brand/manga-primitives";
 import { resolveHeaderNavigationUrl } from "@/lib/header-navigation";
 import type { PortfolioProjectListItem } from "@/types/portfolio";
 
 import EditorialHeader from "./editorial-header";
 import EditorialBeforeAfter from "./editorial-before-after";
+import EditorialEnergyStudio from "./editorial-energy-studio";
 import EditorialHeroMotion from "./editorial-hero-motion";
 import EditorialImpactCalculator from "./editorial-impact-calculator";
 import EditorialProjects from "./editorial-projects";
+import EditorialSoliaMoment from "./editorial-solia-moment";
+import EditorialWorkflow from "./editorial-workflow";
 import type { SolarEditorialHomeProps } from "./editorial-home.types";
 import styles from "./solar-editorial-home.module.css";
-
-const LIFESTYLE_IMAGE = "/asset/home-editorial/lifestyle-home.webp";
 
 function isCredibleProject(project: PortfolioProjectListItem) {
   const source = project.heroImage.trim().toLowerCase();
@@ -37,6 +39,22 @@ function SignatureMotif() {
   );
 }
 
+function PathwayFlow({
+  label,
+  steps,
+}: Readonly<{ label: string; steps: readonly string[] }>) {
+  return (
+    <ol className={styles.pathwayFlow} aria-label={label}>
+      {steps.map((step, index) => (
+        <li key={`${step}-${index}`}>
+          <span>{step}</span>
+          {index < steps.length - 1 ? <FiArrowRight aria-hidden="true" /> : null}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 export default async function SolarEditorialHome({
   locale,
   websiteSettings,
@@ -52,7 +70,7 @@ export default async function SolarEditorialHome({
   const currentYear = new Date().getFullYear();
 
   return (
-    <div className={styles.page} data-solar-surface="editorial">
+    <div className={styles.page} data-solar-surface="future-manga">
       <EditorialHeader
         locale={locale}
         companyName={websiteSettings.company.companyName}
@@ -89,8 +107,19 @@ export default async function SolarEditorialHome({
             primaryHint: t("hero.primaryHint"),
             secondaryCta: t("hero.secondaryCta"),
             secondaryHint: t("hero.secondaryHint"),
-            imageAlt: t("hero.imageAlt"),
             mediaLabel: t("hero.mediaLabel"),
+            visual: {
+              kicker: t("hero.visual.kicker"),
+              status: t("hero.visual.status"),
+              imageLabel: t("hero.visual.imageLabel"),
+              home: t("hero.visual.home"),
+              usage: t("hero.visual.usage"),
+              roof: t("hero.visual.roof"),
+              system: t("hero.visual.system"),
+              tracking: t("hero.visual.tracking"),
+              note: t("hero.visual.note"),
+              mascotAlt: t("hero.visual.mascotAlt"),
+            },
           }}
         />
 
@@ -104,25 +133,99 @@ export default async function SolarEditorialHome({
             <h2 id="statement-title">{t("statement.title")}</h2>
             <p>{t("statement.body")}</p>
           </div>
+          <div className={styles.statementSignals} role="group" aria-label={t("statement.signalsLabel")}>
+            {(["one", "two", "three"] as const).map((signal, index) => (
+              <article className={styles.statementSignal} key={signal}>
+                <span className={styles.statementSignalIndex}>{String(index + 1).padStart(2, "0")}</span>
+                <div>
+                  <h3>{t(`statement.signal${signal === "one" ? "One" : signal === "two" ? "Two" : "Three"}Title`)}</h3>
+                  <p>{t(`statement.signal${signal === "one" ? "One" : signal === "two" ? "Two" : "Three"}Body`)}</p>
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section id="solutions" className={styles.lifestyle} aria-labelledby="lifestyle-title">
-          <div className={styles.lifestyleMedia}>
-            <Image
-              src={LIFESTYLE_IMAGE}
-              alt={t("lifestyle.imageAlt")}
-              fill
-              sizes="(max-width: 767px) 100vw, 62vw"
-              className={styles.coverImage}
-            />
-            <p>{t("lifestyle.caption")}</p>
-          </div>
+          <EditorialEnergyStudio
+            labels={{
+              eyebrow: t("studio.eyebrow"),
+              status: t("studio.status"),
+              canvasLabel: t("studio.canvasLabel"),
+              insightLabel: t("studio.insightLabel"),
+              controlsLabel: t("studio.controlsLabel"),
+              mascotAlt: t("studio.mascotAlt"),
+              steps: [
+                {
+                  id: "bill",
+                  label: t("studio.steps.bill.label"),
+                  title: t("studio.steps.bill.title"),
+                  description: t("studio.steps.bill.description"),
+                },
+                {
+                  id: "home",
+                  label: t("studio.steps.home.label"),
+                  title: t("studio.steps.home.title"),
+                  description: t("studio.steps.home.description"),
+                },
+                {
+                  id: "sun",
+                  label: t("studio.steps.sun.label"),
+                  title: t("studio.steps.sun.title"),
+                  description: t("studio.steps.sun.description"),
+                },
+                {
+                  id: "system",
+                  label: t("studio.steps.system.label"),
+                  title: t("studio.steps.system.title"),
+                  description: t("studio.steps.system.description"),
+                },
+              ],
+            }}
+          />
           <div className={styles.lifestyleCopy}>
             <p className={styles.sectionMarker}>{t("lifestyle.eyebrow")}</p>
             <h2 id="lifestyle-title">{t("lifestyle.title")}</h2>
             <p>{t("lifestyle.body")}</p>
           </div>
         </section>
+
+        <EditorialWorkflow
+          labels={{
+            eyebrow: t("workflow.eyebrow"),
+            title: t("workflow.title"),
+            description: t("workflow.description"),
+            status: t("workflow.status"),
+            panelTitle: t("workflow.panelTitle"),
+            panelDescription: t("workflow.panelDescription"),
+            outcome: t("workflow.outcome"),
+            stepOne: {
+              index: t("workflow.stepOne.index"),
+              title: t("workflow.stepOne.title"),
+              description: t("workflow.stepOne.description"),
+            },
+            stepTwo: {
+              index: t("workflow.stepTwo.index"),
+              title: t("workflow.stepTwo.title"),
+              description: t("workflow.stepTwo.description"),
+            },
+            stepThree: {
+              index: t("workflow.stepThree.index"),
+              title: t("workflow.stepThree.title"),
+              description: t("workflow.stepThree.description"),
+            },
+            stepFour: {
+              index: t("workflow.stepFour.index"),
+              title: t("workflow.stepFour.title"),
+              description: t("workflow.stepFour.description"),
+            },
+            stepFive: {
+              index: t("workflow.stepFive.index"),
+              title: t("workflow.stepFive.title"),
+              description: t("workflow.stepFive.description"),
+            },
+          }}
+        />
 
         <EditorialBeforeAfter
           labels={{
@@ -182,12 +285,48 @@ export default async function SolarEditorialHome({
                   <p>{t(`pathways.${path}.label`)}</p>
                   <h3>{t(`pathways.${path}.title`)}</h3>
                   <span>{t(`pathways.${path}.description`)}</span>
+                  <PathwayFlow
+                    label={t(`pathways.${path}.flowLabel`)}
+                    steps={path === "wizard"
+                      ? [
+                          t("pathways.wizard.steps.bill"),
+                          t("pathways.wizard.steps.home"),
+                          t("pathways.wizard.steps.habits"),
+                          t("pathways.wizard.steps.recommendation"),
+                        ]
+                      : [
+                          t("pathways.build.steps.size"),
+                          t("pathways.build.steps.panel"),
+                          t("pathways.build.steps.inverter"),
+                          t("pathways.build.steps.addons"),
+                        ]}
+                  />
                 </div>
                 <strong>{t(`pathways.${path}.cta`)} <EditorialArrow /></strong>
               </Link>
             ))}
           </div>
         </section>
+
+        <EditorialSoliaMoment
+          href={wizardHref}
+          labels={{
+            eyebrow: t("soliaMoment.eyebrow"),
+            title: t("soliaMoment.title"),
+            description: t("soliaMoment.description"),
+            callout: t("soliaMoment.callout"),
+            cta: t("soliaMoment.cta"),
+            alt: t("soliaMoment.alt"),
+            nodeLabel: t("soliaMoment.nodeLabel"),
+            nodes: [
+              { icon: "bill", label: t("soliaMoment.nodes.bill") },
+              { icon: "home", label: t("soliaMoment.nodes.roof") },
+              { icon: "habit", label: t("soliaMoment.nodes.habits") },
+              { icon: "budget", label: t("soliaMoment.nodes.budget") },
+              { icon: "system", label: t("soliaMoment.nodes.system") },
+            ],
+          }}
+        />
 
         {projects.length > 0 ? (
           <section id="projects" className={styles.projects} aria-labelledby="projects-title">
@@ -216,13 +355,24 @@ export default async function SolarEditorialHome({
         ) : null}
 
         <section className={styles.closing} aria-labelledby="closing-title">
-          <p className={styles.sectionMarker}>{t("closing.eyebrow")}</p>
-          <h2 id="closing-title">{t("closing.title")}</h2>
-          <p>{t("closing.description")}</p>
-          <div className={styles.closingActions}>
-            <Link className={styles.primaryButton} href={wizardHref}>{t("closing.primaryCta")}</Link>
-            <Link className={styles.inverseButton} href={buildHref}>{t("closing.secondaryCta")}</Link>
+          <div className={styles.closingContent}>
+            <p className={styles.sectionMarker}>{t("closing.eyebrow")}</p>
+            <h2 id="closing-title">{t("closing.title")}</h2>
+            <p>{t("closing.description")}</p>
+            <div className={styles.closingActions}>
+              <Link className={styles.primaryButton} href={wizardHref}>{t("closing.primaryCta")}</Link>
+              <Link className={styles.inverseButton} href={buildHref}>{t("closing.secondaryCta")}</Link>
+            </div>
           </div>
+          <AnimeMascot className={styles.closingVisual} state="guiding">
+            <Image
+              src="/asset/solia-pointing.webp"
+              alt={t("closing.mascotAlt")}
+              width={520}
+              height={700}
+              sizes="(max-width: 900px) 42vw, 22rem"
+            />
+          </AnimeMascot>
         </section>
       </div>
 

@@ -1,19 +1,23 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useLayoutEffect, useRef } from "react";
-import { FiArrowUpRight } from "react-icons/fi";
+import { FiArrowUpRight, FiHome, FiSun, FiZap } from "react-icons/fi";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+import { EnergyLine } from "@/components/brand/energy-line";
+import {
+  HalftonePattern,
+  ImpactHeadline,
+  SpeechBubble,
+  SpeedLines,
+} from "@/components/brand/manga-primitives";
+import { SoliaScene } from "@/components/brand/solia-scenes";
 
 import styles from "./solar-editorial-home.module.css";
 
 gsap.registerPlugin(ScrollTrigger);
-
-const HERO_IMAGE = "/asset/home-editorial/hero-rooftop.webp";
-const LIFESTYLE_IMAGE = "/asset/home-editorial/lifestyle-home.webp";
-const ROOF_DETAIL_IMAGE = "/asset/home-editorial/roof-detail.webp";
 
 export type EditorialHeroLabels = Readonly<{
   eyebrow: string;
@@ -24,8 +28,19 @@ export type EditorialHeroLabels = Readonly<{
   primaryHint: string;
   secondaryCta: string;
   secondaryHint: string;
-  imageAlt: string;
   mediaLabel: string;
+  visual: Readonly<{
+    kicker: string;
+    status: string;
+    imageLabel: string;
+    home: string;
+    usage: string;
+    roof: string;
+    system: string;
+    tracking: string;
+    note: string;
+    mascotAlt: string;
+  }>;
 }>;
 
 type EditorialHeroMotionProps = Readonly<{
@@ -35,6 +50,40 @@ type EditorialHeroMotionProps = Readonly<{
 
 function EditorialArrow() {
   return <FiArrowUpRight aria-hidden="true" className={styles.arrow} />;
+}
+
+function SolarSignalGraphic({
+  labels,
+}: Readonly<{ labels: EditorialHeroLabels["visual"] }>) {
+  return (
+    <div className={styles.heroSolarGraphic} aria-hidden="true">
+      <div className={styles.heroSolarSun}>
+        <FiSun />
+      </div>
+      <svg className={styles.heroSolarDiagram} viewBox="0 0 720 520" fill="none">
+        <path className={styles.heroSolarTrack} d="M96 104c126 16 144 144 270 144s160-150 280-112" />
+        <path className={styles.heroSolarProgress} d="M96 104c126 16 144 144 270 144s160-150 280-112" />
+        <path className={styles.heroSolarRoof} d="m190 320 170-142 178 142-26 34H216Z" />
+        <path className={styles.heroSolarHouse} d="M230 322h260v142H230Z" />
+        <path className={styles.heroSolarPanel} d="m276 302 80-66 84 66-80 64Z" />
+        <path className={styles.heroSolarWindows} d="M268 360h42v44h-42zM394 360h42v44h-42z" />
+        <path className={styles.heroSolarSystem} d="M548 266h86v74h-86z" />
+        <path className={styles.heroSolarSystemLine} d="M570 284h42M570 302h42M570 320h28" />
+        <circle className={styles.heroSolarNode} cx="96" cy="104" r="11" />
+        <circle className={styles.heroSolarNode} cx="366" cy="248" r="11" />
+        <circle className={styles.heroSolarNode} cx="646" cy="136" r="11" />
+      </svg>
+      <span className={`${styles.heroSolarTag} ${styles.heroSolarTagHome}`}>
+        <FiHome />
+        {labels.home}
+      </span>
+      <span className={`${styles.heroSolarTag} ${styles.heroSolarTagUsage}`}>
+        <FiZap />
+        {labels.usage}
+      </span>
+      <span className={styles.heroSolarFootnote}>{labels.tracking}</span>
+    </div>
+  );
 }
 
 /**
@@ -95,7 +144,7 @@ export default function EditorialHeroMotion({ locale, labels }: EditorialHeroMot
       parallaxContext.add("(min-width: 901px) and (pointer: fine)", () => {
         const outerCards = root.querySelectorAll<HTMLElement>("[data-hero-parallax]");
         outerCards.forEach((card) => {
-          const yPercent = card.dataset.heroParallax === "up" ? -15 : 10;
+          const yPercent = card.dataset.heroParallax === "up" ? -8 : 6;
           gsap.to(card, {
             yPercent,
             ease: "none",
@@ -122,13 +171,22 @@ export default function EditorialHeroMotion({ locale, labels }: EditorialHeroMot
 
   return (
     <section ref={rootRef} className={styles.hero} aria-labelledby="editorial-hero-title" data-hero-root>
-      <div className={styles.heroCopy}>
-        <p className={styles.heroEyebrow} data-hero-copy>{labels.eyebrow}</p>
-        <h1 id="editorial-hero-title" className={styles.heroTitle}>
-          <span data-hero-copy>{labels.titleLineOne}</span>
-          <span data-hero-copy>{labels.titleLineTwo}</span>
-        </h1>
-        <p className={styles.heroDescription} data-hero-copy>{labels.description}</p>
+      <ImpactHeadline
+        className={styles.heroCopy}
+        eyebrowClassName={styles.heroEyebrow}
+        titleClassName={styles.heroTitle}
+        descriptionClassName={styles.heroDescription}
+        headingId="editorial-hero-title"
+        headingLevel="h1"
+        eyebrow={<span data-hero-copy>{labels.eyebrow}</span>}
+        title={
+          <>
+            <span data-hero-copy>{labels.titleLineOne}</span>
+            <span data-hero-copy>{labels.titleLineTwo}</span>
+          </>
+        }
+        description={<span data-hero-copy>{labels.description}</span>}
+      >
         <div className={styles.heroActions} data-hero-copy>
           <Link className={styles.primaryAction} href={`/${locale}/wizard`}>
             <span>
@@ -145,37 +203,64 @@ export default function EditorialHeroMotion({ locale, labels }: EditorialHeroMot
             <EditorialArrow />
           </Link>
         </div>
-      </div>
+      </ImpactHeadline>
 
-      <figure className={`${styles.heroMedia} ${styles.heroLayerGrid}`} aria-label={labels.mediaLabel}>
+      <figure className={styles.heroMedia} aria-label={labels.mediaLabel}>
+        <HalftonePattern className={styles.heroHalftone} />
+        <SpeedLines className={styles.heroSpeedLines} />
         <div className={`${styles.heroCard} ${styles.heroCardPrimary}`} data-hero-card data-hero-parallax="up">
-          <Image
-            src={HERO_IMAGE}
-            alt={labels.imageAlt}
-            fill
-            priority
-            sizes="(max-width: 900px) 88vw, 38vw"
-            className={styles.heroCardImage}
-          />
+          <SolarSignalGraphic labels={labels.visual} />
+          <span className={styles.heroImageLabel} aria-hidden="true">{labels.visual.imageLabel}</span>
         </div>
-        <div className={`${styles.heroCard} ${styles.heroCardSecondary}`} data-hero-card data-hero-parallax="down" aria-hidden="true">
-          <Image
-            src={ROOF_DETAIL_IMAGE}
-            alt=""
-            fill
-            sizes="(max-width: 900px) 42vw, 16vw"
-            className={styles.heroCardImage}
-          />
+        <div className={styles.heroAnalysis} aria-hidden="true">
+          <span className={styles.heroAnalysisLabel}>{labels.visual.roof}</span>
+          <span className={styles.heroAnalysisLabel}>{labels.visual.usage}</span>
+          <EnergyLine className={styles.heroEnergyLine} />
         </div>
-        <div className={`${styles.heroCard} ${styles.heroCardTertiary}`} data-hero-card aria-hidden="true">
-          <Image
-            src={LIFESTYLE_IMAGE}
-            alt=""
-            fill
-            sizes="(max-width: 900px) 42vw, 18vw"
-            className={styles.heroCardImage}
-          />
-        </div>
+        <SoliaScene
+          className={styles.heroMascot}
+          data-hero-card
+          data-hero-parallax="down"
+          entranceAnimation="reveal"
+          imageClassName={styles.heroMascotImage}
+          imageSizes="(max-width: 900px) 52vw, 25rem"
+          layer="foreground"
+          pose="energyStudio"
+          position="right"
+          loading="eager"
+          priority
+          size="hero"
+          state="presenting"
+          alt={labels.visual.mascotAlt}
+        />
+        <SpeechBubble
+          className={styles.heroUiPanel}
+          data-hero-card
+          role="group"
+          aria-label={labels.visual.kicker}
+        >
+          <div className={styles.heroUiHeader}>
+            <div>
+              <span>{labels.visual.kicker}</span>
+              <strong>{labels.visual.note}</strong>
+            </div>
+            <span className={styles.heroUiStatus}>
+              <span aria-hidden="true" />
+              {labels.visual.status}
+            </span>
+          </div>
+          <div className={styles.heroUiFlow}>
+            <span className={styles.heroUiNode}>{labels.visual.home}</span>
+            <span className={styles.heroUiConnector} aria-hidden="true" />
+            <span className={styles.heroUiNode}>{labels.visual.usage}</span>
+            <span className={styles.heroUiConnector} aria-hidden="true" />
+            <span className={`${styles.heroUiNode} ${styles.heroUiNodeActive}`}>{labels.visual.system}</span>
+          </div>
+          <div className={styles.heroUiFooter}>
+            <span>{labels.visual.roof}</span>
+            <strong>{labels.visual.tracking}</strong>
+          </div>
+        </SpeechBubble>
         <figcaption className={styles.heroMediaCaption}>{labels.mediaLabel}</figcaption>
       </figure>
     </section>

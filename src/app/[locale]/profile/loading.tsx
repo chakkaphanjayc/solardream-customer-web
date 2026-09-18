@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 export default function ProfileLoading() {
   return (
     <PageShell
-      as="main"
+      as="div"
       className="w-full bg-background px-4 pb-16 pt-8 text-foreground sm:px-6 sm:pt-10 lg:px-8 lg:pt-28"
     >
       <div aria-busy="true" className="mx-auto w-full max-w-6xl pb-6">

@@ -52,7 +52,7 @@ export default function PortalSessionExchange({
     if (!token) {
       queueMicrotask(() => {
         setIsMissingToken(true);
-        setError(isExpiredLink ? "This secure portal link has expired." : t("missingToken"));
+        setError(isExpiredLink ? t("expiredLink") : t("missingToken"));
       });
       return;
     }
@@ -115,12 +115,12 @@ export default function PortalSessionExchange({
       });
       const payload = await readJsonResponse<{ success?: boolean; error?: string }>(response);
       if (!response.ok || !payload?.success) {
-        throw new Error(payload?.error || "Invalid Track Request Number or Access Key.");
+        throw new Error(payload?.error || t("invalidTrackNumber"));
       }
       router.replace(`/${locale}/proposals/${proposalId}`);
       router.refresh();
     } catch (reason) {
-      setTrackPasswordError(reason instanceof Error ? reason.message : "Access denied. Please check your Track Request Number.");
+      setTrackPasswordError(reason instanceof Error ? reason.message : t("accessDenied"));
     } finally {
       setTrackPasswordBusy(false);
     }
@@ -133,7 +133,7 @@ export default function PortalSessionExchange({
     setRecoveryError("");
     try {
       const turnstileToken = await recoveryTurnstileRef.current?.getToken();
-      if (!turnstileToken) throw new Error("Complete the security check before requesting access.");
+      if (!turnstileToken) throw new Error(t("securityCheckRequired"));
       const response = await fetch("/api/track/magic-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -144,39 +144,39 @@ export default function PortalSessionExchange({
           turnstileToken,
         }),
       });
-      if (!response.ok) throw new Error("Unable to request a replacement link. Please try again.");
+      if (!response.ok) throw new Error(t("replacementRequestFailed"));
       setRecoveryComplete(true);
       recoveryTurnstileRef.current?.reset();
     } catch (reason) {
-      setRecoveryError(reason instanceof Error ? reason.message : "Unable to request a replacement link.");
+      setRecoveryError(reason instanceof Error ? reason.message : t("replacementRequestFailed"));
     } finally {
       setRecoveryBusy(false);
     }
   };
 
   return (
-    <main className="grid min-h-dvh place-items-center bg-solar-light px-4 text-slate-950">
-      <section className="w-full max-w-lg rounded-xl border border-slate-200/70 bg-white p-6 text-center shadow-sm" aria-live="polite">
+    <div className="grid min-h-dvh place-items-center bg-solar-light px-4 text-slate-950">
+      <section className="solar-ui-panel w-full max-w-lg rounded-xl border border-slate-200/70 bg-white p-6 text-center shadow-sm" aria-live="polite">
         {error ? (
           <>
             <h1 className="text-xl font-black">{t("unavailable")}</h1>
             <p className="mt-3 text-sm font-semibold leading-6 text-rose-700">{error}</p>
 
             <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5 text-left shadow-2xs">
-              <h2 className="text-sm font-extrabold text-slate-900">Access with Track Request Number</h2>
+              <h2 className="text-sm font-extrabold text-slate-900">{t("trackAccessTitle")}</h2>
               <p className="mt-1 text-xs leading-5 text-slate-600">
-                Enter your Track Request Number or Reference to access your proposal portal directly.
+                {t("trackAccessDescription")}
               </p>
               <form onSubmit={(event) => void handleTrackPasswordAccess(event)} className="mt-4 space-y-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Track Request Number / Password
+                    {t("trackNumberLabel")}
                   </label>
                   <input
                     type="text"
                     value={trackPassword}
                     onChange={(e) => setTrackPassword(e.target.value)}
-                    placeholder="e.g. TRK-10023 or SD-QT-XXXXXX"
+                    placeholder={t("trackNumberPlaceholder")}
                     required
                     className="w-full min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900 shadow-2xs focus:border-slate-800 focus:outline-none"
                   />
@@ -191,26 +191,26 @@ export default function PortalSessionExchange({
                   disabled={trackPasswordBusy}
                   className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 text-sm font-bold text-white shadow-xs transition hover:bg-slate-800 disabled:opacity-60 cursor-pointer"
                 >
-                  {trackPasswordBusy ? "Verifying..." : "Access Customer Portal"}
+                  {trackPasswordBusy ? t("verifyAccess") : t("accessPortal")}
                 </button>
               </form>
             </div>
 
             {isExpiredLink ? (
               <form onSubmit={(event) => void requestReplacementLink(event)} className="mt-5 space-y-3 text-left">
-                <p className="text-sm font-semibold leading-6 text-slate-600">Request a new link with the quotation track number and the email used for this request.</p>
+                <p className="text-sm font-semibold leading-6 text-slate-600">{t("replacementDescription")}</p>
                 <label className="block text-xs font-bold text-slate-700">
-                  Request track no.
+                  {t("requestTrackNumber")}
                   <input value={trackingReference} onChange={(event) => setTrackingReference(event.target.value)} required className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm text-slate-950" />
                 </label>
                 <label className="block text-xs font-bold text-slate-700">
-                  Email address
+                  {t("emailLabel")}
                   <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm text-slate-950" />
                 </label>
                 <InvisibleTurnstile ref={recoveryTurnstileRef} action="track_request" className="max-w-xs" />
                 {recoveryError ? <p role="alert" className="text-xs font-semibold text-rose-700">{recoveryError}</p> : null}
-                {recoveryComplete ? <p role="status" className="rounded-lg bg-emerald-50 p-3 text-xs font-semibold leading-5 text-emerald-800">If the details match our records, a replacement secure link has been sent to your email.</p> : null}
-                <button type="submit" disabled={recoveryBusy || recoveryComplete} className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 text-sm font-bold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60">{recoveryBusy ? "Requesting link…" : "Request new access link"}</button>
+                {recoveryComplete ? <p role="status" className="rounded-lg bg-emerald-50 p-3 text-xs font-semibold leading-5 text-emerald-800">{t("replacementSent")}</p> : null}
+                <button type="submit" disabled={recoveryBusy || recoveryComplete} className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 text-sm font-bold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60">{recoveryBusy ? t("requestingLink") : t("requestNewLink")}</button>
               </form>
             ) : null}
             {isMissingToken ? (
@@ -237,6 +237,6 @@ export default function PortalSessionExchange({
           </>
         )}
       </section>
-    </main>
+    </div>
   );
 }

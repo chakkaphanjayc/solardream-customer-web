@@ -5,28 +5,34 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import {
-  Wrench, 
-  Calendar, 
-  CheckCircle2, 
-  Clock, 
-  ShieldCheck, 
-  Layers, 
-  Camera, 
+  Wrench,
+  Calendar,
+  ShieldCheck,
+  Layers,
+  Camera,
   ArrowRight,
   Info,
   Phone,
-  FileCheck2
+  FileCheck2,
 } from "@/components/ui/icons";
-import { cn, formatPrice } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import ProtectedImage from "@/components/ui/ProtectedImage";
-import { GsapPulse } from "@/components/ui/GsapMotion";
-import { PageShell } from "@/components/ui/page-shell";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
+import { SolarProgressStepper } from "@/components/ui/solar-system";
+import { SolarRouteShell } from "@/components/ui/solar-route-shell";
+
+export const instant = false;
 
 interface TrackerPageProps {
   params: Promise<{
     locale: string;
     id: string;
   }>;
+}
+
+function toPositiveNumber(value: unknown): number | null {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null;
 }
 
 
@@ -50,106 +56,90 @@ export default async function ProjectTrackerPage({ params }: TrackerPageProps) {
     notFound();
   }
 
-  const snap = project.lead?.configurationSnapshot as { totalPrice?: number; items?: unknown[] } | null;
+  const snap = project.lead?.configurationSnapshot as { totalPrice?: number | null; items?: unknown[] } | null;
+  const quotationValue = toPositiveNumber(snap?.totalPrice);
   const completedChecklist = Array.isArray(project.checklist) ? (project.checklist as string[]) : [];
-  const currentStepIndex = steps.findIndex((step) => step.status === project.status);
+  const projectPhotos = Array.isArray(project.photos)
+    ? project.photos.filter(
+        (url): url is string => typeof url === "string" && url.trim() !== "",
+      )
+    : [];
+  const componentCount = Array.isArray(snap?.items) ? snap.items.length : null;
+  const currentStepIndex = Math.max(
+    0,
+    steps.findIndex((step) => step.status === project.status),
+  );
+  const stepItems = steps.map((step, index) => ({
+    id: step.status,
+    label: step.label,
+    description: step.description,
+    status:
+      index < currentStepIndex
+        ? ("complete" as const)
+        : index === currentStepIndex
+          ? ("current" as const)
+          : ("idle" as const),
+  }));
 
   return (
-    <PageShell as="div" className="solar-project-tracker bg-transparent px-4 py-12 font-sans sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        
+    <SolarRouteShell className="solar-project-tracker px-4 pb-16 font-sans sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-5xl space-y-8">
+
         {/* Tracker Branded Header */}
-        <div className="bg-brand-surface border border-slate-200 rounded-[2rem] p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
-          <div>
-            <span className="px-3 py-1 bg-[#1CBBBB]/10 text-[#1CBBBB] rounded-full text-[9px] font-black uppercase tracking-wider">
+        <header className="solar-route-card solar-route-card--strong flex flex-col items-start justify-between gap-5 p-6 sm:flex-row sm:items-center sm:p-8">
+          <div className="flex min-w-0 items-start gap-4">
+            <div className="min-w-0">
+            <span className="solar-route-kicker">
               {t("badge")}
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 uppercase mt-2">
-              {t("powering")} <span className="text-[#1CBBBB]">{project.lead?.name || t("customer")}</span>
+            <h1 className="mt-3 text-2xl font-black tracking-tight text-[var(--sd-ink)] sm:text-3xl">
+              {t("powering")} <span className="text-[var(--sd-blue-600)]">{project.lead?.name || t("customer")}</span>
             </h1>
-            <p className="text-slate-500 text-[10px] sm:text-xs font-bold uppercase mt-1 tracking-wider">
+            <p className="mt-2 text-xs font-semibold tracking-wide text-[var(--sd-muted)]">
               {t("intro")}
             </p>
+            </div>
+            <SoliaGuide
+              alt={locale === "th" ? "Solia ช่วยอธิบายความคืบหน้าการติดตั้ง" : "Solia explaining your installation progress"}
+              pose="pointing"
+              className="hidden h-24 w-20 shrink-0 sm:block"
+              imageSizes="80px"
+            />
           </div>
           <Link
-            href="/"
-            className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-slate-500 hover:text-slate-900 transition-colors"
+            href={`/${locale}`}
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--sd-line)] px-4 text-xs font-bold text-[var(--sd-text)] transition-colors hover:border-[var(--sd-blue-500)] hover:bg-[var(--sd-soft-solar)] hover:text-[var(--sd-blue-600)]"
           >
             <span>{t("home")}</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="size-4" />
           </Link>
-        </div>
+        </header>
 
         {/* Live Stepper Journey */}
-        <div className="bg-brand-surface border border-slate-200 rounded-[2rem] p-6 sm:p-8 shadow-sm space-y-8">
-          <h2 className="text-xs font-black uppercase text-slate-400 tracking-wider">
+        <section className="solar-route-card space-y-6 p-5 sm:p-7" aria-labelledby="project-pipeline-title">
+          <h2 id="project-pipeline-title" className="solar-route-kicker">
             {t("pipelineStages")}
           </h2>
-
-          <div className="relative flex flex-col md:flex-row justify-between gap-6">
-            {/* Connector Line for Desktop */}
-            <div className="hidden md:block absolute left-8 right-8 top-6 h-0.5 bg-slate-100 -z-0">
-              <div 
-                className="h-full bg-[#1CBBBB] transition-all duration-500"
-                style={{ width: `${(Math.max(0, currentStepIndex) / (steps.length - 1)) * 100}%` }}
-              />
-            </div>
-
-            {steps.map((step, idx) => {
-              const isPast = idx < currentStepIndex;
-              const isCurrent = idx === currentStepIndex;
-              const isFuture = idx > currentStepIndex;
-
-              return (
-                <div key={idx} className="relative z-10 flex md:flex-col items-start md:items-center gap-4 md:gap-3 md:text-center md:flex-1">
-                  {/* Status Indicator */}
-                  <div className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center shrink-0 border transition-all duration-300",
-                    isPast && "bg-[#1CBBBB] border-[#1CBBBB] text-white",
-                    isCurrent && "bg-brand-surface border-2 border-[#1CBBBB] text-[#1CBBBB] ring-4 ring-[#1CBBBB]/10",
-                    isFuture && "bg-slate-50 border-slate-200 text-slate-455"
-                  )}>
-                    {isPast ? (
-                      <CheckCircle2 className="w-6 h-6" />
-                    ) : isCurrent ? (
-                      <GsapPulse scale={1.08}>
-                        <Clock className="h-6 w-6" />
-                      </GsapPulse>
-                    ) : (
-                      <span className="text-xs font-black">{idx + 1}</span>
-                    )}
-                  </div>
-
-                  <div>
-                    <h3 className={cn(
-                      "text-xs font-black uppercase tracking-wider",
-                      isCurrent ? "text-slate-900" : isPast ? "text-slate-700" : "text-slate-450"
-                    )}>
-                      {step.label}
-                    </h3>
-                    <p className="text-[10px] font-semibold text-slate-500 mt-1 max-w-[200px] leading-relaxed md:mx-auto">
-                      {step.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+          <SolarProgressStepper
+            items={stepItems}
+            ariaLabel={t("pipelineStages")}
+            interactive={false}
+          />
+        </section>
 
         {/* Schedule & Team Allocation Detail Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-brand-surface border border-slate-200 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between h-48">
-            <h4 className="text-[9px] font-black uppercase tracking-wider text-slate-400">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <section className="solar-route-card flex min-h-52 flex-col justify-between p-5 sm:p-6">
+            <h2 className="solar-route-kicker">
               {t("installationSchedule")}
-            </h4>
-            <div className="flex items-center gap-4 py-4">
-              <div className="w-12 h-12 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-slate-600">
-                <Calendar className="w-6 h-6" />
+            </h2>
+            <div className="flex items-center gap-4 py-5">
+              <div className="solar-soft-panel grid size-12 shrink-0 place-items-center text-[var(--sd-blue-600)]">
+                <Calendar className="size-6" />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">{t("targetDate")}</p>
-                <p className="text-lg font-black text-slate-800 uppercase mt-0.5">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--sd-muted)]">{t("targetDate")}</p>
+                <p className="mt-1 text-base font-black tracking-tight text-[var(--sd-ink)] sm:text-lg">
                   {project.scheduledDate ? new Date(project.scheduledDate).toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
                     weekday: 'long',
                     year: 'numeric',
@@ -159,79 +149,79 @@ export default async function ProjectTrackerPage({ params }: TrackerPageProps) {
                 </p>
               </div>
             </div>
-            <p className="text-[9px] font-bold text-slate-450 uppercase flex items-center gap-1">
-              <Info className="w-3.5 h-3.5" />
+            <p className="flex items-center gap-1.5 text-[10px] font-semibold text-[var(--sd-muted)]">
+              <Info className="size-3.5" />
               <span>{t("weatherNotice")}</span>
             </p>
-          </div>
+          </section>
 
-          <div className="bg-brand-surface border border-slate-200 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between h-48">
-            <h4 className="text-[9px] font-black uppercase tracking-wider text-slate-400">
+          <section className="solar-route-card flex min-h-52 flex-col justify-between p-5 sm:p-6">
+            <h2 className="solar-route-kicker">
               {t("assignedTeam")}
-            </h4>
-            <div className="flex items-center gap-4 py-4">
-              <div className="w-12 h-12 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-slate-600">
-                <Wrench className="w-6 h-6" />
+            </h2>
+            <div className="flex items-center gap-4 py-5">
+              <div className="solar-soft-panel grid size-12 shrink-0 place-items-center text-[var(--sd-blue-600)]">
+                <Wrench className="size-6" />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">{t("operationalCrew")}</p>
-                <p className="text-lg font-black text-slate-800 uppercase mt-0.5">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--sd-muted)]">{t("operationalCrew")}</p>
+                <p className="mt-1 text-base font-black tracking-tight text-[var(--sd-ink)] sm:text-lg">
                   {project.assignedTeam || t("allocatingCrew")}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
-              <Phone className="w-3.5 h-3.5 text-[#1CBBBB]" />
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[var(--sd-muted)]">
+              <Phone className="size-3.5 text-[var(--sd-blue-600)]" />
               <span>{t("questions")} <strong>02-123-4567</strong></span>
             </div>
-          </div>
+          </section>
         </div>
 
         {/* Safety & Job Checklist Progress */}
-        <div className="bg-brand-surface border border-slate-200 rounded-[2rem] p-6 sm:p-8 shadow-sm space-y-6">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
-              <ShieldCheck className="w-4.5 h-4.5 text-[#1CBBBB]" />
+        <section className="solar-route-card space-y-6 p-6 sm:p-8" aria-labelledby="project-safety-title">
+          <div className="flex items-center justify-between gap-4">
+            <h2 id="project-safety-title" className="solar-route-kicker flex items-center gap-1.5">
+              <ShieldCheck className="size-4" />
               {t("safetyChecks")}
-            </h3>
-            <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[9px] font-black uppercase tracking-wider border border-emerald-100">
+            </h2>
+            <span className="solar-ui-status shrink-0" data-tone="success">
               {t("verifiedTasks", { count: completedChecklist.length })}
             </span>
           </div>
 
           {completedChecklist.length === 0 ? (
-            <div className="py-6 text-center text-slate-450 text-[10.5px] font-bold uppercase tracking-wider bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+            <div className="solar-soft-panel border-dashed px-4 py-6 text-center text-xs font-semibold text-[var(--sd-muted)]">
               {t("verificationPending")}
             </div>
           ) : (
             <div className="space-y-3">
               {completedChecklist.map((item, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
-                  <div className="w-5 h-5 bg-emerald-50 border border-emerald-100 rounded-full flex items-center justify-center text-emerald-500 shrink-0">
-                    <FileCheck2 className="w-3.5 h-3.5" />
+                <div key={idx} className="solar-soft-panel flex items-start gap-3 p-3">
+                  <div className="grid size-5 shrink-0 place-items-center rounded-full bg-[var(--sd-soft-solar)] text-[var(--sd-success)]">
+                    <FileCheck2 className="size-3.5" />
                   </div>
-                  <span className="text-[10.5px] font-semibold text-slate-700">{item}</span>
+                  <span className="text-sm font-semibold text-[var(--sd-text)]">{item}</span>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </section>
 
         {/* Live Photo Stream */}
-        <div className="bg-brand-surface border border-slate-200 rounded-[2rem] p-6 sm:p-8 shadow-sm space-y-6">
-          <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
-            <Camera className="w-4.5 h-4.5 text-[#1CBBBB]" />
+        <section className="solar-route-card space-y-6 p-6 sm:p-8" aria-labelledby="project-photos-title">
+          <h2 id="project-photos-title" className="solar-route-kicker flex items-center gap-1.5">
+            <Camera className="size-4" />
             {t("sitePhotos")}
-          </h3>
+          </h2>
 
-          {!project.photos || project.photos.length === 0 ? (
-            <div className="py-12 text-center text-slate-450 text-xs font-bold uppercase tracking-wider border border-dashed border-slate-200 rounded-2xl bg-slate-50">
+          {projectPhotos.length === 0 ? (
+            <div className="solar-soft-panel border-dashed px-4 py-12 text-center text-xs font-semibold text-[var(--sd-muted)]">
               {t("photosPending")}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {project.photos.filter(url => url && url.trim() !== "").map((url, idx) => (
-                <div key={idx} className="relative aspect-square border border-slate-200 rounded-2xl overflow-hidden shadow-xs hover:scale-[1.01] transition-transform">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+              {projectPhotos.map((url, idx) => (
+                <div key={idx} className="solar-soft-panel relative aspect-square overflow-hidden transition-transform hover:scale-[1.01]">
                   <ProtectedImage
                     src={url}
                     alt={t("progressPhoto", { count: idx + 1 })}
@@ -239,7 +229,7 @@ export default async function ProjectTrackerPage({ params }: TrackerPageProps) {
                     sizes="(max-width: 640px) 100vw, 33vw"
                     className="w-full h-full object-cover"
                   >
-                    <div className="absolute bottom-3 left-3 z-30 px-2 py-0.5 bg-slate-900/70 text-white rounded text-[8px] font-bold uppercase tracking-wider backdrop-blur-xs pointer-events-none select-none">
+                    <div className="pointer-events-none absolute bottom-3 left-3 z-30 rounded-full bg-[var(--sd-navy-900)]/85 px-2.5 py-1 text-[9px] font-bold tracking-wide text-white backdrop-blur-sm select-none">
                       {t("progressUpdate", { count: idx + 1 })}
                     </div>
                   </ProtectedImage>
@@ -247,35 +237,37 @@ export default async function ProjectTrackerPage({ params }: TrackerPageProps) {
               ))}
             </div>
           )}
-        </div>
+        </section>
 
         {/* Technical Specification Snapshot Summary */}
         {snap && (
-          <div className="bg-brand-surface border border-slate-200 rounded-[2rem] p-6 shadow-sm space-y-4">
-            <h4 className="text-[9px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <Layers className="w-4.5 h-4.5 text-[#1CBBBB]" />
+          <section className="solar-route-card space-y-4 p-6" aria-labelledby="project-snapshot-title">
+            <h2 id="project-snapshot-title" className="solar-route-kicker flex items-center gap-1.5">
+              <Layers className="size-4" />
               <span>{t("systemSnapshot")}</span>
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-slate-50 border border-slate-200/50 p-4 rounded-2xl space-y-2">
-                <span className="text-[7.5px] uppercase font-black text-slate-400 block">{t("quotationValue")}</span>
-                <span className="text-base font-black font-mono text-[#D8A87B] block">
-                  {formatPrice(snap.totalPrice || 0)}
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="solar-soft-panel space-y-2 p-4">
+                <span className="block text-[9px] font-black uppercase tracking-wide text-[var(--sd-muted)]">{t("quotationValue")}</span>
+                <span className="block text-base font-black font-mono text-[var(--sd-warning)]">
+                  {quotationValue === null ? t("quotationPending") : formatPrice(quotationValue)}
                 </span>
-                <span className="text-[8px] font-bold text-slate-500 uppercase">{t("quotationNote")}</span>
+                <span className="text-[10px] font-semibold text-[var(--sd-muted)]">{t("quotationNote")}</span>
               </div>
-              <div className="bg-slate-50 border border-slate-200/50 p-4 rounded-2xl space-y-2">
-                <span className="text-[7.5px] uppercase font-black text-slate-400 block">{t("componentsCount")}</span>
-                <span className="text-base font-black text-slate-800 block">
-                  {t("solarItems", { count: snap.items?.length || 0 })}
+              <div className="solar-soft-panel space-y-2 p-4">
+                <span className="block text-[9px] font-black uppercase tracking-wide text-[var(--sd-muted)]">{t("componentsCount")}</span>
+                <span className="block text-base font-black text-[var(--sd-ink)]">
+                  {componentCount === null
+                    ? t("componentsPending")
+                    : t("solarItems", { count: componentCount })}
                 </span>
-                <span className="text-[8px] font-bold text-slate-555 uppercase">{t("componentsNote")}</span>
+                <span className="text-[10px] font-semibold text-[var(--sd-muted)]">{t("componentsNote")}</span>
               </div>
             </div>
-          </div>
+          </section>
         )}
 
       </div>
-    </PageShell>
+    </SolarRouteShell>
   );
 }

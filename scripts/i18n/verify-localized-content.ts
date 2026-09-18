@@ -29,6 +29,6 @@ assert.deepEqual(normalizeLocalizationConfig({ defaultLocale: "en", supportedLoc
   defaultLocale: "en",
   supportedLocales: ["en", "th"],
 });
-assert.equal(normalizeLocalizationConfig({ defaultLocale: "fr", supportedLocales: ["fr"] }).defaultLocale, "th");
+assert.equal(normalizeLocalizationConfig({ defaultLocale: "zz", supportedLocales: ["zz"] }).defaultLocale, "th");
 
 console.log("Localized content fallback and configuration checks pass.");

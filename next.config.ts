@@ -47,8 +47,9 @@ const nextConfig: NextConfig = {
   // Next's Cache Components runtime uses timer-backed cache signals that can
   // outlive the request in Cloudflare Workers. That makes a later request try
   // to perform I/O in the previous request's IoContext and results in a 1101.
-  // Keep the feature enabled for the Node.js runtime, while using the stable
-  // Next cache API (unstable_cache) in the Worker build.
+  // Keep the Node.js dev/prod runtime aligned so route-level `instant = false`
+  // boundaries are compiled and verified the same way locally and in release
+  // builds; Cloudflare continues to use the stable Next cache API instead.
   cacheComponents: !isCloudflareBuild,
   outputFileTracingRoot: projectRoot,
   outputFileTracingIncludes: {

@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import { useLocale } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 
-import { AlertTriangle, ArrowRight, CalendarClock, CheckCircle2, MapPin, RefreshCw, Sun } from "@/components/ui/icons";
-import { Button, buttonVariants } from "@/components/ui/button";
 import { OpsPortalShell } from "@/components/portal/OpsPortalShell";
+import { SolarStatePanel } from "@/components/ui/solar-system";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { ArrowRight, CalendarClock, CheckCircle2, MapPin, RefreshCw } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 type Project = {
@@ -22,21 +23,42 @@ type Project = {
   customerName: string;
 };
 
-function formatDate(value: string | null) {
-  if (!value) return "Not scheduled";
+type ProjectsPayload = { success?: boolean; data?: Project[]; error?: { message?: string } };
+
+function formatDate(value: string | null, locale: string, pendingLabel: string) {
+  if (!value) return pendingLabel;
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "Not scheduled" : date.toLocaleDateString(undefined, { dateStyle: "medium" });
+  if (Number.isNaN(date.getTime())) return pendingLabel;
+
+  return new Intl.DateTimeFormat(locale === "th" ? "th-TH" : "en-US", { dateStyle: "medium" }).format(date);
 }
 
-function stateLabel(value: string) {
+function titleCase(value: string) {
   return value.replaceAll("_", " ").toLowerCase().replace(/(^| )\w/g, (letter) => letter.toUpperCase());
 }
 
 export default function CustomerProjectsClient({ enabled }: { enabled: boolean }) {
   const locale = useLocale();
+  const t = useTranslations("CustomerPortal");
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState("");
+
+  const statusLabel = (value: string) => {
+    const statusLabels: Record<string, string> = {
+      PENDING: t("status.pending"),
+      COMPLETED: t("status.completed"),
+      ACTIVE: t("status.active"),
+      SCHEDULED: t("status.scheduled"),
+      INSTALLED: t("status.installed"),
+      EXPIRED: t("status.expired"),
+      CANCELLED: t("status.cancelled"),
+      IN_PROGRESS: t("status.inProgress"),
+      REQUESTED: t("status.requested"),
+    };
+
+    return statusLabels[value.trim().toUpperCase().replaceAll("-", "_")] ?? titleCase(value);
+  };
 
   const load = useCallback(async () => {
     if (!enabled) return;
@@ -44,60 +66,63 @@ export default function CustomerProjectsClient({ enabled }: { enabled: boolean }
     setError("");
     try {
       const response = await fetch("/api/v2/customer/projects", { cache: "no-store", credentials: "same-origin" });
-      const payload = await response.json() as { success?: boolean; data?: Project[]; error?: { message?: string } };
-      if (!response.ok || !payload.success || !payload.data) throw new Error(payload.error?.message || "Projects could not be loaded.");
+      const payload = await response.json() as ProjectsPayload;
+      if (!response.ok || !payload.success || !payload.data) throw new Error(payload.error?.message || t("projects.errorTitle"));
       setProjects(payload.data);
     } catch (caught: unknown) {
-      setError(caught instanceof Error ? caught.message : "Projects could not be loaded.");
+      setError(caught instanceof Error ? caught.message : t("projects.errorTitle"));
     } finally {
       setLoading(false);
     }
-  }, [enabled]);
+  }, [enabled, t]);
 
   // This effect hydrates the customer project list from the API after the route loads.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void load(); }, [load]);
 
   return (
-    <OpsPortalShell
-      enabled={enabled}
-      title="Your solar projects"
-      description="Follow every delivery milestone from site review through commissioning, handover, and warranty activation."
-    >
+    <OpsPortalShell enabled={enabled} title={t("projects.title")} description={t("projects.description")}>
       {loading ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {[1, 2].map((item) => <div key={item} className="h-64 animate-pulse rounded-[24px] bg-[#E6E3DC]" />)}
-        </div>
+        <SolarStatePanel
+          kind="loading"
+          title={t("projects.loadingTitle")}
+          description={t("projects.loadingDescription")}
+          soliaAlt={t("projects.loadingAlt")}
+        />
       ) : error ? (
-        <section role="alert" className="rounded-[24px] border border-rose-200 bg-rose-50/90 p-7 text-rose-950">
-          <AlertTriangle className="h-6 w-6 text-rose-600" aria-hidden="true" />
-          <p className="mt-3 text-sm font-semibold">{error}</p>
-          <Button type="button" variant="secondary" size="sm" onClick={() => void load()} className="mt-5 rounded-full"><RefreshCw className="h-4 w-4" aria-hidden="true" /> Try again</Button>
-        </section>
+        <SolarStatePanel
+          kind="error"
+          title={t("projects.errorTitle")}
+          description={error}
+          soliaAlt={t("projects.errorAlt")}
+          action={<Button type="button" variant="secondary" size="sm" onClick={() => void load()} className="mt-2 rounded-full"><RefreshCw className="h-4 w-4" aria-hidden="true" /> {t("projects.tryAgain")}</Button>}
+        />
       ) : projects.length === 0 ? (
-        <section className="rounded-[24px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-10 text-center shadow-xs">
-          <Sun className="mx-auto h-9 w-9 text-[#4F7FA8]" aria-hidden="true" />
-          <h2 className="mt-4 text-2xl font-bold text-[#1C1C1A]">No delivery projects yet</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#4E4B44] font-medium">Once a proposal is fully paid and converted, its installation project will appear here.</p>
-        </section>
+        <SolarStatePanel
+          kind="empty"
+          title={t("projects.emptyTitle")}
+          description={t("projects.emptyDescription")}
+          soliaAlt={t("projects.emptyAlt")}
+          action={<Link href={`/${locale}/wizard`} className={cn(buttonVariants({ variant: "primary", size: "sm" }), "mt-2")}>{t("projects.startPlan")}</Link>}
+        />
       ) : (
-        <section className="grid gap-4 md:grid-cols-2">
+        <section className="grid gap-4 md:grid-cols-2" aria-label={t("projects.title")}>
           {projects.map((project) => (
-            <article key={project.id} className="rounded-[24px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-5 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md sm:p-7">
+            <article key={project.id} className="solar-route-card solar-route-card--strong rounded-[var(--sd-radius-panel)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-5 shadow-[var(--sd-shadow-1)] transition-transform duration-300 hover:-translate-y-0.5 sm:p-7">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#4F7FA8]">{project.projectCode}</p>
-                  <h2 className="mt-2 text-xl font-bold text-[#1C1C1A]">{project.systemSizeKwp} kW solar system</h2>
-                  <p className="mt-1 text-sm text-[#4E4B44] font-medium">{project.panelCount} panels · Updated {formatDate(project.updatedAt)}</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--sd-blue-500)]">{project.projectCode}</p>
+                  <h2 className="mt-2 text-xl font-bold text-[var(--sd-ink)]">{t("projects.systemTitle", { size: project.systemSizeKwp })}</h2>
+                  <p className="mt-1 text-sm font-medium text-[var(--sd-text)]">{t("projects.updated", { panels: project.panelCount, date: formatDate(project.updatedAt, locale, t("common.datePending")) })}</p>
                 </div>
-                <span className="shrink-0 rounded-full border border-[#8E8B83]/20 bg-[#DCE8F5] px-3.5 py-1 text-xs font-bold text-[#2E2C27]">{stateLabel(project.state)}</span>
+                <span className="shrink-0 rounded-full border border-[var(--sd-line)] bg-[var(--sd-selected)] px-3.5 py-1 text-xs font-bold text-[var(--sd-ink)]">{statusLabel(project.state)}</span>
               </div>
-              <div className="mt-6 space-y-3 border-t border-[#8E8B83]/15 pt-5 text-sm">
-                <p className="flex items-start gap-2 text-[#4E4B44] font-medium"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#4F7FA8]" aria-hidden="true" /><span>{project.site ? [project.site.label, project.site.addressLine1, project.site.city].filter(Boolean).join(" · ") : "Site details pending"}</span></p>
-                <p className="flex items-center gap-2 text-[#4E4B44] font-medium"><CalendarClock className="h-4 w-4 shrink-0 text-[#4F7FA8]" aria-hidden="true" /><span>{project.nextVisit ? formatDate(project.nextVisit.scheduledStart) : "No field visit scheduled"}</span></p>
-                <p className="flex items-center gap-2 text-[#4E4B44] font-medium"><CheckCircle2 className="h-4 w-4 shrink-0 text-[#4F7FA8]" aria-hidden="true" /><span>Installation warranty: {project.installationWarranty?.status?.replaceAll("_", " ").toLowerCase() || "Pending"}</span></p>
+              <div className="mt-6 space-y-3 border-t border-[var(--sd-line)] pt-5 text-sm">
+                <p className="flex items-start gap-2 font-medium text-[var(--sd-text)]"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sd-blue-500)]" aria-hidden="true" /><span>{project.site ? [project.site.label, project.site.addressLine1, project.site.city].filter(Boolean).join(" · ") : t("common.sitePending")}</span></p>
+                <p className="flex items-center gap-2 font-medium text-[var(--sd-text)]"><CalendarClock className="h-4 w-4 shrink-0 text-[var(--sd-blue-500)]" aria-hidden="true" /><span>{project.nextVisit ? formatDate(project.nextVisit.scheduledStart, locale, t("common.datePending")) : t("projects.nextVisitPending")}</span></p>
+                <p className="flex items-center gap-2 font-medium text-[var(--sd-text)]"><CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--sd-blue-500)]" aria-hidden="true" /><span>{t("projects.warrantyStatus", { status: statusLabel(project.installationWarranty?.status || "PENDING") })}</span></p>
               </div>
-              <Link href={"/" + locale + "/portal/projects/" + project.id} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#B7D1EA] px-5 py-3 text-xs font-bold text-white shadow-md transition-all hover:bg-[#A5C2DE] active:scale-95">View project status <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+              <Link href={"/" + locale + "/portal/projects/" + project.id} className={cn(buttonVariants({ variant: "primary", size: "sm" }), "mt-6 inline-flex w-full justify-center")}>{t("projects.viewStatus")} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
             </article>
           ))}
         </section>

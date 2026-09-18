@@ -331,9 +331,9 @@ export default function CookieBanner({
               <ShieldCheck className="size-5 text-[#4F7FA8]" />
             </div>
             <div className="space-y-1">
-              <h4 className="font-sans text-sm font-bold text-[#2E2C27]">
+              <h2 className="font-sans text-sm font-bold text-[#2E2C27]">
                 {cookieTitle}
-              </h4>
+              </h2>
               <p className="font-sans text-xs font-normal leading-relaxed text-[#4E4B44]">
                 {cookieBannerText}
               </p>

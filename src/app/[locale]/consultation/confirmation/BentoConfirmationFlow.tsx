@@ -104,6 +104,14 @@ export default function BentoConfirmationFlow({
     return labels[score - 1];
   };
 
+  const accountCardTitle = isMember
+    ? locale === "th"
+      ? "บันทึกคำขอไว้ในบัญชีแล้ว"
+      : "Saved to Your Account"
+    : locale === "th"
+      ? "สมัครสมาชิกเพื่อติดตามคำขอ"
+      : "Track Quote Status";
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mt-8 text-left">
       {/* CARD 1: REFERENCE NUMBER & TRACK LIVE (Spans full width) */}
@@ -168,9 +176,9 @@ export default function BentoConfirmationFlow({
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-emerald-700/38 bg-emerald-50 text-emerald-800 shadow-[2px_2px_0_rgba(16,185,129,0.22)]">
               <CheckCircle2 className="h-7 w-7 stroke-[3]" />
             </div>
-            <h4 className="text-base font-black text-[#000000] uppercase tracking-wider">
+            <h2 className="text-base font-black text-[#000000] uppercase tracking-wider">
               {locale === "th" ? "ขอบคุณสำหรับข้อเสนอแนะค่ะ!" : "Thank You For Your Feedback!"}
-            </h4>
+            </h2>
             <p className="text-xs font-bold text-slate-700 max-w-[260px]">
               {locale === "th"
                 ? "ความคิดเห็นของคุณช่วยให้เราปรับปรุงบริการออกแบบโซลาร์ให้ดียิ่งขึ้น"
@@ -179,9 +187,9 @@ export default function BentoConfirmationFlow({
           </div>
         ) : (
           <form onSubmit={handleSubmitFeedback} className="w-full flex flex-col items-center space-y-4">
-            <h4 className="text-xs font-black text-[#000000] uppercase tracking-wider text-center">
+            <h2 className="text-xs font-black text-[#000000] uppercase tracking-wider text-center">
               {getQuestionText()}
-            </h4>
+            </h2>
 
             {/* Stars Selector Row */}
             <div className="flex flex-col items-center gap-2 py-1">
@@ -266,11 +274,7 @@ export default function BentoConfirmationFlow({
             ) : (
               <UserPlus className="w-6 h-6 text-[#2B9EB3] stroke-[2.5]" />
             )}
-            <h3 className="text-sm font-black text-[#000000] uppercase tracking-wider">
-              {isMember
-                ? locale === "th" ? "บันทึกคำขอไว้ในบัญชีแล้ว" : "Saved to Your Account"
-                : locale === "th" ? "สมัครสมาชิกเพื่อติดตามคำขอ" : "Track Quote Status"}
-            </h3>
+            <h2 className="text-sm font-black text-[#000000] uppercase tracking-wider">{accountCardTitle}</h2>
           </div>
           <p className="text-xs leading-relaxed text-slate-700 font-bold">
             {isMember
@@ -287,7 +291,7 @@ export default function BentoConfirmationFlow({
           {isMember ? (
             <Link
               href={`/${locale}/proposals`}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-[#0F172A]/80 bg-[#0F172A] py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-[3px_3px_0_rgba(15,23,42,0.42)] transition-[background-color,transform,box-shadow] duration-200 ease-expo hover:bg-[#D8A87B] hover:text-[#0F172A] hover:shadow-[4px_4px_0_rgba(15,23,42,0.48)] active:scale-[0.985] active:shadow-[1px_1px_0_rgba(15,23,42,0.30)] cursor-pointer"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-[var(--sd-technical)] bg-[var(--sd-technical)] py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--sd-white)] shadow-[3px_3px_0_rgba(15,23,42,0.42)] transition-[background-color,transform,box-shadow] duration-200 ease-expo hover:bg-[#D8A87B] hover:text-[var(--sd-ink)] hover:shadow-[4px_4px_0_rgba(15,23,42,0.48)] active:scale-[0.985] active:shadow-[1px_1px_0_rgba(15,23,42,0.30)] cursor-pointer"
             >
               <span>{locale === "th" ? "ดูใบเสนอราคาของฉัน" : "View My Proposals"}</span>
               <ArrowRight className="w-4 h-4 stroke-[3]" />
@@ -295,7 +299,7 @@ export default function BentoConfirmationFlow({
           ) : (
             <Link
               href={`/${locale}/login?redirect=consultation/confirmation`}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-[#0F172A]/80 bg-[#0F172A] py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-[3px_3px_0_rgba(15,23,42,0.42)] transition-[background-color,transform,box-shadow] duration-200 ease-expo hover:bg-[#D8A87B] hover:text-[#0F172A] hover:shadow-[4px_4px_0_rgba(15,23,42,0.48)] active:scale-[0.985] active:shadow-[1px_1px_0_rgba(15,23,42,0.30)] cursor-pointer"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-[var(--sd-technical)] bg-[var(--sd-technical)] py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--sd-white)] shadow-[3px_3px_0_rgba(15,23,42,0.42)] transition-[background-color,transform,box-shadow] duration-200 ease-expo hover:bg-[#D8A87B] hover:text-[var(--sd-ink)] hover:shadow-[4px_4px_0_rgba(15,23,42,0.48)] active:scale-[0.985] active:shadow-[1px_1px_0_rgba(15,23,42,0.30)] cursor-pointer"
             >
               <span>{locale === "th" ? "เข้าสู่ระบบ / สมัครสมาชิก" : "Sign In / Register"}</span>
               <ArrowRight className="w-4 h-4 stroke-[3]" />

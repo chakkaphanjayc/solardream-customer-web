@@ -8,7 +8,7 @@ import * as Icons from "@/components/ui/icons";
 import type { IconType } from "@/components/ui/icons";
 import ProgressiveImage from "@/components/ui/progressive-image";
 import { useLocale, useTranslations } from "next-intl";
-import DynamicSoliaChat from "@/components/DynamicSoliaChat";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 import { SofiaCapsule } from "@/components/ui/LiquidModal";
 import { trackProductEvent } from "@/lib/productAnalytics";
 import type { WizardAnswers, WizardClientProps } from "@/types/wizard";
@@ -30,6 +30,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import {
+  SolarChoiceCard,
+  SolarProgressStepper,
+} from "@/components/ui/solar-system";
 import { SolarDepth } from "@/components/ui/solar-depth";
 import { GsapReveal } from "@/components/ui/GsapMotion";
 import { useSmartScroll } from "@/components/ui/ScrollAutoEngine";
@@ -55,6 +59,7 @@ export default function WizardClient({
   const t = useTranslations("WizardClient");
   const locale = useLocale();
   const isThaiLocale = locale.toLowerCase().startsWith("th");
+  const wizardTitle = isThaiLocale ? t("header.title") : wizard.title;
   const { scrollTo: gsapScrollTo } = useSmartScroll();
   const currencyFormatter = new Intl.NumberFormat(
     locale === "en" ? "en-US" : "th-TH",
@@ -320,9 +325,11 @@ export default function WizardClient({
               role="status"
               aria-live="polite"
             >
-              <DynamicSoliaChat
-                type="loading_calc"
-                pose="/solia-thinking.webp"
+              <SoliaGuide
+                alt={locale === "th" ? "Solia กำลังคำนวณแผนพลังงานของคุณ" : "Solia calculating your home energy plan"}
+                pose="energyStudio"
+                className="h-40 w-32 sm:h-48 sm:w-40"
+                imageSizes="160px"
               />
               <p className="mt-6 text-base font-semibold leading-7 text-[#4F7FA8]">
                 {t("loading.calculating")}
@@ -333,7 +340,7 @@ export default function WizardClient({
       </Dialog>
 
       <div className="solar-wizard-layout grid w-full gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(19rem,3fr)] lg:items-start lg:gap-7">
-        <main className="min-w-0">
+        <div className="min-w-0">
           {/* Wizard Header */}
           <GsapReveal
             data-solar-reveal
@@ -350,7 +357,7 @@ export default function WizardClient({
                 </span>
               </div>
               <h1 className="font-sans max-w-[18ch] text-4xl font-bold leading-[1.05] tracking-tight text-[#1C1C1A] sm:text-5xl md:text-6xl">
-                {wizard.title}
+                {wizardTitle}
               </h1>
               <p className="max-w-[68ch] text-base leading-7 text-[#4E4B44] sm:text-lg">
                 {wizard.description || wizardJourneyCopy.intro}
@@ -512,17 +519,23 @@ export default function WizardClient({
                               data-bagui="option"
                               className="relative h-full"
                             >
-                              {option.isRecommended && (
-                                <span className="solar-wizard-recommended pointer-events-none absolute -top-2.5 left-4 z-10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.1em]">
-                                  {t("labels.recommended")}
-                                </span>
-                              )}
-                              <button
-                                type="button"
-                                role="radio"
-                                data-bagui="choice"
-                                aria-checked={isSelected}
-                                data-selected={isSelected}
+                              <SolarChoiceCard
+                                selectionMode="radio"
+                                label={optionLabel}
+                                description={optionDescription}
+                                icon={
+                                  option.icon ? (
+                                    <IconComponent
+                                      name={option.icon}
+                                      className="h-6 w-6"
+                                    />
+                                  ) : (
+                                    <span className="h-6 w-6 rounded-full bg-slate-200" />
+                                  )
+                                }
+                                recommended={option.isRecommended}
+                                recommendedLabel={t("labels.recommended")}
+                                selected={isSelected}
                                 onClick={() =>
                                   handleOptionSelect(
                                     stepIndex,
@@ -531,49 +544,10 @@ export default function WizardClient({
                                   )
                                 }
                                 className={cn(
-                                  "solar-wizard-option group flex h-full min-h-[9rem] w-full cursor-pointer flex-col justify-between rounded-[24px] p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B7D1EA] transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 sm:p-6",
-                                  "lg-tile",
-                                  isSelected && "lg-tile--selected",
-                                  hasOptionTooltip && "pb-14",
-                                  isSelected ? "text-black" : "text-black",
+                                  "solar-ui-choice--feature",
+                                  hasOptionTooltip && "solar-ui-choice--has-tooltip",
                                 )}
-                              >
-                                <span className="mb-3 flex items-start gap-3 sm:gap-4">
-                                  <span
-                                    className={cn(
-                                      "solar-wizard-option-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors",
-                                      isSelected ? "text-[#2E2C27]" : "text-[#1C1C1A]",
-                                    )}
-                                  >
-                                    {option.icon ? (
-                                      <IconComponent
-                                        name={option.icon}
-                                        className="h-6 w-6"
-                                      />
-                                    ) : (
-                                      <span className="h-6 w-6 rounded-full bg-slate-200" />
-                                    )}
-                                  </span>
-                                  <span className="min-w-0 flex-1 pr-8 text-sm font-bold leading-snug text-[#1C1C1A] sm:text-base">
-                                    {optionLabel}
-                                  </span>
-                                </span>
-                                {optionDescription ? (
-                                  <span className="text-xs font-medium leading-5 text-[#4E4B44]">
-                                    {optionDescription}
-                                  </span>
-                                ) : null}
-                                <span
-                                  className={cn(
-                                    "solar-wizard-option-indicator pointer-events-none absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full transition-colors",
-                                    isSelected ? "is-selected" : "",
-                                  )}
-                                >
-                                  {isSelected ? (
-                                    <Icons.Check className="h-3.5 w-3.5 stroke-[3] text-[#4F7FA8]" />
-                                  ) : null}
-                                </span>
-                              </button>
+                              />
 
                               {hasOptionTooltip ? (
                                 <button
@@ -849,7 +823,7 @@ export default function WizardClient({
         )}
       </GsapReveal>
 
-        </main>
+        </div>
 
         <GsapReveal
           as="div"
@@ -885,73 +859,34 @@ export default function WizardClient({
               style={{ transform: `scaleX(${completionPercent / 100})` }}
             />
           </div>
-          <ol className="mt-4 grid gap-1.5">
-            {wizard.steps.map((step, stepIndex) => {
-              const stepComplete = isStepComplete(stepIndex);
-              const stepUnlocked = isStepUnlocked(stepIndex);
-              const isCurrent = stepIndex === activeStepIndex;
-              const stepTitle = t.has(`questions.steps.${step.id}.title`)
+          <SolarProgressStepper
+            className="mt-4"
+            ariaLabel={wizardJourneyCopy.progress}
+            items={wizard.steps.map((step, stepIndex) => ({
+              id: String(stepIndex),
+              label: t.has(`questions.steps.${step.id}.title`)
                 ? t(`questions.steps.${step.id}.title`)
-                : step.title;
-
-              return (
-                <li key={step.id}>
-                  <button
-                    type="button"
-                    disabled={!stepUnlocked}
-                    onClick={() => handleStepJump(stepIndex)}
-                    aria-current={isCurrent ? "step" : undefined}
-                    className={cn(
-                      "flex min-h-10 w-full items-center gap-2.5 rounded-full px-3.5 py-2 text-left text-xs transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B7D1EA] focus-visible:ring-offset-2",
-                      isCurrent
-                        ? "bg-[#DCE8F5] font-bold text-[#0E2336] shadow-sm"
-                        : stepComplete
-                          ? "font-bold text-[#1C1C1A] hover:bg-[#DCE8F5]/50"
-                          : stepUnlocked
-                            ? "font-medium text-[#4E4B44] hover:bg-[#DCE8F5]/30 hover:text-[#1C1C1A]"
-                            : "cursor-not-allowed text-[#8E8B83]",
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "flex size-6 shrink-0 items-center justify-center rounded-full text-[0.68rem] font-bold",
-                        stepComplete
-                          ? "bg-[#C4EED0] text-[#07522C]"
-                          : isCurrent
-                            ? "bg-[#B7D1EA] text-white"
-                            : "bg-[#F7F6F3] text-[#4E4B44]",
-                      )}
-                    >
-                      {stepComplete ? (
-                        <Icons.Check className="size-3.5 stroke-[2.5]" aria-hidden="true" />
-                      ) : stepUnlocked ? (
-                        stepIndex + 1
-                      ) : (
-                        <Icons.Lock className="size-3" aria-hidden="true" />
-                      )}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate">{stepTitle}</span>
-                    <span
-                      className={cn(
-                        "shrink-0 text-[0.65rem] font-bold",
-                        stepComplete
-                          ? "text-[#07522C]"
-                          : isCurrent
-                            ? "text-[#0E2336]"
-                            : "text-[#8E8B83]",
-                      )}
-                    >
-                      {stepComplete
-                        ? wizardJourneyCopy.complete
-                        : isCurrent
-                          ? wizardJourneyCopy.current
-                          : wizardJourneyCopy.locked}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
+                : step.title,
+              status: isStepComplete(stepIndex)
+                ? "complete"
+                : stepIndex === activeStepIndex
+                  ? "current"
+                  : isStepUnlocked(stepIndex)
+                    ? "idle"
+                    : "locked",
+              statusLabel: isStepComplete(stepIndex)
+                ? wizardJourneyCopy.complete
+                : stepIndex === activeStepIndex
+                  ? wizardJourneyCopy.current
+                  : wizardJourneyCopy.locked,
+            }))}
+            onSelect={(id) => {
+              const stepIndex = Number(id);
+              if (Number.isInteger(stepIndex)) {
+                handleStepJump(stepIndex);
+              }
+            }}
+          />
           <div className="solar-wizard-progress-note mt-5 flex items-start gap-2.5 rounded-2xl border border-[#7CA8D0]/30 bg-[#DCE8F5] px-3.5 py-3 text-xs font-semibold leading-5 text-[#2E2C27]">
             <Icons.Info className="mt-0.5 size-4 shrink-0 text-[#4F7FA8]" aria-hidden="true" />
             <span>
@@ -960,6 +895,18 @@ export default function WizardClient({
                 : "Your answers help us match the system size and installation approach to your home."}
             </span>
           </div>
+          <SoliaGuide
+            className="solar-wizard-solia mt-5"
+            imageClassName="object-contain"
+            imageSizes="128px"
+            pose={allQuestionsAnswered ? "greeting" : "thinking"}
+            size="compact"
+            alt={t("guide.alt")}
+            message={
+              allQuestionsAnswered ? t("guide.ready") : t("guide.progress")
+            }
+            speechBubbleClassName="solar-wizard-solia-callout"
+          />
           </aside>
         </GsapReveal>
       </div>

@@ -5,7 +5,6 @@ import NextImage from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { 
   Cpu, 
-  PackageCheck, 
   Search, 
   ShieldCheck, 
   Copy, 
@@ -14,7 +13,6 @@ import {
   ArrowLeft,
   Calendar,
   Camera,
-  FileText,
   Phone,
   Trash2,
   User,
@@ -34,6 +32,7 @@ import {
   uploadServiceRequestPhotoAction,
 } from "@/app/actions/afterSales";
 import { GsapPulse, GsapReveal, GsapSpinner } from "@/components/ui/GsapMotion";
+import { SolarStatePanel } from "@/components/ui/solar-system";
 
 interface AssetProduct {
   id: string;
@@ -405,60 +404,75 @@ export default function MyAssetsClient({
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-8">
       {/* Top Title & Search bar */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#B7D1EA]/30 bg-[#B7D1EA]/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-slate-800">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#B7D1EA]" />
+          <div className="solar-route-kicker mb-3 text-[10px] font-black uppercase tracking-wider text-[var(--sd-navy-900)]">
+            <ShieldCheck className="h-3.5 w-3.5 text-[var(--sd-blue-600)]" aria-hidden="true" />
             {t("badge")}
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
+          <h1 className="text-3xl font-black tracking-tight text-[var(--sd-ink)] md:text-4xl">
             {activeTab === "assets" ? t("title") : t("refundTracker.title")}
           </h1>
-          <p className="mt-1 text-sm font-semibold text-slate-500">
+          <p className="mt-2 text-sm font-medium leading-6 text-[var(--sd-muted)]">
             {activeTab === "assets" ? t("description") : t("refundTracker.empty")}
           </p>
         </div>
         {activeTab === "assets" && (
           <div className="relative w-full md:max-w-sm">
-            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--sd-muted)]" aria-hidden="true" />
             <input 
               value={query} 
               onChange={(event) => setQuery(event.target.value)} 
               placeholder={t("searchPlaceholder")} 
-              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm font-medium outline-none focus:border-[#B7D1EA] transition-colors" 
+              className="w-full rounded-[var(--sd-radius-control)] border border-[var(--sd-line)] bg-[var(--sd-raised)] py-3 pl-10 pr-4 text-sm font-medium text-[var(--sd-ink)] outline-none transition-colors placeholder:text-[var(--sd-muted)] focus:border-[var(--sd-blue-600)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--sd-blue-600)_18%,transparent)]"
             />
           </div>
         )}
       </div>
 
       {initialError && (
-        <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600">
-          {initialError}
-        </div>
+        <SolarStatePanel
+          kind="error"
+          title={locale === "th" ? "โหลดรายการอุปกรณ์ไม่สำเร็จ" : "We couldn’t load your equipment"}
+          description={initialError}
+          soliaAlt={locale === "th" ? "Solia แจ้งปัญหาการโหลดอุปกรณ์" : "Solia reporting an equipment loading issue"}
+        />
       )}
 
       {/* Tabs Menu Switcher */}
-      <div className="flex gap-6 border-b border-slate-200">
+      <div className="flex gap-6 border-b border-[var(--sd-line)]" role="tablist" aria-label={t("title")}>
         <button
+          id="my-assets-tab-assets"
+          type="button"
           onClick={() => setActiveTab("assets")}
+          role="tab"
+          aria-selected={activeTab === "assets"}
+          aria-controls="my-assets-panel"
+          tabIndex={activeTab === "assets" ? 0 : -1}
           className={cn(
-            "pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer",
+            "min-h-11 cursor-pointer border-b-2 pb-3 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-focus)] focus-visible:ring-offset-2",
             activeTab === "assets"
-              ? "border-[#B7D1EA] text-slate-950 font-black"
-              : "border-transparent text-slate-400 hover:text-slate-600"
+              ? "border-[var(--sd-blue-600)] font-black text-[var(--sd-ink)]"
+              : "border-transparent text-[var(--sd-muted)] hover:text-[var(--sd-ink)]"
           )}
         >
           {t("tabs.assets")}
         </button>
         <button
+          id="my-assets-tab-returns"
+          type="button"
           onClick={() => setActiveTab("returns")}
+          role="tab"
+          aria-selected={activeTab === "returns"}
+          aria-controls="my-assets-panel"
+          tabIndex={activeTab === "returns" ? 0 : -1}
           className={cn(
-            "pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer",
+            "min-h-11 cursor-pointer border-b-2 pb-3 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-focus)] focus-visible:ring-offset-2",
             activeTab === "returns"
-              ? "border-[#B7D1EA] text-slate-950 font-black"
-              : "border-transparent text-slate-400 hover:text-slate-600"
+              ? "border-[var(--sd-blue-600)] font-black text-[var(--sd-ink)]"
+              : "border-transparent text-[var(--sd-muted)] hover:text-[var(--sd-ink)]"
           )}
         >
           {t("tabs.returns")}
@@ -466,14 +480,21 @@ export default function MyAssetsClient({
       </div>
 
       {/* Active Tab Content Rendering */}
+      <div
+        id="my-assets-panel"
+        role="tabpanel"
+        aria-labelledby={activeTab === "assets" ? "my-assets-tab-assets" : "my-assets-tab-returns"}
+        tabIndex={0}
+      >
       {activeTab === "assets" ? (
         <>
           {filteredAssets.length === 0 && filteredInstalledAssets.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-              <PackageCheck className="mx-auto mb-3 h-10 w-10 text-slate-300" />
-              <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">{t("empty.title")}</h2>
-              <p className="mt-1 text-sm font-semibold text-slate-500">{t("empty.description")}</p>
-            </div>
+            <SolarStatePanel
+              kind="empty"
+              title={t("empty.title")}
+              description={t("empty.description")}
+              soliaAlt={locale === "th" ? "Solia กำลังรออุปกรณ์โซลาร์ของคุณ" : "Solia waiting for your solar equipment"}
+            />
           ) : (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
               {/* Installed Assets */}
@@ -485,24 +506,24 @@ export default function MyAssetsClient({
                 return (
                   <article
                     key={asset.id}
-                    className="flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md"
+                    className="solar-route-card solar-route-card--strong flex flex-col justify-between overflow-hidden rounded-[var(--sd-radius-feature)] border border-[var(--sd-line)] bg-[var(--sd-raised)] shadow-[var(--sd-shadow-1)] transition-all duration-300 hover:shadow-[var(--sd-shadow-2)]"
                   >
-                    <div className="flex aspect-[16/9] items-center justify-center border-b border-slate-100 bg-[#B7D1EA]/10">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-slate-800 shadow-sm border border-slate-150">
-                        <Wrench className="h-8 w-8 text-[#B7D1EA]" />
+                    <div className="flex aspect-[16/9] items-center justify-center border-b border-[var(--sd-line)] bg-[var(--sd-soft-solar)]">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-[var(--sd-radius-lg)] border border-[var(--sd-line)] bg-[var(--sd-raised)] text-[var(--sd-navy-900)] shadow-[var(--sd-shadow-1)]">
+                        <Wrench className="h-8 w-8 text-[var(--sd-blue-600)]" aria-hidden="true" />
                       </div>
                     </div>
                     <div className="flex flex-1 flex-col justify-between space-y-6 p-5 md:p-6">
                       <div className="space-y-3">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <span className="block text-[10px] font-black uppercase tracking-wider text-slate-500">
+                            <span className="block text-[10px] font-black uppercase tracking-wider text-[var(--sd-muted)]">
                               {t("installedBadge")}
                             </span>
-                            <h2 className="mt-1 text-base font-black leading-snug text-slate-900">
+                            <h2 className="mt-1 text-base font-black leading-snug text-[var(--sd-ink)]">
                               {asset.productName}
                             </h2>
-                            <p className="mt-1 font-mono text-[10px] font-semibold text-slate-400">
+                            <p className="mt-1 font-mono text-[10px] font-semibold text-[var(--sd-muted)]">
                               Proposal #{asset.proposalId.slice(0, 8).toUpperCase()}
                             </p>
                           </div>
@@ -510,8 +531,8 @@ export default function MyAssetsClient({
                             className={cn(
                               "inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider",
                               warranty.isExpired
-                                ? "border-rose-200 bg-rose-50 text-rose-700"
-                                : "border-emerald-200 bg-emerald-50 text-emerald-700",
+                                ? "border-[color-mix(in_srgb,var(--sd-danger)_24%,transparent)] bg-[color-mix(in_srgb,var(--sd-danger)_8%,white)] text-[var(--sd-danger)]"
+                                : "border-[color-mix(in_srgb,var(--sd-success)_24%,transparent)] bg-[color-mix(in_srgb,var(--sd-success)_8%,white)] text-[var(--sd-success)]",
                             )}
                           >
                             {warranty.isExpired ? t("warranty.expired") : t("warranty.inWarranty")}
@@ -519,23 +540,23 @@ export default function MyAssetsClient({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 rounded-xl border border-slate-100 bg-slate-50/80 p-3.5">
+                      <div className="solar-soft-panel grid grid-cols-2 gap-4 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-3.5">
                         <div className="min-w-0 space-y-1">
-                          <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">
+                          <span className="block text-[9px] font-black uppercase tracking-wider text-[var(--sd-muted)]">
                             {t("fields.serialId")}
                           </span>
                           <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="block truncate font-mono text-xs font-black text-slate-800">
+                            <span className="block truncate font-mono text-xs font-black text-[var(--sd-ink)]">
                               {asset.serialNumber}
                             </span>
                             <button
                               type="button"
                               onClick={() => handleCopy(asset.id, asset.serialNumber)}
-                              className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 transition-colors shrink-0 cursor-pointer"
+                              className="min-h-11 min-w-11 shrink-0 cursor-pointer rounded-[var(--sd-radius-sm)] p-1 text-[var(--sd-muted)] transition-colors hover:bg-[var(--sd-raised)] hover:text-[var(--sd-ink)]"
                               title="Copy serial number"
                             >
                               {copiedId === asset.id ? (
-                                <Check className="h-3.5 w-3.5 text-emerald-600" />
+                                <Check className="h-3.5 w-3.5 text-[var(--sd-success)]" aria-hidden="true" />
                               ) : (
                                 <Copy className="h-3.5 w-3.5" />
                               )}
@@ -543,18 +564,18 @@ export default function MyAssetsClient({
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">
+                          <span className="block text-[9px] font-black uppercase tracking-wider text-[var(--sd-muted)]">
                             {t("fields.installed")}
                           </span>
-                          <span className="block text-xs font-black text-slate-800">
+                            <span className="block text-xs font-black text-[var(--sd-ink)]">
                             {new Date(asset.installedDate).toLocaleDateString(intlLocale)}
                           </span>
                         </div>
                         <div className="col-span-2 space-y-1">
-                          <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">
+                          <span className="block text-[9px] font-black uppercase tracking-wider text-[var(--sd-muted)]">
                             {t("fields.warrantyExpiry")}
                           </span>
-                          <span className="block text-xs font-black text-slate-800">
+                          <span className="block text-xs font-black text-[var(--sd-ink)]">
                             {warranty.expiryDate.toLocaleDateString(intlLocale)}
                           </span>
                         </div>
@@ -562,20 +583,20 @@ export default function MyAssetsClient({
 
                       <div className="space-y-2">
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-xs font-bold text-slate-700">
+                          <span className="text-xs font-bold text-[var(--sd-text)]">
                             {warranty.isExpired
                               ? t("warranty.expired")
                               : t("warranty.remainingDays", { count: warranty.remainingDays })}
                           </span>
-                          <span className="shrink-0 text-[10px] font-bold text-slate-400">
+                          <span className="shrink-0 text-[10px] font-bold text-[var(--sd-muted)]">
                             {t("warranty.durationDays", { count: warranty.totalDays })}
                           </span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full border border-slate-200/30 bg-slate-200/50">
+                        <div className="h-2 overflow-hidden rounded-full border border-[var(--sd-line)] bg-[var(--sd-soft-solar)]">
                           <div
                             className={cn(
                               "h-full rounded-full",
-                              warranty.isExpired ? "bg-rose-400" : "bg-[#B7D1EA]",
+                              warranty.isExpired ? "bg-[var(--sd-danger)]" : "bg-[var(--sd-blue-500)]",
                             )}
                             style={{ width: `${warranty.remainingPct}%` }}
                           />
@@ -586,9 +607,9 @@ export default function MyAssetsClient({
                         <button
                           type="button"
                           onClick={() => triggerServiceRequest(asset)}
-                          className="w-full flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black uppercase tracking-widest text-slate-800 transition-all hover:bg-slate-50 hover:border-slate-350 cursor-pointer"
+                          className="solar-ui-secondary min-h-11 w-full cursor-pointer px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all"
                         >
-                          <Wrench className="h-4 w-4 text-slate-600" />
+                          <Wrench className="h-4 w-4" aria-hidden="true" />
                           <span>{t("warranty.requestService")}</span>
                         </button>
                       </div>
@@ -607,9 +628,9 @@ export default function MyAssetsClient({
                 return (
                   <article 
                     key={asset.id} 
-                    className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md flex flex-col justify-between"
+                    className="solar-route-card solar-route-card--strong flex flex-col justify-between overflow-hidden rounded-[var(--sd-radius-feature)] border border-[var(--sd-line)] bg-[var(--sd-raised)] shadow-[var(--sd-shadow-1)] transition-all duration-300 hover:shadow-[var(--sd-shadow-2)]"
                   >
-                    <div className="relative aspect-[16/9] w-full bg-slate-50 border-b border-slate-100 overflow-hidden shrink-0">
+                    <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden border-b border-[var(--sd-line)] bg-[var(--sd-soft-solar)]">
                       {asset.product.imageUrl ? (
                         <div
                           role="img"
@@ -619,7 +640,7 @@ export default function MyAssetsClient({
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center">
-                          <Cpu className="h-12 w-12 text-slate-350" />
+                          <Cpu className="h-12 w-12 text-[var(--sd-muted)]" aria-hidden="true" />
                         </div>
                       )}
                     </div>
@@ -628,20 +649,20 @@ export default function MyAssetsClient({
                       <div className="space-y-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 overflow-hidden">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)]">
                               <NextImage
                                 src={iconPath}
-                                alt="Category icon"
+                                alt=""
                                 width={24}
                                 height={24}
                                 className="h-6 w-6 object-contain"
                               />
                             </div>
                             <div>
-                              <span className="block text-[10px] font-black uppercase tracking-wider text-slate-500">
+                              <span className="block text-[10px] font-black uppercase tracking-wider text-[var(--sd-muted)]">
                                 {asset.product.category?.name || t("defaultCategory")}
                               </span>
-                              <h2 className="text-base font-black text-slate-900 leading-snug">
+                              <h2 className="text-base font-black leading-snug text-[var(--sd-ink)]">
                                 {productLabel(asset.product)}
                               </h2>
                             </div>
@@ -650,37 +671,37 @@ export default function MyAssetsClient({
                           <span className={cn(
                             "inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shrink-0",
                             warranty.isExpired
-                              ? "bg-rose-50 border-rose-200 text-rose-700"
-                              : "bg-emerald-50 border-emerald-200 text-emerald-700"
+                              ? "border-[color-mix(in_srgb,var(--sd-danger)_24%,transparent)] bg-[color-mix(in_srgb,var(--sd-danger)_8%,white)] text-[var(--sd-danger)]"
+                              : "border-[color-mix(in_srgb,var(--sd-success)_24%,transparent)] bg-[color-mix(in_srgb,var(--sd-success)_8%,white)] text-[var(--sd-success)]"
                           )}>
                             {warranty.isExpired ? t("warranty.expired") : t("warranty.inWarranty")}
                           </span>
                         </div>
                         
                         {asset.product.description && (
-                          <p className="text-xs font-semibold text-slate-500 line-clamp-2 leading-relaxed">
+                          <p className="line-clamp-2 text-xs font-semibold leading-relaxed text-[var(--sd-muted)]">
                             {asset.product.description}
                           </p>
                         )}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 rounded-xl border border-slate-100 bg-slate-50/80 p-3.5">
+                      <div className="solar-soft-panel grid grid-cols-2 gap-4 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-3.5">
                         <div className="space-y-1 min-w-0">
-                          <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">
+                          <span className="block text-[9px] font-black uppercase tracking-wider text-[var(--sd-muted)]">
                             {t("fields.serialId")}
                           </span>
                           <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="font-mono text-xs font-black text-slate-800 truncate select-all">
+                            <span className="truncate select-all font-mono text-xs font-black text-[var(--sd-ink)]">
                               {asset.serialNumber}
                             </span>
                             <button
                               type="button"
                               onClick={() => handleCopy(asset.id, asset.serialNumber)}
-                              className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 transition-colors shrink-0 cursor-pointer"
+                              className="min-h-11 min-w-11 shrink-0 cursor-pointer rounded-[var(--sd-radius-sm)] p-1 text-[var(--sd-muted)] transition-colors hover:bg-[var(--sd-raised)] hover:text-[var(--sd-ink)]"
                               title="Copy serial number"
                             >
                               {copiedId === asset.id ? (
-                                <Check className="h-3.5 w-3.5 text-emerald-600" />
+                                <Check className="h-3.5 w-3.5 text-[var(--sd-success)]" aria-hidden="true" />
                               ) : (
                                 <Copy className="h-3.5 w-3.5" />
                               )}
@@ -688,10 +709,10 @@ export default function MyAssetsClient({
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">
+                          <span className="block text-[9px] font-black uppercase tracking-wider text-[var(--sd-muted)]">
                             {t("fields.purchased")}
                           </span>
-                          <span className="block text-xs font-black text-slate-800">
+                          <span className="block text-xs font-black text-[var(--sd-ink)]">
                             {purchaseDate.toLocaleDateString(intlLocale)}
                           </span>
                         </div>
@@ -701,21 +722,21 @@ export default function MyAssetsClient({
                         <div className="flex items-center justify-between">
                           <span className={cn(
                             "text-xs font-bold",
-                            warranty.isExpired ? "text-slate-400" : "text-[#0F172A]"
+                            warranty.isExpired ? "text-[var(--sd-muted)]" : "text-[var(--sd-ink)]"
                           )}>
                             {getRemainingTimeText(warranty.expiryDate, new Date(), locale)}
                           </span>
-                          <span className="text-[10px] font-bold text-slate-400 shrink-0">
+                        <span className="shrink-0 text-[10px] font-bold text-[var(--sd-muted)]">
                             {t("warranty.durationDays", { count: asset.warrantyDays })}
                           </span>
                         </div>
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/50 border border-slate-200/30">
+                        <div className="h-2 w-full overflow-hidden rounded-full border border-[var(--sd-line)] bg-[var(--sd-soft-solar)]">
                           <div
                             className={cn(
                               "h-full rounded-full transition-all duration-500",
                               warranty.isExpired 
-                                ? "bg-rose-400" 
-                                : "bg-[#B7D1EA]"
+                                ? "bg-[var(--sd-danger)]"
+                                : "bg-[var(--sd-blue-500)]"
                             )}
                             style={{ width: `${warranty.isExpired ? 0 : remainingPct}%` }}
                           />
@@ -726,9 +747,9 @@ export default function MyAssetsClient({
                         <button
                           type="button"
                           onClick={() => triggerServiceRequest(asset)}
-                          className="w-full flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black uppercase tracking-widest text-slate-800 transition-all hover:bg-slate-50 hover:border-slate-350 cursor-pointer"
+                          className="solar-ui-secondary min-h-11 w-full cursor-pointer px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all"
                         >
-                          <Wrench className="h-4 w-4 text-slate-600" />
+                          <Wrench className="h-4 w-4" aria-hidden="true" />
                           <span>{t("warranty.requestService")}</span>
                         </button>
                       </div>
@@ -743,16 +764,19 @@ export default function MyAssetsClient({
         /* Returns & Refunds Tab View */
         <div className="space-y-6">
           {loadingRefunds ? (
-            <div className="flex items-center justify-center py-16">
-              <GsapSpinner className="h-8 w-8 text-slate-400" />
-            </div>
+            <SolarStatePanel
+              kind="loading"
+              title={locale === "th" ? "กำลังโหลดรายการคืนเงิน" : "Loading return requests"}
+              description={locale === "th" ? "กำลังตรวจสอบสถานะคำขอคืนสินค้าและคืนเงินของคุณ" : "We’re checking the latest status of your return and refund requests."}
+              soliaAlt={locale === "th" ? "โซเลียกำลังตรวจสอบรายการคืนเงิน" : "Solia checking your return and refund requests"}
+            />
           ) : refunds.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-              <FileText className="mx-auto mb-3 h-10 w-10 text-slate-300" />
-              <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
-                {t("refundTracker.empty")}
-              </h2>
-            </div>
+            <SolarStatePanel
+              kind="empty"
+              title={t("refundTracker.empty")}
+              description={locale === "th" ? "เมื่อมีคำขอใหม่ รายการและสถานะการดำเนินการจะแสดงที่นี่" : "New return requests and their progress will appear here when available."}
+              soliaAlt={locale === "th" ? "โซเลียกำลังรอรายการคืนเงินของคุณ" : "Solia waiting for your return and refund requests"}
+            />
           ) : (
             <div className="space-y-6">
               {refunds.map((refund) => {
@@ -764,52 +788,52 @@ export default function MyAssetsClient({
                 return (
                   <div 
                     key={refund.id}
-                    className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md"
+                    className="solar-route-card solar-route-card--strong rounded-[var(--sd-radius-feature)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-6 shadow-[var(--sd-shadow-1)] transition-all duration-300 hover:shadow-[var(--sd-shadow-2)]"
                   >
                     {/* Refund Card Header info */}
-                    <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-5 md:flex-row md:items-start">
+                    <div className="flex flex-col justify-between gap-4 border-b border-[var(--sd-line)] pb-5 md:flex-row md:items-start">
                       <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[var(--sd-muted)]">
                           {t("refundTracker.proposalRef")}
                         </span>
-                        <h3 className="font-mono text-base font-black text-slate-900">
+                        <h3 className="font-mono text-base font-black text-[var(--sd-ink)]">
                           #{refund.proposalId.toUpperCase()}
                         </h3>
-                        <p className="text-xs font-semibold text-slate-500">
+                        <p className="text-xs font-semibold text-[var(--sd-muted)]">
                           {t("refundTracker.reason")}: {refund.reason}
                         </p>
                       </div>
                       <div className="text-left md:text-right">
-                        <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        <span className="block text-[10px] font-black uppercase tracking-wider text-[var(--sd-muted)]">
                           {t("refundTracker.amount")}
                         </span>
-                        <span className="font-urbanist text-2xl font-black tracking-tight text-slate-950">
+                        <span className="font-urbanist text-2xl font-black tracking-tight text-[var(--sd-ink)]">
                           ฿{refund.amount.toLocaleString(intlLocale, { minimumFractionDigits: 2 })}
                         </span>
                       </div>
                     </div>
 
                     {/* Logistics-style vertical stepper */}
-                    <div className="mt-6 space-y-6 pl-4 relative before:absolute before:left-[11px] before:top-[12px] before:bottom-[12px] before:w-[2px] before:bg-slate-150">
+                    <div className="relative mt-6 space-y-6 pl-4 before:absolute before:bottom-[12px] before:left-[11px] before:top-[12px] before:w-px before:bg-[var(--sd-line)]">
                       {/* Step 1: Request Received */}
                       <div className="relative pl-8 flex items-start gap-4">
                         <div className={cn(
-                          "absolute left-0 top-1 h-[24px] w-[24px] rounded-full border-2 flex items-center justify-center z-10 bg-white transition-all duration-300",
-                          isRequested ? "border-emerald-500 bg-emerald-50" : "border-slate-250 bg-slate-100"
+                          "absolute left-0 top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-[var(--sd-raised)] transition-all duration-300",
+                          isRequested ? "border-[var(--sd-success)] bg-[color-mix(in_srgb,var(--sd-success)_8%,white)]" : "border-[var(--sd-line)] bg-[var(--sd-soft-solar)]"
                         )}>
                           {isRequested ? (
-                            <GsapPulse className="h-[8px] w-[8px] rounded-full bg-emerald-500" scale={1.16}>
+                            <GsapPulse className="h-2 w-2 rounded-full bg-[var(--sd-success)]" scale={1.16}>
                               <span className="sr-only">{t("refundTracker.status.requested")}</span>
                             </GsapPulse>
                           ) : (
-                            <div className="h-[8px] w-[8px] rounded-full bg-slate-350" />
+                            <div className="h-2 w-2 rounded-full bg-[var(--sd-line)]" />
                           )}
                         </div>
                         <div>
-                          <h4 className={cn("text-xs font-black uppercase tracking-wider", isRequested ? "text-slate-950" : "text-slate-400")}>
+                          <h4 className={cn("text-xs font-black uppercase tracking-wider", isRequested ? "text-[var(--sd-ink)]" : "text-[var(--sd-muted)]")}>
                             {t("refundTracker.status.requested")}
                           </h4>
-                          <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                          <p className="mt-0.5 text-xs font-semibold text-[var(--sd-muted)]">
                             {t("refundTracker.statusDesc.requested", { date: formatDateString(refund.createdAt) })}
                           </p>
                         </div>
@@ -818,16 +842,16 @@ export default function MyAssetsClient({
                       {/* Step 2: Item Pickup Arranged */}
                       <div className="relative pl-8 flex items-start gap-4">
                         <div className={cn(
-                          "absolute left-0 top-1 h-[24px] w-[24px] rounded-full border-2 flex items-center justify-center z-10 bg-white transition-all duration-300",
-                          isPickup ? "border-amber-500 bg-amber-50" : "border-slate-250 bg-slate-100"
+                          "absolute left-0 top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-[var(--sd-raised)] transition-all duration-300",
+                          isPickup ? "border-[var(--sd-warning)] bg-[color-mix(in_srgb,var(--sd-warning)_8%,white)]" : "border-[var(--sd-line)] bg-[var(--sd-soft-solar)]"
                         )}>
-                          <div className={cn("h-[8px] w-[8px] rounded-full", isPickup ? "bg-amber-500" : "bg-slate-350")} />
+                          <div className={cn("h-2 w-2 rounded-full", isPickup ? "bg-[var(--sd-warning)]" : "bg-[var(--sd-line)]")} />
                         </div>
                         <div>
-                          <h4 className={cn("text-xs font-black uppercase tracking-wider", isPickup ? "text-slate-950" : "text-slate-400")}>
+                          <h4 className={cn("text-xs font-black uppercase tracking-wider", isPickup ? "text-[var(--sd-ink)]" : "text-[var(--sd-muted)]")}>
                             {t("refundTracker.status.pickup")}
                           </h4>
-                          <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                          <p className="mt-0.5 text-xs font-semibold text-[var(--sd-muted)]">
                             {refund.pickupDate 
                               ? t("refundTracker.statusDesc.pickup", { date: formatDateString(refund.pickupDate) })
                               : isPickup 
@@ -841,16 +865,16 @@ export default function MyAssetsClient({
                       {/* Step 3: Inspection in Progress */}
                       <div className="relative pl-8 flex items-start gap-4">
                         <div className={cn(
-                          "absolute left-0 top-1 h-[24px] w-[24px] rounded-full border-2 flex items-center justify-center z-10 bg-white transition-all duration-300",
-                          isInspection ? "border-blue-500 bg-blue-50" : "border-slate-250 bg-slate-100"
+                          "absolute left-0 top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-[var(--sd-raised)] transition-all duration-300",
+                          isInspection ? "border-[var(--sd-blue-600)] bg-[var(--sd-selected)]" : "border-[var(--sd-line)] bg-[var(--sd-soft-solar)]"
                         )}>
-                          <div className={cn("h-[8px] w-[8px] rounded-full", isInspection ? "bg-blue-500" : "bg-slate-350")} />
+                          <div className={cn("h-2 w-2 rounded-full", isInspection ? "bg-[var(--sd-blue-600)]" : "bg-[var(--sd-line)]")} />
                         </div>
                         <div>
-                          <h4 className={cn("text-xs font-black uppercase tracking-wider", isInspection ? "text-slate-950" : "text-slate-400")}>
+                          <h4 className={cn("text-xs font-black uppercase tracking-wider", isInspection ? "text-[var(--sd-ink)]" : "text-[var(--sd-muted)]")}>
                             {t("refundTracker.status.inspection")}
                           </h4>
-                          <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                          <p className="mt-0.5 text-xs font-semibold text-[var(--sd-muted)]">
                             {refund.inspectionDate 
                               ? t("refundTracker.statusDesc.inspection", { date: formatDateString(refund.inspectionDate) })
                               : isInspection 
@@ -864,16 +888,16 @@ export default function MyAssetsClient({
                       {/* Step 4: Refund Processed */}
                       <div className="relative pl-8 flex items-start gap-4">
                         <div className={cn(
-                          "absolute left-0 top-1 h-[24px] w-[24px] rounded-full border-2 flex items-center justify-center z-10 bg-white transition-all duration-300",
-                          isRefunded ? "border-emerald-600 bg-emerald-50" : "border-slate-250 bg-slate-100"
+                          "absolute left-0 top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-[var(--sd-raised)] transition-all duration-300",
+                          isRefunded ? "border-[var(--sd-success)] bg-[color-mix(in_srgb,var(--sd-success)_8%,white)]" : "border-[var(--sd-line)] bg-[var(--sd-soft-solar)]"
                         )}>
-                          <div className={cn("h-[8px] w-[8px] rounded-full", isRefunded ? "bg-emerald-600" : "bg-slate-350")} />
+                          <div className={cn("h-2 w-2 rounded-full", isRefunded ? "bg-[var(--sd-success)]" : "bg-[var(--sd-line)]")} />
                         </div>
                         <div className="flex-1">
-                          <h4 className={cn("text-xs font-black uppercase tracking-wider", isRefunded ? "text-slate-950" : "text-slate-400")}>
+                          <h4 className={cn("text-xs font-black uppercase tracking-wider", isRefunded ? "text-[var(--sd-ink)]" : "text-[var(--sd-muted)]")}>
                             {t("refundTracker.status.refunded")}
                           </h4>
-                          <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                          <p className="mt-0.5 text-xs font-semibold text-[var(--sd-muted)]">
                             {refund.refundedAt 
                               ? t("refundTracker.statusDesc.refunded", { date: formatDateString(refund.refundedAt) })
                               : isRefunded 
@@ -920,6 +944,7 @@ export default function MyAssetsClient({
           )}
         </div>
       )}
+      </div>
 
       {/* Smart Service Request Modal Form */}
       {isServiceModalOpen && selectedAsset && (
@@ -961,7 +986,7 @@ export default function MyAssetsClient({
             )}
 
             {/* Modal Scrollable Body */}
-            <main className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-6">
               <form onSubmit={handleServiceSubmit} className="space-y-6">
                 
                 {/* STEP 1: Select Issue Type */}
@@ -1253,7 +1278,7 @@ export default function MyAssetsClient({
                 )}
 
               </form>
-            </main>
+            </div>
 
             {/* Modal Footer Controls */}
             <footer className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
@@ -1324,7 +1349,7 @@ export default function MyAssetsClient({
                 <X className="h-5 w-5" />
               </button>
             </header>
-	            <main className="p-6 flex items-center justify-center bg-slate-50">
+	            <div className="p-6 flex items-center justify-center bg-slate-50">
 	              <div className="relative h-[60vh] w-full max-w-3xl overflow-hidden rounded-xl border border-slate-200">
 	                <NextImage
 	                  src={previewSlipUrl}
@@ -1335,7 +1360,7 @@ export default function MyAssetsClient({
 	                  unoptimized
 	                />
 	              </div>
-	            </main>
+	            </div>
           </div>
         </GsapReveal>
       )}

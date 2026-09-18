@@ -24,12 +24,19 @@ export default function QuotationDocumentPreview({
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (pdfFile) {
-      const blob = pdfFile instanceof Blob ? pdfFile : new Blob([pdfFile], { type: "application/pdf" });
-      const created = URL.createObjectURL(blob);
-      setObjectUrl(created);
-      return () => URL.revokeObjectURL(created);
-    }
+    let isActive = true;
+    const created = pdfFile
+      ? URL.createObjectURL(pdfFile instanceof Blob ? pdfFile : new Blob([pdfFile], { type: "application/pdf" }))
+      : null;
+    const frameId = window.requestAnimationFrame(() => {
+      if (isActive) setObjectUrl(created);
+    });
+
+    return () => {
+      isActive = false;
+      window.cancelAnimationFrame(frameId);
+      if (created) URL.revokeObjectURL(created);
+    };
   }, [pdfFile]);
 
   const targetUrl = objectUrl || url;

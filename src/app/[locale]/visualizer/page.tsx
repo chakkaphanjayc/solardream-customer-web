@@ -9,6 +9,7 @@ export const metadata = {
   description: "Calculate and visualize the optimal solar cell array on your roof structure with our dynamic 2D canvas planner.",
 };
 
+export const instant = false;
 
 export default async function VisualizerPage() {
   const panelProducts = await getVisualizerPanelProducts();

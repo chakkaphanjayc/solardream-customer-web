@@ -22,13 +22,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { SolarRouteHeader } from "@/components/ui/solar-route-header";
 import { SolarRouteShell } from "@/components/ui/solar-route-shell";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 import { isLocale } from "@/i18n/locales";
 import { getCachedSupportConfig } from "@/lib/public-content-cache";
+import { DEFAULT_SUPPORT_CONFIG } from "@/schemas/support";
 import { cn } from "@/lib/utils";
 
 // Support copy combines request-scoped messages with editable admin content.
 // Keep the route blocking while the editable config is served from its tag
 // cache.
+export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getCachedPageSeo("support");
@@ -60,6 +63,24 @@ export default async function SupportPage({ params }: SupportPageProps) {
   const t = await getTranslations({ locale, namespace: "SupportPage" });
   const supportConfig = await getCachedSupportConfig();
   const { contact, hero, featureToggles: toggles } = supportConfig;
+
+  // The support hero is editable through admin settings. Localize only the
+  // shipped/default copy so an intentional admin-authored message remains
+  // intact on every locale.
+  const supportHero = {
+    badgeText:
+      hero.badgeText === DEFAULT_SUPPORT_CONFIG.hero.badgeText
+        ? t("supportTitle")
+        : hero.badgeText,
+    headerTitle:
+      hero.headerTitle === DEFAULT_SUPPORT_CONFIG.hero.headerTitle
+        ? t("headerTitle")
+        : hero.headerTitle,
+    headerDesc:
+      hero.headerDesc === DEFAULT_SUPPORT_CONFIG.hero.headerDesc
+        ? t("headerDesc")
+        : hero.headerDesc,
+  };
 
   const popularGuides = [
     { query: "diagnostics", label: t("quickLink1") },
@@ -99,11 +120,11 @@ export default async function SupportPage({ params }: SupportPageProps) {
         </div>
       ) : null}
 
-      <header className="solar-support-hero px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <div className="solar-support-hero px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <SolarRouteHeader
-          eyebrow={hero.badgeText || t("supportTitle")}
-          title={hero.headerTitle || t("headerTitle")}
-          description={hero.headerDesc || t("headerDesc")}
+          eyebrow={supportHero.badgeText || t("supportTitle")}
+          title={supportHero.headerTitle || t("headerTitle")}
+          description={supportHero.headerDesc || t("headerDesc")}
           actions={
             <>
               <Button asChild size="lg" className="solar-route-primary">
@@ -128,7 +149,17 @@ export default async function SupportPage({ params }: SupportPageProps) {
             </>
           }
         />
-      </header>
+        <div className="mx-auto mt-8 flex max-w-7xl items-center gap-4">
+          <SoliaGuide
+            pose="presenting"
+            alt={locale === "th" ? "โซเลียกำลังแนะนำศูนย์ช่วยเหลือ SolarDream" : "Solia guiding you through SolarDream support"}
+            className="h-28 w-24 shrink-0 sm:h-32 sm:w-28"
+            imageSizes="128px"
+            message={locale === "th" ? "เริ่มจากคำถามที่ใกล้ตัวที่สุด แล้วค่อยดูวิธีดูแลระบบที่เหมาะกับบ้านคุณค่ะ" : "Start with the question closest to your home, then choose the care path that fits."}
+            speechBubbleClassName="absolute bottom-0 left-0 max-w-[18rem] rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-white/95 p-3 text-xs font-semibold leading-5 text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)]"
+          />
+        </div>
+      </div>
 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(19rem,0.65fr)] lg:items-start">
@@ -246,7 +277,9 @@ export default async function SupportPage({ params }: SupportPageProps) {
                       <dt className="font-semibold text-[#1C1C1A]">
                         SolarDream
                       </dt>
-                      <dd className="font-bold text-[#4F7FA8]">THB 0</dd>
+                      <dd className="font-bold text-[var(--sd-navy-900)]">
+                        {locale === "th" ? "ไม่มีค่าบริการ SolarDream" : "No SolarDream service fee"}
+                      </dd>
                     </div>
                     <div className="flex items-center justify-between gap-4 py-3">
                       <dt className="text-[#4E4B44]">

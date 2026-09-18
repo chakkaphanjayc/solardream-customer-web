@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useRef, type ReactNode } from "react";
+import React, { useEffect, useId, useState, useMemo, useRef, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
@@ -19,9 +19,9 @@ import { formatPrice } from "@/lib/utils";
 import ProductCTA, { type ProductCtaType } from "../ProductCTA";
 import AskInChatButton from "@/components/chat/AskInChatButton";
 import { generatePublicProductName } from "@/lib/productUtils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LayerPortal } from "@/components/ui/layer-portal";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -133,12 +133,17 @@ function AccordionItem({
   children: React.ReactNode;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const titleId = useId();
+  const contentId = useId();
 
   return (
     <div className="mb-3 rounded-[20px] border border-[#8E8B83]/15 bg-[#F0EEE9] p-4 transition-colors hover:bg-[#DCE8F5]/20">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
+        id={titleId}
+        aria-controls={contentId}
+        aria-expanded={isOpen}
         className="flex w-full items-center justify-between text-left text-sm font-bold text-[#1C1C1A] focus:outline-none"
       >
         <span>{title}</span>
@@ -152,7 +157,7 @@ function AccordionItem({
       </button>
 
       {isOpen && (
-        <GsapCollapse className="overflow-hidden">
+        <GsapCollapse id={contentId} aria-labelledby={titleId} role="region" className="overflow-hidden">
           <div className="whitespace-pre-line pt-3 text-xs leading-relaxed text-[#4E4B44] md:text-sm">
             {children}
           </div>
@@ -165,9 +170,15 @@ function AccordionItem({
 function GsapCollapse({
   children,
   className,
+  id,
+  role,
+  "aria-labelledby": ariaLabelledBy,
 }: {
   children: ReactNode;
   className?: string;
+  id?: string;
+  role?: "region";
+  "aria-labelledby"?: string;
 }) {
   const collapseRef = useRef<HTMLDivElement | null>(null);
 
@@ -195,7 +206,13 @@ function GsapCollapse({
   }, []);
 
   return (
-    <div ref={collapseRef} className={className}>
+    <div
+      ref={collapseRef}
+      id={id}
+      role={role}
+      aria-labelledby={ariaLabelledBy}
+      className={className}
+    >
       {children}
     </div>
   );
@@ -304,16 +321,15 @@ export default function ProductDetailClient({
   const heroRef = useRef<HTMLDivElement | null>(null);
   const heroContentRef = useRef<HTMLDivElement | null>(null);
 
-  const fallbackFeatures = [
-    t("features.highEfficiency"),
-    t("features.durable"),
-    t("features.certified"),
-    t("features.tier1"),
-  ];
-
   const features = useMemo(
-    () => buildFeatureBullets(product, fallbackFeatures),
-    [product, fallbackFeatures],
+    () =>
+      buildFeatureBullets(product, [
+        t("features.highEfficiency"),
+        t("features.durable"),
+        t("features.certified"),
+        t("features.tier1"),
+      ]),
+    [product, t],
   );
 
   useEffect(() => {
@@ -386,7 +402,8 @@ export default function ProductDetailClient({
   return (
     <div
       data-bagui="product-detail"
-      className="relative min-h-dvh bg-[#F0EEE9] px-4 pb-20 pt-10 text-[#1C1C1A] sm:px-6 lg:px-8"
+      data-solar-surface="atelier"
+      className="solar-route-page relative min-h-dvh bg-[var(--sd-page)] px-4 pb-20 pt-10 text-[var(--sd-ink)] sm:px-6 lg:px-8"
     >
       <div className="mx-auto max-w-6xl space-y-8">
         {/* Back Link Breadcrumb */}
@@ -398,9 +415,10 @@ export default function ProductDetailClient({
         </Link>
 
         {/* Cinematic Hero Section */}
-        <div
+        <section
+          aria-labelledby="product-hero-title"
           ref={heroRef}
-          className="relative mb-10 flex min-h-[58dvh] w-full flex-col items-center justify-center overflow-hidden rounded-[32px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-6 shadow-sm sm:mb-12 sm:rounded-[48px] sm:p-10 lg:min-h-[75dvh]"
+          className="solar-ui-panel relative mb-10 flex min-h-[58dvh] w-full flex-col items-center justify-center overflow-hidden rounded-[32px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-6 shadow-sm sm:mb-12 sm:rounded-[48px] sm:p-10 lg:min-h-[75dvh]"
         >
           {/* Atmospheric ambient blur circles */}
           <div className="pointer-events-none absolute -left-16 -top-16 h-72 w-72 rounded-full bg-[#B7D1EA]/15 blur-3xl" />
@@ -413,7 +431,7 @@ export default function ProductDetailClient({
             <span className="rounded-full bg-[#DCE8F5] px-4 py-1 text-xs font-bold text-[#2E2C27] shadow-xs">
               {product.category.name}
             </span>
-            <h1 className="max-w-3xl text-3xl font-bold tracking-tight text-[#1C1C1A] sm:text-5xl md:text-6xl">
+            <h1 id="product-hero-title" className="max-w-3xl text-3xl font-bold tracking-tight text-[#1C1C1A] sm:text-5xl md:text-6xl">
               {generatePublicProductName(product)}
             </h1>
 
@@ -444,10 +462,10 @@ export default function ProductDetailClient({
               )}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Dynamic Split Screen View Layout */}
-        <div className="relative grid grid-cols-1 items-start gap-10 rounded-[32px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-6 shadow-sm md:p-10 lg:grid-cols-2">
+        <div className="solar-ui-panel relative grid grid-cols-1 items-start gap-10 rounded-[32px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-6 shadow-sm md:p-10 lg:grid-cols-2">
           {/* Left Column (Sticky Visuals) */}
           <div className="flex w-full flex-col justify-center gap-6 py-4 lg:sticky lg:top-24 lg:h-[75vh]">
             <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[28px] border border-[#8E8B83]/15 bg-[#F0EEE9] p-5 shadow-xs">
@@ -500,9 +518,9 @@ export default function ProductDetailClient({
                 <span className="rounded-full bg-[#DCE8F5] px-3 py-1 text-xs font-bold text-[#2E2C27]">
                   {product.category.name}
                 </span>
-                <h1 className="text-2xl font-bold tracking-tight text-[#1C1C1A] sm:text-3xl lg:text-4xl">
+                <h2 className="text-2xl font-bold tracking-tight text-[#1C1C1A] sm:text-3xl lg:text-4xl">
                   {generatePublicProductName(product)}
-                </h1>
+                </h2>
                 <div className="font-mono text-xs text-[#4E4B44]">
                   {t("sku", { code: product.erpnextItemCode })}
                 </div>
@@ -513,7 +531,7 @@ export default function ProductDetailClient({
                   </span>
 
                   {/* Availability Flag */}
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5" aria-live="polite">
                     {product.isAvailable && product.stock > 0 ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
                         <CheckCircle2 className="h-3.5 w-3.5" /> {t("activeStock")}
@@ -598,6 +616,7 @@ export default function ProductDetailClient({
                 {Object.keys(specs).length > 3 && (
                   <div className="mt-6 overflow-hidden rounded-[24px] border border-[#8E8B83]/15 bg-[#F0EEE9] shadow-xs">
                     <table className="w-full border-collapse text-left">
+                      <caption className="sr-only">{t("technicalSpecifications")}</caption>
                       <tbody>
                         {Object.entries(specs)
                           .filter(
@@ -663,6 +682,17 @@ export default function ProductDetailClient({
                   <p className="text-sm font-medium leading-relaxed text-[#4E4B44]">
                     {t("configureDescription")}
                   </p>
+                </div>
+
+                <div className="solar-ui-soft-panel relative min-h-32 overflow-hidden rounded-[24px] p-4 sm:p-5">
+                  <SoliaGuide
+                    className="absolute -right-2 -top-5 h-36 w-32 sm:h-40 sm:w-36"
+                    imageSizes="160px"
+                    pose="blueprint"
+                    alt={locale === "th" ? "โซเลียกำลังช่วยเลือกอุปกรณ์สำหรับระบบของคุณ" : "Solia is helping choose the right component for your system"}
+                    message={locale === "th" ? "ถ้าพร้อมแล้ว เราเอาชิ้นส่วนนี้ไปวางในแผนพลังงานของคุณต่อได้เลย" : "When you’re ready, we can place this component into your live energy plan."}
+                    speechBubbleClassName="absolute bottom-2 left-2 max-w-[13rem] rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-white/90 p-2.5 text-xs font-semibold leading-5 text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)] sm:max-w-[16rem]"
+                  />
                 </div>
 
                 <div className="flex flex-col gap-4">

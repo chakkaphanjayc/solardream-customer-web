@@ -43,6 +43,8 @@ const MobileActionBar = forwardRef<HTMLButtonElement, MobileActionBarProps>(
       <div
         data-bagui="mobile-action-bar"
         data-solar-surface="atelier"
+        role="region"
+        aria-label={label}
         className={cn(
           "solar-route-action-bar sd-safe-pb-4-max fixed bottom-0 left-0 right-0 z-40 px-4 py-3 lg:hidden",
           className,
@@ -50,19 +52,19 @@ const MobileActionBar = forwardRef<HTMLButtonElement, MobileActionBarProps>(
       >
         <div className="mx-auto flex max-w-3xl flex-row items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#475569]">
+            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[var(--sd-text)]">
               {label}
             </p>
             <div
               className={cn(
-                "truncate text-lg font-black text-black",
+                "truncate text-lg font-black text-[var(--sd-ink)]",
                 valueClassName,
               )}
             >
               {value}
             </div>
             {helperText ? (
-              <p className="mt-0.5 text-xs font-bold leading-5 text-slate-600">
+              <p className="mt-0.5 text-xs font-bold leading-5 text-[var(--sd-text)]">
                 {helperText}
               </p>
             ) : null}

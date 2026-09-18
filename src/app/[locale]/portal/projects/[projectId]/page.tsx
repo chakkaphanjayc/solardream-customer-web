@@ -1,6 +1,7 @@
 import { isOpsV2FeatureEnabled } from "@/lib/featureFlags";
 import CustomerProjectDetailClient from "./CustomerProjectDetailClient";
 
+export const instant = false;
 
 export default async function CustomerProjectDetailPage({
   params,

@@ -39,6 +39,11 @@ export const SERVICE_PORTAL_EMAIL_TOPIC = "service.portal.email";
 export const SERVICE_PORTAL_SESSION_COOKIE = "sd_service_portal";
 export const SERVICE_PORTAL_CLAIM_COOKIE = "sd_service_claim";
 
+export function isServicePortalConfigured() {
+  const value = process.env.SERVICE_PORTAL_TOKEN_SECRET?.trim() || "";
+  return Buffer.byteLength(value) >= 32;
+}
+
 function portalSecret() {
   const value = process.env.SERVICE_PORTAL_TOKEN_SECRET?.trim() || "";
   if (Buffer.byteLength(value) < 32)

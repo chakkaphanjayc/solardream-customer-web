@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   Activity,
-  ClipboardList,
   Clock,
   FileText,
   Loader2,
@@ -21,6 +20,9 @@ import InvisibleTurnstile, {
 } from "@/components/security/InvisibleTurnstile";
 import CustomerFeedbackModal from "@/components/feedback/CustomerFeedbackModal";
 import type { GuestProposalsDashboardContract } from "@/types/proposals";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
+import { SolarStatePanel } from "@/components/ui/solar-system";
+import { SolarRouteShell } from "@/components/ui/solar-route-shell";
 
 export default function GuestProposalsClient({
   locale,
@@ -116,12 +118,24 @@ export default function GuestProposalsClient({
     }
   };
 
-  const formatCurrency = (val: number) => {
+  const formatCurrency = (val: number | null) => {
+    const numericValue = Number(val);
+    if (!Number.isFinite(numericValue) || numericValue <= 0) {
+      return t("pricePending");
+    }
+
     return new Intl.NumberFormat(locale === "th" ? "th-TH" : "en-US", {
       style: "currency",
       currency: "THB",
       maximumFractionDigits: 0,
-    }).format(val);
+    }).format(numericValue);
+  };
+
+  const formatSystemSize = (value: number | null) => {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) && numericValue > 0
+      ? `${numericValue} kWp`
+      : t("systemSizePending");
   };
 
   const formatDate = (isoString: string | null) => {
@@ -137,13 +151,20 @@ export default function GuestProposalsClient({
   // Rendering 1: Loading exchange state
   if (loading) {
     return (
-      <div className="grid min-h-dvh place-items-center bg-[#F0EEE9] px-4 font-sans text-[#1C1C1A]">
-        <section className="w-full max-w-md rounded-[28px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-8 text-center shadow-sm">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#4F7FA8]" />
-          <h1 className="mt-4 text-xl font-bold text-[#1C1C1A]">
+      <SolarRouteShell className="px-4 pb-16 font-sans sm:px-6">
+        <div className="grid min-h-[calc(100dvh-7rem)] place-items-center">
+        <section className="solar-route-card w-full max-w-md p-8 text-center">
+          <SoliaGuide
+            alt={locale === "th" ? "Solia กำลังตรวจสอบสิทธิ์การเข้าถึง" : "Solia establishing your secure access"}
+            pose="blueprint"
+            className="mx-auto h-28 w-24"
+            imageSizes="96px"
+          />
+          <Loader2 className="mx-auto size-8 animate-spin text-[var(--sd-blue-600)]" />
+          <h1 className="mt-4 text-xl font-black tracking-tight text-[var(--sd-ink)]">
             {t("establishingSession")}
           </h1>
-          <p className="mt-2 text-sm font-medium text-[#4E4B44]">
+          <p className="mt-2 text-sm font-medium text-[var(--sd-muted)]">
             {t("preparingAccess")}
           </p>
           <InvisibleTurnstile
@@ -152,28 +173,37 @@ export default function GuestProposalsClient({
             className="mx-auto mt-4"
           />
         </section>
-      </div>
+        </div>
+      </SolarRouteShell>
     );
   }
 
   // Rendering 2: Error exchange state
   if (exchangeError) {
     return (
-      <div className="grid min-h-dvh place-items-center bg-[#F0EEE9] px-4 font-sans text-[#1C1C1A]">
-        <section className="w-full max-w-md space-y-4 rounded-[28px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-8 text-center shadow-sm">
-          <ShieldAlert className="mx-auto h-12 w-12 text-rose-600" />
-          <h1 className="text-xl font-bold text-[#1C1C1A]">{t("accessInvalid")}</h1>
-          <p className="rounded-2xl border border-rose-200/60 bg-rose-50/80 p-3.5 text-sm font-medium leading-relaxed text-rose-700">
+      <SolarRouteShell className="px-4 pb-16 font-sans sm:px-6">
+        <div className="grid min-h-[calc(100dvh-7rem)] place-items-center">
+        <section className="solar-route-card w-full max-w-md space-y-4 p-8 text-center">
+          <SoliaGuide
+            alt={locale === "th" ? "Solia แจ้งว่าลิงก์เข้าถึงไม่ถูกต้อง" : "Solia reporting that the access link is invalid"}
+            pose="miffed"
+            className="mx-auto h-28 w-24"
+            imageSizes="96px"
+          />
+          <ShieldAlert className="mx-auto size-12 text-[var(--sd-danger)]" />
+          <h1 className="text-xl font-black tracking-tight text-[var(--sd-ink)]">{t("accessInvalid")}</h1>
+          <p className="rounded-[var(--sd-radius-md)] border border-rose-200 bg-rose-50 p-3.5 text-sm font-medium leading-relaxed text-rose-700">
             {exchangeError}
           </p>
           <Link
             href={`/${locale}`}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[#B7D1EA] px-6 text-xs font-medium text-white shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/90 active:scale-95"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[var(--sd-blue-600)] bg-[var(--sd-blue-600)] px-6 text-sm font-bold text-white shadow-[var(--sd-shadow-1)] transition-[background-color,box-shadow,transform] duration-200 hover:bg-[#0B5BE0] hover:shadow-[var(--sd-shadow-2)] active:scale-[0.99]"
           >
             {t("goHome")}
           </Link>
         </section>
-      </div>
+        </div>
+      </SolarRouteShell>
     );
   }
 
@@ -183,42 +213,43 @@ export default function GuestProposalsClient({
 
     return (
       <>
-        <div className="min-h-dvh bg-[#F0EEE9] px-4 py-10 font-sans text-[#1C1C1A] sm:px-6 sm:py-12 lg:px-8">
-          <div className="mx-auto max-w-4xl space-y-6">
-            <header className="flex flex-col items-start justify-between gap-6 border-b border-[#8E8B83]/15 pb-6 sm:flex-row sm:items-center sm:pb-8">
+        <SolarRouteShell className="px-4 pb-16 font-sans sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-5xl space-y-7">
+            <header className="flex flex-col items-start justify-between gap-6 border-b border-[var(--sd-line)] pb-6 sm:flex-row sm:items-center sm:pb-8">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-[10px] font-bold tracking-wider text-amber-700">
-                    <Clock className="h-3 w-3" />
+                  <span className="solar-ui-status" data-tone="warning">
+                    <Clock className="size-3" />
                     {t("temporarySession")}
                   </span>
                 </div>
-                <h1 className="mt-2 text-2xl font-bold text-[#1C1C1A] sm:text-3xl">
+                <h1 className="mt-3 text-2xl font-black tracking-tight text-[var(--sd-ink)] sm:text-3xl">
                   {t("documentsTitle")}
                 </h1>
-                <p className="mt-1 text-xs font-medium text-[#4E4B44]">
+                <p className="mt-2 text-sm font-medium text-[var(--sd-muted)]">
                   {t("signedInFor")}{" "}
-                  <span className="font-bold text-[#1C1C1A]">{email}</span>
+                  <span className="font-bold text-[var(--sd-ink)]">{email}</span>
                 </p>
               </div>
 
               <button
+                type="button"
                 onClick={logout}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#8E8B83]/30 bg-[#F0EEE9] px-5 text-xs font-medium text-[#1C1C1A] shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/10 hover:text-[#3E6685] active:scale-95"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[var(--sd-line)] bg-[var(--sd-raised)] px-5 text-sm font-bold text-[var(--sd-text)] shadow-[var(--sd-shadow-1)] transition-[background-color,border-color,box-shadow,transform] duration-200 hover:border-[var(--sd-blue-500)] hover:bg-[var(--sd-soft-solar)] hover:text-[var(--sd-blue-600)] active:scale-[0.99]"
               >
-                <LogOut className="h-3.5 w-3.5" />
+                <LogOut className="size-3.5" />
                 <span>{t("signOut")}</span>
               </button>
             </header>
 
             {/* Account Linking CTA Banner (if they have unlinked orders) */}
             {proposals.length > 0 && (
-              <section className="flex flex-col justify-between gap-4 rounded-[28px] border border-[#8E8B83]/20 bg-[#DCE8F5] p-6 text-[#2E2C27] shadow-sm md:flex-row md:items-center">
+              <section className="solar-soft-panel flex flex-col justify-between gap-4 border-[var(--sd-blue-500)]/25 bg-[var(--sd-selected)] p-6 text-[var(--sd-ink)] md:flex-row md:items-center">
                 <div className="space-y-1">
-                  <h4 className="text-base font-bold text-[#2E2C27]">
+                  <h2 className="text-base font-black text-[var(--sd-ink)]">
                     {t("saveProposalsTitle")}
-                  </h4>
-                  <p className="text-xs font-medium leading-relaxed text-[#4E4B44]">
+                  </h2>
+                  <p className="text-sm font-medium leading-relaxed text-[var(--sd-muted)]">
                     {t("saveProposalsDescription")}
                   </p>
                 </div>
@@ -226,7 +257,7 @@ export default function GuestProposalsClient({
                   href={`/${locale}/register?reference_number=${encodeURIComponent(
                     proposals[0].id,
                   )}`}
-                  className="inline-flex min-h-11 shrink-0 items-center justify-center self-start rounded-full bg-[#B7D1EA] px-6 text-center text-xs font-medium text-white shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/90 hover:shadow-md active:scale-95 md:self-center"
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center self-start rounded-full border border-[var(--sd-blue-600)] bg-[var(--sd-blue-600)] px-6 text-center text-sm font-bold text-white shadow-[var(--sd-shadow-1)] transition-[background-color,box-shadow,transform] duration-200 hover:bg-[#0B5BE0] hover:shadow-[var(--sd-shadow-2)] active:scale-[0.99] md:self-center"
                 >
                   {t("createAccount")}
                 </Link>
@@ -235,22 +266,20 @@ export default function GuestProposalsClient({
 
             {/* Document Lists Grid */}
             {!hasDocuments ? (
-              <div className="space-y-4 rounded-[28px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-12 text-center shadow-sm">
-                <ClipboardList className="mx-auto h-12 w-12 text-[#4E4B44]" />
-                <h2 className="text-lg font-bold text-[#1C1C1A]">
-                  {t("noRecordsTitle")}
-                </h2>
-                <p className="mx-auto max-w-md text-sm text-[#4E4B44]">
-                  {t("noRecordsDescription")}
-                </p>
-              </div>
+              <SolarStatePanel
+                kind="empty"
+                title={t("noRecordsTitle")}
+                description={t("noRecordsDescription")}
+                soliaAlt={locale === "th" ? "Solia กำลังรอเอกสารโครงการของคุณ" : "Solia waiting for your project documents"}
+                className="solar-route-card"
+              />
             ) : (
               <div className="grid grid-cols-1 gap-6">
                 {/* Proposals Block */}
                 {proposals.length > 0 && (
                   <div className="space-y-3">
-                    <h2 className="flex items-center gap-1.5 px-1 text-xs font-bold uppercase tracking-wider text-[#4E4B44]">
-                      <FileText className="h-4 w-4 text-[#4F7FA8]" />
+                    <h2 className="solar-route-kicker flex items-center gap-1.5 px-1">
+                      <FileText className="size-4" />
                       {t("proposalsTitle")}
                     </h2>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -258,33 +287,33 @@ export default function GuestProposalsClient({
                         <Link
                           key={proposal.id}
                           href={`/${locale}/proposals/${proposal.id}`}
-                          className="group flex flex-col justify-between gap-4 rounded-[24px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-6 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:bg-[#F0EEE9] hover:shadow-md"
+                          className="solar-route-card group flex flex-col justify-between gap-5 p-6"
                         >
                           <div className="space-y-1">
                             <div className="flex items-start justify-between">
-                              <span className="rounded-full bg-[#B7D1EA]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#4F7FA8]">
+                              <span className="solar-ui-status" data-tone="success">
                                 {t("quotation")}
                               </span>
-                              <span className="flex items-center gap-0.5 text-xs font-medium text-[#4E4B44] transition-colors group-hover:text-[#3E6685]">
+                              <span className="flex items-center gap-0.5 text-sm font-bold text-[var(--sd-muted)] transition-colors group-hover:text-[var(--sd-blue-600)]">
                                 {t("view")}{" "}
-                                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                                <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                               </span>
                             </div>
-                            <h3 className="pt-1 text-lg font-bold text-[#1C1C1A]">
+                            <h3 className="pt-2 text-lg font-black tracking-tight text-[var(--sd-ink)]">
                               {proposal.reference}
                             </h3>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-2 border-t border-[#8E8B83]/15 pt-3 text-xs">
-                            <div className="font-medium text-[#4E4B44]">
+                          <div className="grid grid-cols-2 gap-3 border-t border-[var(--sd-line)] pt-4 text-xs">
+                            <div className="font-medium text-[var(--sd-muted)]">
                               <div>{t("systemSize")}</div>
-                              <div className="mt-0.5 text-sm font-bold text-[#1C1C1A]">
-                                {proposal.systemSizeKwp} kWp
+                              <div className="mt-1 text-sm font-bold text-[var(--sd-ink)]">
+                                {formatSystemSize(proposal.systemSizeKwp)}
                               </div>
                             </div>
-                            <div className="font-medium text-[#4E4B44]">
+                            <div className="font-medium text-[var(--sd-muted)]">
                               <div>{t("price")}</div>
-                              <div className="mt-0.5 text-sm font-bold text-[#1C1C1A]">
+                              <div className="mt-1 text-sm font-bold text-[var(--sd-ink)]">
                                 {formatCurrency(proposal.totalPrice)}
                               </div>
                             </div>
@@ -298,8 +327,8 @@ export default function GuestProposalsClient({
                 {/* Service Orders Block */}
                 {serviceOrders.length > 0 && (
                   <div className="space-y-3">
-                    <h2 className="flex items-center gap-1.5 px-1 pt-4 text-xs font-bold uppercase tracking-wider text-[#4E4B44]">
-                      <Activity className="h-4 w-4 text-[#4F7FA8]" />
+                    <h2 className="solar-route-kicker flex items-center gap-1.5 px-1 pt-4">
+                      <Activity className="size-4" />
                       {t("serviceOrdersTitle")}
                     </h2>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -307,30 +336,30 @@ export default function GuestProposalsClient({
                         <Link
                           key={order.id}
                           href={`/${locale}/support/orders/${order.id}`}
-                          className="group flex flex-col justify-between gap-4 rounded-[24px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-6 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:bg-[#F0EEE9] hover:shadow-md"
+                          className="solar-route-card group flex flex-col justify-between gap-5 p-6"
                         >
                           <div className="space-y-1">
                             <div className="flex items-start justify-between">
-                              <span className="rounded-full bg-amber-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                              <span className="solar-ui-status" data-tone="warning">
                                 {t("serviceOrder")}
                               </span>
-                              <span className="flex items-center gap-0.5 text-xs font-medium text-[#4E4B44] transition-colors group-hover:text-[#3E6685]">
+                              <span className="flex items-center gap-0.5 text-sm font-bold text-[var(--sd-muted)] transition-colors group-hover:text-[var(--sd-blue-600)]">
                                 {t("track")}{" "}
-                                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                                <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                               </span>
                             </div>
-                            <h3 className="line-clamp-1 pt-1 text-base font-bold leading-tight text-[#1C1C1A]">
+                            <h3 className="line-clamp-1 pt-2 text-base font-black leading-tight text-[var(--sd-ink)]">
                               {order.offeringName}
                             </h3>
-                            <div className="font-mono text-[10px] font-medium text-[#4E4B44]">
+                            <div className="font-mono text-[10px] font-medium text-[var(--sd-muted)]">
                               {order.reference}
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 border-t border-[#8E8B83]/15 pt-3 text-xs">
-                            <div className="font-medium text-[#4E4B44]">
+                          <div className="grid grid-cols-1 border-t border-[var(--sd-line)] pt-4 text-xs">
+                            <div className="font-medium text-[var(--sd-muted)]">
                               <div>{t("appointmentDate")}</div>
-                              <div className="mt-0.5 text-sm font-bold text-[#1C1C1A]">
+                              <div className="mt-1 text-sm font-bold text-[var(--sd-ink)]">
                                 {formatDate(order.appointmentDate)}
                               </div>
                             </div>
@@ -343,7 +372,7 @@ export default function GuestProposalsClient({
               </div>
             )}
           </div>
-        </div>
+        </SolarRouteShell>
         <CustomerFeedbackModal
           isOpen={feedbackOpen}
           onClose={() => setFeedbackOpen(false)}
@@ -358,28 +387,36 @@ export default function GuestProposalsClient({
   // Rendering 4: Prompt authentication view (if user directly visited /guest/proposals with no session/hash)
   return (
     <>
-      <div className="grid min-h-dvh place-items-center bg-[#F0EEE9] px-4 font-sans text-[#1C1C1A]">
-        <section className="w-full max-w-md space-y-5 rounded-[28px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-8 text-center shadow-sm">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#DCE8F5] text-[#4F7FA8]">
-            <Lock className="h-6 w-6" />
+      <SolarRouteShell className="px-4 pb-16 font-sans sm:px-6">
+        <div className="grid min-h-[calc(100dvh-7rem)] place-items-center">
+        <section className="solar-route-card w-full max-w-md space-y-5 p-8 text-center">
+          <SoliaGuide
+            alt={locale === "th" ? "Solia ช่วยปกป้องเอกสารโครงการของคุณ" : "Solia protecting your project documents"}
+            pose="blueprint"
+            className="mx-auto h-28 w-24"
+            imageSizes="96px"
+          />
+          <div className="mx-auto grid size-12 place-items-center rounded-[var(--sd-radius-md)] bg-[var(--sd-soft-solar)] text-[var(--sd-blue-600)]">
+            <Lock className="size-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-[#1C1C1A] sm:text-2xl">
+            <h1 className="text-xl font-black tracking-tight text-[var(--sd-ink)] sm:text-2xl">
               {t("authorizationRequired")}
             </h1>
-            <p className="mt-2 text-sm font-medium leading-relaxed text-[#4E4B44]">
+            <p className="mt-2 text-sm font-medium leading-relaxed text-[var(--sd-muted)]">
               {t("authorizationDescription")}
             </p>
           </div>
 
           <Link
             href={`/${locale}`}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[#B7D1EA] px-6 text-xs font-medium text-white shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/90 hover:shadow-md active:scale-95"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[var(--sd-blue-600)] bg-[var(--sd-blue-600)] px-6 text-sm font-bold text-white shadow-[var(--sd-shadow-1)] transition-[background-color,box-shadow,transform] duration-200 hover:bg-[#0B5BE0] hover:shadow-[var(--sd-shadow-2)] active:scale-[0.99]"
           >
             {t("goHome")}
           </Link>
         </section>
-      </div>
+        </div>
+      </SolarRouteShell>
       <CustomerFeedbackModal
         isOpen={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}

@@ -22,8 +22,8 @@ export default function FuzzyOverlay({
     if (!ctx) return;
 
     let animationFrameId: number;
-    let width = (canvas.width = 128);
-    let height = (canvas.height = 128);
+    const width = (canvas.width = 128);
+    const height = (canvas.height = 128);
 
     const generateNoise = () => {
       const imgData = ctx.createImageData(width, height);

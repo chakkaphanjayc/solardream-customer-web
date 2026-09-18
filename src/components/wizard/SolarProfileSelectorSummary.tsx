@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { gsap } from "gsap";
+import { useLocale, useTranslations } from "next-intl";
 import { Activity, Cpu, Leaf, ShieldCheck, Sparkles, Sun } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import {
@@ -35,6 +36,55 @@ const featureIcons: Record<FeatureKey, ReactNode> = {
   warranty: <ShieldCheck className="h-5 w-5" />,
 };
 
+type SolarProfileCopy = {
+  label: string;
+  displayName: string;
+  helper: string;
+  tag: string;
+  inverterTech: string;
+  technologyFocus: string;
+  panelSpec: string;
+  warranty: string;
+};
+
+function useSolarProfileCopy() {
+  const t = useTranslations("SolarProfileSummary");
+  const profiles: Record<SolarProfileId, SolarProfileCopy> = {
+    value: {
+      label: t("profiles.value.label"),
+      displayName: t("profiles.value.displayName"),
+      helper: t("profiles.value.helper"),
+      tag: t("profiles.value.tag"),
+      inverterTech: t("profiles.value.inverterTech"),
+      technologyFocus: t("profiles.value.technologyFocus"),
+      panelSpec: t("profiles.value.panelSpec"),
+      warranty: t("profiles.value.warranty"),
+    },
+    balanced: {
+      label: t("profiles.balanced.label"),
+      displayName: t("profiles.balanced.displayName"),
+      helper: t("profiles.balanced.helper"),
+      tag: t("profiles.balanced.tag"),
+      inverterTech: t("profiles.balanced.inverterTech"),
+      technologyFocus: t("profiles.balanced.technologyFocus"),
+      panelSpec: t("profiles.balanced.panelSpec"),
+      warranty: t("profiles.balanced.warranty"),
+    },
+    premium: {
+      label: t("profiles.premium.label"),
+      displayName: t("profiles.premium.displayName"),
+      helper: t("profiles.premium.helper"),
+      tag: t("profiles.premium.tag"),
+      inverterTech: t("profiles.premium.inverterTech"),
+      technologyFocus: t("profiles.premium.technologyFocus"),
+      panelSpec: t("profiles.premium.panelSpec"),
+      warranty: t("profiles.premium.warranty"),
+    },
+  };
+
+  return { t, profiles };
+}
+
 export default function SolarProfileSelectorSummary({
   selectedProfileId,
   onProfileChange,
@@ -42,10 +92,13 @@ export default function SolarProfileSelectorSummary({
   ecoImpact,
   monthlySavingsLabel,
 }: SolarProfileSelectorSummaryProps) {
-  const selectedProfile = SOLAR_PROFILES[selectedProfileId];
+  const { t, profiles } = useSolarProfileCopy();
+  const locale = useLocale();
+  const selectedProfileCopy = profiles[selectedProfileId];
 
   const treesOver25Years = Math.round(ecoImpact.treeEquivalent * 25);
   const co2Over25Years = ecoImpact.co2TonsPerYear * 25;
+  const numberFormatter = new Intl.NumberFormat(locale === "th" ? "th-TH" : "en-US", { maximumFractionDigits: 1 });
 
   return (
     <div className="space-y-2">
@@ -62,13 +115,13 @@ export default function SolarProfileSelectorSummary({
         <div className="flex items-start justify-between gap-2.5 sm:gap-3">
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.12em] text-[#4F7FA8] sm:text-[10px]">
-              Eco-price profile
+              {t("profileEyebrow")}
             </p>
             <h2 className="mt-0.5 text-sm font-black leading-tight text-[#000] sm:text-base">
-              {selectedProfile.displayName}
+              {selectedProfileCopy.displayName}
             </h2>
             <p className="mt-0.5 text-[10px] font-bold leading-4 text-slate-700">
-              {selectedProfile.helper}
+              {selectedProfileCopy.helper}
             </p>
           </div>
           <div className="solar-summary-profile-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
@@ -78,7 +131,7 @@ export default function SolarProfileSelectorSummary({
 
         <div className="mt-2.5">
           <p className="text-[10px] font-black text-slate-700">
-            Total estimated investment
+            {t("totalInvestment")}
           </p>
           <p
             key={totalPriceLabel}
@@ -90,14 +143,14 @@ export default function SolarProfileSelectorSummary({
 
         <div className="mt-2.5 grid grid-cols-2 gap-2">
           <EcoStat
-            label="25-year tree equivalent"
-            value={`${treesOver25Years.toLocaleString()} trees`}
+            label={t("stats.treeEquivalent")}
+            value={t("units.trees", { count: numberFormatter.format(treesOver25Years) })}
           />
           <EcoStat
-            label="25-year CO2 avoided"
-            value={`${co2Over25Years.toFixed(1)} tons`}
+            label={t("stats.co2Avoided")}
+            value={t("units.tons", { count: numberFormatter.format(co2Over25Years) })}
           />
-          <EcoStat label="Expected monthly savings" value={monthlySavingsLabel} />
+          <EcoStat label={t("stats.monthlySavings")} value={monthlySavingsLabel} />
         </div>
       </section>
     </div>
@@ -111,7 +164,9 @@ export function SolarProfileFeatureGrid({
   selectedProfileId: SolarProfileId;
   compact?: boolean;
 }) {
+  const { t, profiles } = useSolarProfileCopy();
   const selectedProfile = SOLAR_PROFILES[selectedProfileId];
+  const selectedProfileCopy = profiles[selectedProfileId];
   const previousProfileRef = useRef<SolarProfileId>(selectedProfileId);
   const gridRef = useRef<HTMLDivElement | null>(null);
   const [changedFeatures, setChangedFeatures] = useState<
@@ -123,53 +178,50 @@ export function SolarProfileFeatureGrid({
       [
         {
           key: "inverter" as const,
-          title: "Conversion Technology",
-          keyword:
-            selectedProfile.id === "premium"
-              ? "IP68 Smart"
-              : selectedProfile.id === "balanced"
-                ? "Reliable"
-                : "Essential",
-          value: selectedProfile.inverterTech,
-          description: selectedProfile.technologyFocus,
+          title: t("features.inverter.title"),
+          keyword: selectedProfile.id === "premium"
+            ? t("features.inverter.premiumKeyword")
+            : selectedProfile.id === "balanced"
+              ? t("features.inverter.balancedKeyword")
+              : t("features.inverter.valueKeyword"),
+          value: selectedProfileCopy.inverterTech,
+          description: selectedProfileCopy.technologyFocus,
           className: "sm:col-span-2 md:col-span-2",
         },
         {
           key: "panels" as const,
-          title: "Solar Surface",
-          keyword: selectedProfile.id === "premium" ? "Premium" : "High-yield",
-          value: selectedProfile.panelSpec,
-          description:
-            "Configured around clean daytime production, roof fit, and long-term household savings.",
+          title: t("features.panels.title"),
+          keyword: selectedProfile.id === "premium" ? t("features.panels.premiumKeyword") : t("features.panels.standardKeyword"),
+          value: selectedProfileCopy.panelSpec,
+          description: t("features.panels.description"),
           className: "sm:col-span-2 md:col-span-1",
         },
         {
           key: "warranty" as const,
-          title: "Care Coverage",
-          keyword: selectedProfile.id === "premium" ? "Premium" : "Protected",
-          value: selectedProfile.warranty,
-          description:
-            "Support level matched to the solution tier, prepared for staff review before final quotation.",
+          title: t("features.warranty.title"),
+          keyword: selectedProfile.id === "premium" ? t("features.warranty.premiumKeyword") : t("features.warranty.standardKeyword"),
+          value: selectedProfileCopy.warranty,
+          description: t("features.warranty.description"),
           className: "sm:col-span-2 md:col-span-1",
         },
         {
           key: "yield" as const,
-          title: "Energy Yield",
+          title: t("features.yield.title"),
           keyword: `${Math.round(selectedProfile.simulatorMultiplier * 100)}%`,
-          value: "Profile multiplier",
-          description: "Simulator output adjusts with the selected solution tier.",
+          value: t("features.yield.value"),
+          description: t("features.yield.description"),
           className: "",
         },
         {
           key: "eco" as const,
-          title: "Clean Impact",
-          keyword: "25 yr",
-          value: "Long-term carbon reduction",
-          description: "A lifestyle-first system profile built around cleaner home energy.",
+          title: t("features.eco.title"),
+          keyword: t("features.eco.keyword"),
+          value: t("features.eco.value"),
+          description: t("features.eco.description"),
           className: "",
         },
       ],
-    [selectedProfile],
+    [selectedProfile, selectedProfileCopy, t],
   );
 
   useEffect(() => {
@@ -308,8 +360,8 @@ export function SolarProfileFeatureGrid({
                 >
                   <Sparkles className="h-3 w-3" />
                   {changeDirection === "upgraded"
-                    ? "Upgraded Feature"
-                    : "Downgraded Feature"}
+                    ? t("change.upgraded")
+                    : t("change.downgraded")}
                 </span>
               ) : null}
               <div>
@@ -373,15 +425,15 @@ function SolarProfileSegmentedControl({
   selectedProfileId: SolarProfileId;
   onProfileChange: (profileId: SolarProfileId) => void;
 }) {
+  const { t, profiles } = useSolarProfileCopy();
   return (
     <div
       role="tablist"
-      aria-label="Eco-price profile"
+      aria-label={t("profileTabsLabel")}
       className="solar-summary-profile-tabs rounded-xl p-1"
     >
       <div className="grid grid-cols-3 gap-1">
         {SOLAR_PROFILE_ORDER.map((profileId) => {
-          const profile = SOLAR_PROFILES[profileId];
           const active = selectedProfileId === profileId;
 
           return (
@@ -400,10 +452,10 @@ function SolarProfileSegmentedControl({
               )}
             >
               <span className="relative block text-xs font-black">
-                {profile.label}
+                {profiles[profileId].label}
               </span>
               <span className={cn("relative mt-0.5 block text-[10px] font-extrabold", active ? "text-[#000]" : "text-slate-600")}>
-                {profile.tag}
+                {profiles[profileId].tag}
               </span>
             </button>
           );

@@ -6,6 +6,7 @@ import { isLocale } from "@/i18n/locales";
 import { SolarRouteShell } from "@/components/ui/solar-route-shell";
 import type { SupportDashboardArticle } from "@/types/support";
 
+export const instant = false;
 
 
 export default async function SupportDashboardPage({ params }: { params: Promise<{ locale: string }> }) {

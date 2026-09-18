@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   AlertTriangle,
-  ArrowRight,
   CreditCard,
   FileText,
   Layers,
@@ -31,6 +30,7 @@ import type {
 } from "@/types/proposals";
 import { ProjectTaskStepper } from "@/components/proposals/detail/ProjectTaskStepper";
 import { PortalRevisionAndBilling } from "@/components/proposals/PortalRevisionAndBilling";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 import { deriveQuotationTrackingReference } from "@/lib/trackingReference";
 import { getQuotationDeliveryDocumentVersion } from "@/lib/quotationDeliveryDocuments";
 import { trackProductEvent } from "@/lib/productAnalytics";
@@ -78,6 +78,7 @@ export default function GuestProposalSignView({
   initialDocumentRequests = [],
   initialDeliveryDocuments = [],
   initialPaymentRequests = [],
+  paymentInstructions,
   presentation = "fullscreen",
   showAccountCta = false,
 }: {
@@ -292,21 +293,21 @@ export default function GuestProposalSignView({
     <div
       className={
         presentation === "embedded"
-          ? "min-w-0 bg-transparent text-[#1C1C1A]"
-          : "min-h-dvh bg-[#F0EEE9] px-4 pb-12 pt-8 text-[#1C1C1A] md:pt-10"
+          ? "min-w-0 bg-transparent text-[var(--sd-ink)]"
+          : "min-h-dvh bg-[var(--sd-page)] px-4 pb-12 pt-8 text-[var(--sd-ink)] md:pt-10"
       }
     >
       {showAccountCta && (
-        <section className="mx-auto mb-6 flex max-w-7xl flex-col items-center justify-between gap-4 rounded-[28px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-6 shadow-sm sm:flex-row">
+        <section className="solar-route-card mx-auto mb-6 flex max-w-7xl flex-col items-center justify-between gap-4 bg-[var(--sd-soft-solar)] p-6 sm:flex-row">
           <div className="space-y-1 text-center sm:text-left">
-            <h2 className="text-base font-bold text-[#1C1C1A]">{t("saveTitle")}</h2>
-            <p className="text-sm font-medium text-[#4E4B44]">{t("saveDescription")}</p>
+            <h2 className="text-base font-bold text-[var(--sd-ink)]">{t("saveTitle")}</h2>
+            <p className="text-sm font-medium text-[var(--sd-muted)]">{t("saveDescription")}</p>
           </div>
           <Link
             href={`/${locale}/register?reference_number=${encodeURIComponent(
               proposal.id,
             )}`}
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[#B7D1EA] px-6 text-center text-xs font-medium text-white shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/90 hover:shadow-md active:scale-95"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-[var(--sd-radius-md)] bg-[var(--sd-blue-600)] px-6 text-center text-xs font-bold text-white shadow-[var(--sd-shadow-1)] transition-all duration-300 hover:bg-[var(--sd-blue-500)] hover:shadow-[var(--sd-shadow-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2 active:scale-[0.98]"
           >
             {t("createAccount")}
           </Link>
@@ -337,27 +338,23 @@ export default function GuestProposalSignView({
           </div>
 
           {/* Physical Folder Tabs Navigation Bar */}
-          <div className="layer-sticky sticky top-[72px] z-30 -mx-1 my-3 rounded-[24px] border border-[#8E8B83]/15 bg-[#E6E3DC]/95 p-2 shadow-sm backdrop-blur-md md:top-[72px] lg:col-span-3">
+          <div className="layer-sticky sticky top-[72px] z-30 -mx-1 my-3 rounded-[var(--sd-radius-lg)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-2 shadow-[var(--sd-shadow-3)] md:top-[72px] lg:col-span-3">
             <div className="flex min-w-0 items-center gap-2">
               <div className="min-w-0 flex-1 touch-pan-x overflow-x-auto px-1 pb-1 overscroll-x-contain [scrollbar-width:thin]">
                 <TabsList className="flex min-w-max items-end justify-start gap-2 !overflow-visible border-0 bg-transparent p-0 shadow-none">
                   <TabsTrigger
                     value="quotation"
                     className={cn(
-                      "group relative flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-medium transition-all duration-300 sm:text-sm",
+                      "group relative flex min-h-11 cursor-pointer items-center gap-2 rounded-[var(--sd-radius-md)] px-5 py-2.5 text-xs font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2 sm:text-sm",
                       activeTab === "quotation"
-                        ? "z-10 bg-[#B7D1EA] text-white shadow-sm"
-                        : "border border-[#8E8B83]/20 bg-[#F0EEE9] text-[#4E4B44] hover:bg-[#A5C2DE]/10 hover:text-[#1C1C1A]",
+                        ? "z-10 bg-[var(--sd-blue-600)] !text-white shadow-[var(--sd-shadow-1)]"
+                        : "border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] text-[var(--sd-text)] hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)]",
                     )}
                   >
                     <FileText className="h-4 w-4 stroke-[2] text-current" />
-                    <span>
-                      {locale === "th"
-                        ? "1. ใบเสนอราคา & สเปก"
-                        : "1. Quotation & Specs"}
-                    </span>
+                    <span>{t("tabs.quotation")}</span>
                     {quotationVersion > 1 && (
-                      <span className="rounded-full bg-[#DCE8F5] px-2 py-0.5 text-[10px] font-bold text-[#2E2C27]">
+                      <span className="rounded-full bg-[var(--sd-selected)] px-2 py-0.5 text-[10px] font-bold text-[var(--sd-ink)]">
                         v{quotationVersion}
                       </span>
                     )}
@@ -368,18 +365,14 @@ export default function GuestProposalSignView({
                     className={cn(
                       "group relative flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-medium transition-all duration-300 sm:text-sm",
                       activeTab === "payment"
-                        ? "z-10 bg-[#B7D1EA] text-white shadow-sm"
-                        : "border border-[#8E8B83]/20 bg-[#F0EEE9] text-[#4E4B44] hover:bg-[#A5C2DE]/10 hover:text-[#1C1C1A]",
+                        ? "z-10 bg-[var(--sd-blue-600)] !text-white shadow-[var(--sd-shadow-1)]"
+                        : "border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] text-[var(--sd-text)] hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)]",
                     )}
                   >
                     <CreditCard className="h-4 w-4 stroke-[2] text-current" />
-                    <span>
-                      {locale === "th"
-                        ? "2. การชำระเงิน & สลิป"
-                        : "2. Payment & Billing"}
-                    </span>
+                    <span>{t("tabs.payment")}</span>
                     {activeUnpaidPaymentRequests.length > 0 && (
-                      <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                      <span className="rounded-full bg-[var(--sd-danger)] px-2 py-0.5 text-[10px] font-bold text-white">
                         {activeUnpaidPaymentRequests.length}
                       </span>
                     )}
@@ -390,18 +383,14 @@ export default function GuestProposalSignView({
                     className={cn(
                       "group relative flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-medium transition-all duration-300 sm:text-sm",
                       activeTab === "progress"
-                        ? "z-10 bg-[#B7D1EA] text-white shadow-sm"
-                        : "border border-[#8E8B83]/20 bg-[#F0EEE9] text-[#4E4B44] hover:bg-[#A5C2DE]/10 hover:text-[#1C1C1A]",
+                        ? "z-10 bg-[var(--sd-blue-600)] !text-white shadow-[var(--sd-shadow-1)]"
+                        : "border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] text-[var(--sd-text)] hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)]",
                     )}
                   >
                     <Layers className="h-4 w-4 stroke-[2] text-current" />
-                    <span>
-                      {locale === "th"
-                        ? "3. สถานะดำเนินงาน"
-                        : "3. Project Progress"}
-                    </span>
+                    <span>{t("tabs.progress")}</span>
                     {pendingRequiredDocumentCount > 0 && (
-                      <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-[#1C1C1A]">
+                      <span className="rounded-full bg-[var(--sd-yellow-400)] px-2 py-0.5 text-[10px] font-bold text-[var(--sd-ink)]">
                         {pendingRequiredDocumentCount}
                       </span>
                     )}
@@ -410,11 +399,12 @@ export default function GuestProposalSignView({
               </div>
 
               <div className="hidden shrink-0 items-center gap-2 pr-1 sm:flex">
-                <span className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-[#8E8B83]/20 bg-[#F0EEE9] px-4 py-1.5 text-xs font-medium text-[#1C1C1A] shadow-sm">
+                <span className="inline-flex min-h-10 items-center gap-1.5 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] px-4 py-1.5 text-xs font-bold text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)]">
                   <ShieldCheck className="h-4 w-4 stroke-[2.5] text-emerald-600" />
                   <span>
-                    Ref:{" "}
-                    {currentProposal.erpnextQuotationId || trackRequestNumber}
+                    {t("reference", {
+                      value: currentProposal.erpnextQuotationId || trackRequestNumber,
+                    })}
                   </span>
                 </span>
               </div>
@@ -425,30 +415,26 @@ export default function GuestProposalSignView({
           <TabsContent value="quotation" className="contents">
             <>
               {!isSigned && quotationVersion > 1 && (
-                <div className="flex flex-col items-start justify-between gap-4 rounded-[28px] border border-amber-300/60 bg-amber-50/70 p-5 text-amber-950 sm:flex-row sm:items-center lg:col-span-3">
+                <div className="flex flex-col items-start justify-between gap-4 rounded-[var(--sd-radius-panel)] border border-amber-300/70 bg-[var(--sd-anime-highlight)] p-5 text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)] sm:flex-row sm:items-center lg:col-span-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <AlertTriangle
                         className="h-5 w-5 shrink-0 text-amber-600"
                         aria-hidden="true"
                       />
-                      <h3 className="text-base font-bold text-amber-950">
-                        {locale === "th"
-                          ? `ใบเสนอราคาฉบับปรับปรุง (เวอร์ชัน ${quotationVersion})`
-                          : `Updated Quotation Document (Version ${quotationVersion})`}
+                      <h3 className="text-base font-bold text-[var(--sd-ink)]">
+                        {t("revision.title", { version: quotationVersion })}
                       </h3>
                     </div>
-                    <p className="max-w-3xl text-xs font-medium leading-relaxed text-amber-800">
-                      {locale === "th"
-                        ? `SolarDream ได้ทำการอัปเดตและเปลี่ยนใบเสนอราคาเป็นเวอร์ชัน ${quotationVersion} กรุณาตรวจสอบเอกสารฉบับใหม่ด้านล่างและลงนามอิเล็กทรอนิกส์อีกครั้งเพื่ออนุมัติใบเสนอราคาฉบับปรับปรุงนี้`
-                        : `SolarDream has updated your quotation to Version ${quotationVersion}. Please review the updated document below and re-sign to approve this revised quotation.`}
+                    <p className="max-w-3xl text-xs font-medium leading-relaxed text-[var(--sd-muted)]">
+                      {t("revision.description", { version: quotationVersion })}
                     </p>
                   </div>
                   <a
                     href="#quotation-document"
-                    className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-amber-900 px-5 text-xs font-medium text-white shadow-sm transition-all duration-300 hover:bg-amber-800 hover:shadow-md active:scale-95"
+                    className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-[var(--sd-radius-md)] bg-[var(--sd-navy-900)] px-5 text-xs font-bold text-white shadow-[var(--sd-shadow-1)] transition-all duration-300 hover:bg-[var(--sd-navy-950)] hover:shadow-[var(--sd-shadow-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2 active:scale-[0.98]"
                   >
-                    {locale === "th" ? "ตรวจสอบและลงนาม" : "Review & Sign"}
+                    {t("revision.action")}
                   </a>
                 </div>
               )}
@@ -504,6 +490,7 @@ export default function GuestProposalSignView({
               proposal={currentProposal}
               magicTokenSlug={magicTokenSlug}
               initialPaymentRequests={paymentRequests}
+              paymentInstructions={paymentInstructions}
               onRevisionRequested={(status, dispatchStatus, updatedAt) => {
                 setCurrentProposal((current) => ({
                   ...current,
@@ -524,35 +511,35 @@ export default function GuestProposalSignView({
               {isDocumentUploadPriority && (
                 <section
                   id="required-uploads"
-                  className="scroll-mt-24 rounded-[28px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-5 shadow-sm sm:p-6 lg:col-span-3"
+                  className="solar-route-card scroll-mt-24 bg-[var(--sd-soft-solar)] p-5 sm:p-6 lg:col-span-3"
                   aria-labelledby="required-uploads-title"
                 >
-                  <div className="flex flex-col gap-4 border-b border-[#8E8B83]/15 pb-5 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex flex-col gap-4 border-b border-[var(--sd-line)] pb-5 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#DCE8F5] text-[#4F7FA8]">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--sd-radius-md)] bg-[var(--sd-selected)] text-[var(--sd-blue-600)]">
                         <AlertTriangle
                           className="h-5 w-5"
                           aria-hidden="true"
                         />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-[#4F7FA8]">
+                        <p className="text-sm font-bold text-[var(--sd-blue-600)]">
                           {t("documentsPriorityEyebrow")}
                         </p>
                         <h2
                           id="required-uploads-title"
-                          className="mt-1 text-lg font-bold text-[#1C1C1A] sm:text-xl"
+                          className="mt-1 text-lg font-bold text-[var(--sd-ink)] sm:text-xl"
                         >
                           {t("documentsPriorityTitle")}
                         </h2>
-                        <p className="mt-2 max-w-3xl text-sm leading-6 text-[#4E4B44]">
+                        <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--sd-muted)]">
                           {t("documentsPriorityDescription", {
                             count: pendingRequiredDocumentCount,
                           })}
                         </p>
                       </div>
                     </div>
-                    <span className="inline-flex w-fit shrink-0 rounded-full border border-[#8E8B83]/20 bg-[#F0EEE9] px-3.5 py-1.5 text-xs font-medium text-[#1C1C1A] shadow-sm">
+                    <span className="inline-flex w-fit shrink-0 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-3.5 py-1.5 text-xs font-bold text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)]">
                       {t("documentsPriorityCount", {
                         count: pendingRequiredDocumentCount,
                       })}
@@ -572,7 +559,28 @@ export default function GuestProposalSignView({
               )}
 
               <div className="space-y-6 lg:col-span-2">
-                <section className="rounded-[28px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-5 shadow-sm sm:p-6">
+                <section className="solar-route-card bg-[var(--sd-raised)] p-5 sm:p-6">
+                  <div className="flex items-center justify-between gap-5 border-b border-[var(--sd-line)] pb-5">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--sd-blue-600)]">
+                        {t("progress.eyebrow")}
+                      </p>
+                      <h2 className="mt-1 text-xl font-bold tracking-tight text-[var(--sd-ink)] sm:text-2xl">
+                        {t("progress.title")}
+                      </h2>
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--sd-muted)]">
+                        {t("progress.description")}
+                      </p>
+                    </div>
+                    <SoliaGuide
+                      alt={t("progress.soliaAlt")}
+                      pose="blueprint"
+                      className="h-32 w-24 shrink-0 sm:h-40 sm:w-32"
+                      imageSizes="128px"
+                      message={t("progress.soliaMessage")}
+                      speechBubbleClassName="absolute bottom-1 right-full mr-3 hidden w-56 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] p-3 text-xs font-semibold leading-5 text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)] sm:block"
+                    />
+                  </div>
                   <ProjectTaskStepper
                     installation={installation}
                     refresh={refreshSnapshot}
@@ -580,12 +588,10 @@ export default function GuestProposalSignView({
                   {installation?.project.status === "FINISHED" ? (
                     <Link
                       href={`/${locale}/proposals/${proposal.id}/registration`}
-                      className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#B7D1EA] px-6 text-sm font-medium text-white shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/90 hover:shadow-md active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#B7D1EA] focus:ring-offset-2"
+                      className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-[var(--sd-radius-md)] bg-[var(--sd-blue-600)] px-6 text-sm font-bold text-white shadow-[var(--sd-shadow-1)] transition-all duration-300 hover:bg-[var(--sd-blue-500)] hover:shadow-[var(--sd-shadow-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2 active:scale-[0.98]"
                     >
                       <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-                      {locale === "th"
-                        ? "ลงทะเบียนการรับประกัน"
-                        : "Register warranty"}
+                      {t("progress.warranty")}
                     </Link>
                   ) : null}
                 </section>
@@ -593,17 +599,17 @@ export default function GuestProposalSignView({
 
               <aside className="space-y-6 lg:col-span-1">
                 {!isDocumentUploadPriority && (
-                  <section className="rounded-[28px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-5 shadow-sm">
-                    <div className="flex items-center gap-3 border-b border-[#8E8B83]/15 pb-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#DCE8F5] text-[#4F7FA8]">
+                  <section className="solar-route-card bg-[var(--sd-soft-solar)] p-5">
+                    <div className="flex items-center gap-3 border-b border-[var(--sd-line)] pb-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-[var(--sd-radius-md)] bg-[var(--sd-selected)] text-[var(--sd-blue-600)]">
                         <PackageCheck className="h-5 w-5" />
                       </div>
                       <div>
-                        <h2 className="text-base font-bold text-[#1C1C1A]">
+                        <h2 className="text-base font-bold text-[var(--sd-ink)]">
                           {t("documentsTitle")}
                         </h2>
-                        <p className="mt-1 text-sm leading-5 text-[#4E4B44]">
-                          เอกสารสำหรับยื่นขออนุญาตขนานไฟ
+                        <p className="mt-1 text-sm leading-5 text-[var(--sd-muted)]">
+                          {t("utilityDocumentsDescription")}
                         </p>
                       </div>
                     </div>
@@ -625,39 +631,34 @@ export default function GuestProposalSignView({
           </TabsContent>
 
           <div className="pt-4 lg:col-span-3">
-            <footer
-              className="border-t border-[#8E8B83]/20 py-8"
-              aria-label="SolarDream customer portal footer"
-            >
+            <footer className="border-t border-[var(--sd-line)] py-8">
               <div className="flex flex-col items-center justify-between gap-6 text-center md:flex-row md:text-left">
                 <div className="space-y-2">
                   <div className="flex items-center justify-center gap-2 md:justify-start">
-                    <span className="text-lg font-bold tracking-tight text-[#1C1C1A]">
+                    <span className="text-lg font-bold tracking-tight text-[var(--sd-ink)]">
                       SolarDream
                     </span>
-                    <span className="rounded-full bg-[#DCE8F5] px-3 py-0.5 text-[11px] font-medium text-[#2E2C27]">
-                      Customer Portal
+                    <span className="rounded-full bg-[var(--sd-selected)] px-3 py-0.5 text-[11px] font-bold text-[var(--sd-ink)]">
+                      {t("footer.portalLabel")}
                     </span>
                   </div>
-                  <p className="mt-2 max-w-2xl text-sm font-normal leading-6 text-[#4E4B44]">
-                    Official engineering & residential solar quotation portal.
-                    Certified Tier-1 hardware, PEA/MEA utility permit management,
-                    and lifetime warranty tracking.
+                  <p className="mt-2 max-w-2xl text-sm font-normal leading-6 text-[var(--sd-muted)]">
+                    {t("footer.description")}
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-x-5 gap-y-3 text-sm font-medium text-[#4E4B44] md:justify-end">
+                <div className="flex flex-wrap gap-x-5 gap-y-3 text-sm font-medium text-[var(--sd-muted)] md:justify-end">
                   <div className="flex items-center gap-1.5">
-                    <Phone className="h-4 w-4 text-[#4F7FA8]" />
+                    <Phone className="h-4 w-4 text-[var(--sd-blue-600)]" />
                     <span>02-123-4567</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Mail className="h-4 w-4 text-[#4F7FA8]" />
+                    <Mail className="h-4 w-4 text-[var(--sd-blue-600)]" />
                     <span>support@solardream.co.th</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                    <span>SSL 256-bit encrypted</span>
+                    <span>{t("footer.security")}</span>
                   </div>
                 </div>
               </div>

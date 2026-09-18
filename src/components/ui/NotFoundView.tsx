@@ -1,97 +1,87 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ArrowLeft } from "@/components/ui/icons";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
+import { SolarRouteShell } from "@/components/ui/solar-route-shell";
 
 type NotFoundViewProps = {
   homeUrl?: string;
   autoRedirectSeconds?: number;
+  as?: "div" | "main";
 };
 
 export default function NotFoundView({
   homeUrl = "/",
   autoRedirectSeconds = 5,
+  as = "div",
 }: NotFoundViewProps) {
+  const pathname = usePathname();
+  const isEnglish = pathname.startsWith("/en");
   const [seconds, setSeconds] = useState(autoRedirectSeconds);
-  const [imageSrc, setImageSrc] = useState("/asset/solia-sorry.webp");
-  const [resolvedHomeUrl, setResolvedHomeUrl] = useState(homeUrl);
-
-  const handleImageError = () => {
-    if (imageSrc === "/asset/solia-sorry.webp") {
-      setImageSrc("/assets/solia-sorry.png");
-    }
-  };
+  const resolvedHomeUrl = homeUrl === "/" ? `/${isEnglish ? "en" : "th"}` : homeUrl;
 
   useEffect(() => {
-    let targetUrl = homeUrl;
-    if (typeof window !== "undefined" && homeUrl === "/") {
-      if (window.location.pathname.startsWith("/en")) {
-        targetUrl = "/en";
-      } else if (window.location.pathname.startsWith("/th")) {
-        targetUrl = "/th";
-      }
-    }
-    setResolvedHomeUrl(targetUrl);
-
     const countdownInterval = setInterval(() => {
       setSeconds((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
 
     const redirectTimer = setTimeout(() => {
-      window.location.href = targetUrl;
+      window.location.href = resolvedHomeUrl;
     }, autoRedirectSeconds * 1000);
 
     return () => {
       clearInterval(countdownInterval);
       clearTimeout(redirectTimer);
     };
-  }, [homeUrl, autoRedirectSeconds]);
+  }, [autoRedirectSeconds, resolvedHomeUrl]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F0EEE9] p-6 text-center antialiased selection:bg-[#DCE8F5] selection:text-[#2E2C27]">
-      <div className="max-w-lg mx-auto flex flex-col items-center">
-        {/* Constrained Mascot Image Container */}
-        <div className="relative w-56 h-56 md:w-64 md:h-64 mb-8 drop-shadow-xl animate-float-soft">
-          <Image
-            src={imageSrc}
-            alt="Page Not Found"
-            fill
-            sizes="(max-width: 768px) 224px, 256px"
-            onError={handleImageError}
-            className="object-contain"
-            priority
-          />
-        </div>
+    <SolarRouteShell
+      as={as}
+      className="solar-global-not-found min-h-dvh px-4 py-12 sm:px-6 sm:py-20"
+    >
+      <section
+        aria-labelledby="not-found-title"
+        className="solar-ui-panel mx-auto flex w-full max-w-2xl flex-col items-center rounded-[2rem] p-6 text-center sm:p-10"
+      >
+        <SoliaGuide
+          alt={isEnglish ? "Solia helping you find your way back" : "โซเลียกำลังช่วยพาคุณกลับไปยังหน้าที่ถูกต้อง"}
+          pose="miffed"
+          className="h-52 w-44 sm:h-60 sm:w-52"
+          imageSizes="240px"
+          loading="eager"
+          priority
+        />
 
-        {/* 404 Header & Typography */}
-        <h1 className="text-7xl md:text-8xl font-black text-[#2E2C27] tracking-tighter mb-2 font-sans">
+        <p className="mt-3 font-mono text-6xl font-black tracking-[-0.08em] text-[var(--sd-navy-900)] sm:text-8xl">
           404
+        </p>
+        <h1 id="not-found-title" className="mt-3 text-2xl font-black tracking-tight text-[var(--sd-ink)] sm:text-3xl">
+          {isEnglish ? "This page is not in the map" : "ขออภัย ไม่พบหน้านี้"}
         </h1>
-
-        <h2 className="text-2xl md:text-3xl font-extrabold text-[#2E2C27] mb-4 font-sans">
-          ขออภัยค่ะ ไม่พบหน้านี้
-        </h2>
-
-        <p className="text-[#4E4B44] mb-8 max-w-md text-base leading-relaxed font-sans">
-          เส้นทางที่คุณกำลังค้นหาไม่มีอยู่ในระบบ Solia กำลังพากลับสู่หน้าหลักใน{" "}
-          <span className="bg-[#DCE8F5] text-[#2E2C27] font-bold px-2 py-0.5 mx-1 rounded-full font-mono">
+        <p className="mt-4 max-w-md text-sm font-medium leading-7 text-[var(--sd-text)] sm:text-base">
+          {isEnglish
+            ? "Solia is taking you back to the SolarDream home page in"
+            : "เส้นทางนี้ไม่มีอยู่ในระบบ Solia จะพาคุณกลับหน้าหลักใน"}{" "}
+          <span
+            aria-live="polite"
+            className="mx-1 inline-flex min-w-8 justify-center rounded-full bg-[var(--sd-soft-solar)] px-2 py-0.5 font-mono font-black text-[var(--sd-navy-900)]"
+          >
             {seconds}
           </span>{" "}
-          วินาที...
+          {isEnglish ? "seconds." : "วินาที"}
         </p>
 
-        {/* Manual Escape Hatch CTA Button */}
         <a
           href={resolvedHomeUrl}
-          className="bg-[#B7D1EA] hover:bg-[#A5C2DE] text-white font-bold py-3.5 px-8 rounded-full transition-all duration-300 shadow-md flex items-center gap-2 group font-sans focus:outline-none focus:ring-2 focus:ring-[#B7D1EA] focus:ring-offset-2 cursor-pointer active:scale-95"
+          className="solar-ui-primary group mt-8 inline-flex min-h-12 items-center gap-2 rounded-full px-6 py-3 text-sm font-bold active:scale-95"
         >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          <span>กลับสู่หน้าหลักทันที (Go to Homepage)</span>
+          <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" aria-hidden="true" />
+          <span>{isEnglish ? "Go to homepage" : "กลับสู่หน้าหลัก"}</span>
         </a>
-      </div>
-    </div>
+      </section>
+    </SolarRouteShell>
   );
 }

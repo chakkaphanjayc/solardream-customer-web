@@ -9,6 +9,7 @@ import {
   X,
 } from "@/components/ui/icons";
 import { formatPrice } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogBody,
@@ -20,7 +21,7 @@ export interface ReceiptPaymentRequestData {
   id: string;
   proposalId?: string;
   title: string;
-  amountRequested: number | string;
+  amountRequested: number | string | null;
   paymentType?: string;
   paymentMethod?: string;
   status: string;
@@ -47,9 +48,14 @@ interface PaymentReceiptModalProps {
   customerInfo?: ReceiptCustomerInfo;
 }
 
-function formatMoney(amount: number | string) {
-  const num = typeof amount === "number" ? amount : Number(String(amount || "0").replace(/,/g, ""));
-  return formatPrice(Number.isFinite(num) ? num : 0);
+function toPositiveAmount(amount: number | string | null | undefined): number | null {
+  const num = typeof amount === "number" ? amount : Number(String(amount ?? "").replace(/,/g, ""));
+  return Number.isFinite(num) && num > 0 ? num : null;
+}
+
+function formatMoney(amount: number | string | null, pendingLabel: string) {
+  const num = toPositiveAmount(amount);
+  return num === null ? pendingLabel : formatPrice(num);
 }
 
 export default function PaymentReceiptModal({
@@ -58,16 +64,15 @@ export default function PaymentReceiptModal({
   paymentRequest,
   customerInfo,
 }: PaymentReceiptModalProps) {
+  const t = useTranslations("PaymentReceipt");
   const printContentRef = useRef<HTMLDivElement | null>(null);
 
   if (!paymentRequest) return null;
 
-  const numAmount = typeof paymentRequest.amountRequested === "number"
-    ? paymentRequest.amountRequested
-    : Number(String(paymentRequest.amountRequested || "0").replace(/,/g, ""));
+  const numAmount = toPositiveAmount(paymentRequest.amountRequested);
 
-  const vatAmount = Math.round((numAmount * 7) / 107);
-  const beforeVatAmount = numAmount - vatAmount;
+  const vatAmount = numAmount === null ? null : Math.round((numAmount * 7) / 107);
+  const beforeVatAmount = numAmount === null ? null : numAmount - (vatAmount ?? 0);
 
   const receiptNo = `REC-${paymentRequest.id.slice(0, 8).toUpperCase()}`;
   const paidDate = paymentRequest.verifiedAt
@@ -223,13 +228,13 @@ export default function PaymentReceiptModal({
                       </p>
                     </td>
                     <td className="p-3.5 text-right font-mono text-[#4E4B44] print:text-slate-700">
-                      {formatMoney(beforeVatAmount)}
+                      {formatMoney(beforeVatAmount, t("amountPending"))}
                     </td>
                     <td className="p-3.5 text-right font-mono text-[#4E4B44] print:text-slate-700">
-                      {formatMoney(vatAmount)}
+                      {formatMoney(vatAmount, t("amountPending"))}
                     </td>
                     <td className="p-3.5 text-right font-black font-mono text-sm text-emerald-700 print:text-slate-950">
-                      {formatMoney(numAmount)}
+                      {formatMoney(numAmount, t("amountPending"))}
                     </td>
                   </tr>
                 </tbody>
@@ -239,7 +244,7 @@ export default function PaymentReceiptModal({
                       รวมเงินรับชำระทั้งสิ้น (Total Paid Amount):
                     </td>
                     <td className="p-3.5 text-right font-black font-mono text-base text-[#4F7FA8] print:text-black">
-                      {formatMoney(numAmount)}
+                    {formatMoney(numAmount, t("amountPending"))}
                     </td>
                   </tr>
                 </tfoot>

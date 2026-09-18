@@ -162,6 +162,7 @@ export default function DynamicSoliaChat({
             fill
             sizes="(max-width: 1024px) 120px, 160px"
             className="object-contain drop-shadow-[0_16px_22px_rgba(15,23,42,0.14)]"
+            loading={type === "loading_calc" ? "eager" : "lazy"}
             priority={type === "loading_calc"}
           />
         </div>

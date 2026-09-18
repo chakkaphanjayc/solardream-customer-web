@@ -9,12 +9,18 @@ import type { ProfileUser } from "@/types/profile";
 import { PageShell } from "@/components/ui/page-shell";
 import { getSystemSetting } from "@/app/actions/systemSettings";
 
+export const instant = false;
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const supabaseUser = await getUser();
 
   if (!supabaseUser) {
-    redirect("/");
+    redirect(`/${locale}`);
   }
 
   await ensureUserExists(supabaseUser);
@@ -25,7 +31,7 @@ export default async function ProfilePage() {
   ]);
 
   if (!dbUser) {
-    redirect("/");
+    redirect(`/${locale}`);
   }
 
   const botBasicId = await getSystemSetting("line_bot_basic_id");
@@ -44,7 +50,7 @@ export default async function ProfilePage() {
 
   return (
     <PageShell
-      as="main"
+      as="div"
       className="w-full px-4 pb-16 pt-6 text-foreground sm:px-6 sm:pt-8 lg:px-8 lg:pt-10"
     >
       <ProfileLayout user={user} />

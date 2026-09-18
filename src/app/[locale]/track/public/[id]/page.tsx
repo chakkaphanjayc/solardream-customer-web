@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { ArrowLeft, CheckCircle2, Clock, ShieldCheck, Lock, Activity } from "@/components/ui/icons";
 import { eq, or, sql } from "drizzle-orm";
 
@@ -10,6 +11,7 @@ import { cn } from "@/lib/utils";
 import PublicMagicLinkForm from "./PublicMagicLinkForm";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/ui/page-shell";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 
 interface PublicTrackerPageProps {
   params: Promise<{
@@ -18,6 +20,29 @@ interface PublicTrackerPageProps {
   }>;
 }
 
+export const instant = false;
+
+type MilestoneStatus = "completed" | "active" | "upcoming";
+type MilestoneKey =
+  | "requirementCaptured"
+  | "serviceApproval"
+  | "serviceReview"
+  | "serviceApproved"
+  | "engineeringReview"
+  | "quotationIssuance"
+  | "projectExecution";
+type PublicTrackerType = "SERVICE_ORDER" | "QUOTATION" | "CONSULTATION_LEAD";
+
+type Milestone = {
+  key: MilestoneKey;
+  status: MilestoneStatus;
+};
+
+const typeTranslationKeys: Record<PublicTrackerType, string> = {
+  SERVICE_ORDER: "type.serviceOrder",
+  QUOTATION: "type.quotation",
+  CONSULTATION_LEAD: "type.consultationLead",
+};
 
 function referenceWithoutKnownPrefix(value: string) {
   return value
@@ -74,6 +99,8 @@ export default async function PublicTrackerPage({ params }: PublicTrackerPagePro
     notFound();
   }
 
+  const activeLocale = locale === "en" ? "en" : "th";
+  const t = await getTranslations({ locale: activeLocale, namespace: "PublicTracking" });
   const cleanRef = normalizeTrackingReference(trackingId);
 
   // 1. Try to find matching service order
@@ -81,8 +108,8 @@ export default async function PublicTrackerPage({ params }: PublicTrackerPagePro
     where: eq(serviceOrders.trackingRef, cleanRef),
   });
 
-  let milestones: { label: string; labelTh: string; status: "completed" | "active" | "upcoming" }[] = [];
-  let type: "SERVICE_ORDER" | "QUOTATION" | "CONSULTATION_LEAD" = "QUOTATION";
+  let milestones: Milestone[] = [];
+  let type: PublicTrackerType = "QUOTATION";
 
   if (serviceOrder) {
     type = "SERVICE_ORDER";
@@ -119,23 +146,19 @@ export default async function PublicTrackerPage({ params }: PublicTrackerPagePro
 
     milestones = [
       {
-        label: "Requirement Captured",
-        labelTh: "ดึงข้อมูลเทคนิคเรียบร้อย",
+        key: "requirementCaptured",
         status: step1Status,
       },
       {
-        label: "Pending Approval",
-        labelTh: "รอเจ้าหน้าที่ลงนามอนุมัติ",
+        key: "serviceApproval",
         status: step2Status,
       },
       {
-        label: "Customer Review",
-        labelTh: "ลูกค้าพิจารณาเอกสารและลงนาม",
+        key: "serviceReview",
         status: step3Status,
       },
       {
-        label: "Project Approved",
-        labelTh: "โครงการผ่านการอนุมัติสมบูรณ์",
+        key: "serviceApproved",
         status: step4Status,
       },
     ];
@@ -180,23 +203,19 @@ export default async function PublicTrackerPage({ params }: PublicTrackerPagePro
 
       milestones = [
         {
-          label: "Requirement Captured",
-          labelTh: "ดึงข้อมูลเทคนิคเรียบร้อย",
+          key: "requirementCaptured",
           status: step1Status,
         },
         {
-          label: "Pending Approval",
-          labelTh: "รอเจ้าหน้าที่ลงนามอนุมัติ",
+          key: "serviceApproval",
           status: step2Status,
         },
         {
-          label: "Customer Review",
-          labelTh: "ลูกค้าพิจารณาเอกสารและลงนาม",
+          key: "serviceReview",
           status: step3Status,
         },
         {
-          label: "Project Approved",
-          labelTh: "โครงการผ่านการอนุมัติสมบูรณ์",
+          key: "serviceApproved",
           status: step4Status,
         },
       ];
@@ -245,23 +264,19 @@ export default async function PublicTrackerPage({ params }: PublicTrackerPagePro
 
       milestones = [
         {
-          label: "Requirement Captured",
-          labelTh: "ดึงข้อมูลเทคนิคเรียบร้อย",
+          key: "requirementCaptured",
           status: step1Status,
         },
         {
-          label: "Engineering Review",
-          labelTh: "วิศวกรประเมินและจัดเตรียมข้อเสนอ",
+          key: "engineeringReview",
           status: step2Status,
         },
         {
-          label: "Quotation Issuance",
-          labelTh: "ออกใบเสนอราคาอย่างเป็นทางการ",
+          key: "quotationIssuance",
           status: step3Status,
         },
         {
-          label: "Project Execution",
-          labelTh: "ดำเนินการติดตั้งและส่งมอบโครงการ",
+          key: "projectExecution",
           status: step4Status,
         },
       ];
@@ -270,99 +285,111 @@ export default async function PublicTrackerPage({ params }: PublicTrackerPagePro
 
   const completedCount = milestones.filter((m) => m.status === "completed").length;
   const percent = Math.round((completedCount / milestones.length) * 100);
-  const typeLabel = type === "SERVICE_ORDER"
-    ? (locale === "th" ? "คำสั่งบริการ" : "Service order")
-    : type === "CONSULTATION_LEAD"
-    ? (locale === "th" ? "คำขอประเมินระบบ" : "Consultation Request")
-    : (locale === "th" ? "ใบเสนอราคา" : "Quotation");
+  const typeLabel = t(typeTranslationKeys[type]);
 
   return (
-    <PageShell className="bg-[#F7F6F3] px-4 py-10 text-[#000000] sm:px-6 sm:py-14 lg:px-8 min-h-screen">
-      <div className="mx-auto w-full max-w-4xl">
-        <Button asChild variant="quiet" className="-ml-3 font-black text-black">
-          <Link href={`/${locale}`}>
-            <ArrowLeft aria-hidden="true" className="stroke-[3]" />
-            {locale === "th" ? "กลับหน้าหลัก" : "Back to home"}
+    <PageShell className="px-4 pb-16 pt-20 sm:px-6 sm:pb-20 sm:pt-24 lg:px-8 lg:pt-28">
+      <div className="mx-auto w-full max-w-5xl">
+        <Button asChild variant="quiet" className="-ml-3 font-semibold text-[var(--sd-ink)]">
+          <Link href={`/${activeLocale}`}>
+            <ArrowLeft aria-hidden="true" />
+            {t("backToHome")}
           </Link>
         </Button>
 
-        <header className="mt-6 max-w-3xl">
-          <p className="inline-flex rounded-xl border-2 border-black bg-white px-3.5 py-1 text-xs font-black uppercase text-[#2B9EB3] shadow-[2px_2px_0_#000000]">
-            {locale === "th" ? "ติดตามความคืบหน้าคำขอ" : "Request Progress Tracking"}
+        <header className="mt-8 max-w-3xl">
+          <p className="inline-flex items-center gap-2 rounded-full border border-[var(--sd-line)] bg-[var(--sd-raised)] px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--sd-navy-900)] shadow-[var(--sd-shadow-1)]">
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--sd-blue-600)]" />
+            {t("trackingKicker")}
           </p>
-          <h1 className="mt-4 text-balance text-3xl font-black tracking-tight sm:text-4xl uppercase text-black">
-            {typeLabel} <span className="text-[#2B9EB3]">#{cleanRef}</span>
+          <h1 className="mt-5 text-balance text-3xl font-extrabold leading-[1.12] tracking-tight text-[var(--sd-ink)] sm:text-4xl lg:text-5xl">
+            {typeLabel}{" "}
+            <span className="text-[var(--sd-blue-600)] sm:whitespace-nowrap">#{cleanRef}</span>
           </h1>
-          <p className="mt-3 max-w-2xl text-pretty text-sm font-bold leading-6 text-slate-700 sm:text-base">
-            {locale === "th"
-              ? "ดูความคืบหน้าจากรหัสติดตาม โดยไม่เปิดเผยข้อมูลส่วนบุคคลหรือรายละเอียดทางการเงิน"
-              : "Review progress linked to this tracking reference without exposing personal or financial details."}
+          <p className="mt-4 max-w-2xl text-pretty text-sm leading-6 text-[var(--sd-text)] sm:text-base sm:leading-7">
+            {t("privacyDescription")}
           </p>
         </header>
 
-        <section className="mt-8 overflow-hidden rounded-2xl border-2 border-[#0F172A]/30 bg-white shadow-[4px_4px_0_rgba(15,23,42,0.22)] md:grid md:grid-cols-[minmax(0,1fr)_20rem]">
-          <div className="p-6 sm:p-8">
-            <div className="flex items-center justify-between gap-4 border-b-2 border-[#0F172A]/20 pb-4">
-              <h2 className="flex items-center gap-2 text-base font-black uppercase text-black">
-                <Activity aria-hidden="true" className="text-[#2B9EB3] stroke-[3]" />
-                {locale === "th" ? "ขั้นตอนดำเนินงาน" : "Project milestones"}
+        <section
+          aria-labelledby="public-tracking-milestones"
+          className="solar-route-card solar-route-card--strong mt-8 overflow-hidden md:grid md:grid-cols-[minmax(0,1fr)_22rem]"
+        >
+          <div className="p-5 sm:p-8 lg:p-10">
+            <div className="flex items-center justify-between gap-4 border-b border-[var(--sd-line)] pb-5">
+              <h2 id="public-tracking-milestones" className="flex items-center gap-2 text-sm font-extrabold tracking-[0.08em] text-[var(--sd-ink)] sm:text-base">
+                <Activity aria-hidden="true" className="size-5 text-[var(--sd-blue-600)]" />
+                {t("milestonesTitle")}
               </h2>
-              <span className="text-sm font-black text-black">{percent}%</span>
+              <span className="shrink-0 rounded-full bg-[var(--sd-soft-solar)] px-2.5 py-1 text-xs font-extrabold text-[var(--sd-navy-900)]">
+                {t("percent", { percent })}
+              </span>
             </div>
 
             <div
               role="progressbar"
-              aria-label={locale === "th" ? "ความคืบหน้าโครงการ" : "Project progress"}
+              aria-label={t("progressLabel")}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={percent}
-              className="mt-5 h-3 overflow-hidden rounded-xl border-2 border-[#0F172A]/32 bg-[#F7F6F3]"
+              className="mt-6 h-2.5 overflow-hidden rounded-full bg-[var(--sd-soft-solar)]"
             >
               <div
-                className="h-full bg-[#D8A87B] transition-[width] duration-300"
+                className="h-full rounded-full bg-[var(--sd-blue-600)] transition-[width] duration-300 motion-reduce:transition-none"
                 style={{ width: `${percent}%` }}
               />
             </div>
 
-            <ol className="mt-6 space-y-4">
-              {milestones.map((step) => {
+            <ol className="mt-7 space-y-4">
+              {milestones.map((step, index) => {
                 const isPast = step.status === "completed";
                 const isCurrent = step.status === "active";
                 const isFuture = step.status === "upcoming";
 
                 return (
-                  <li key={step.label} className="flex items-start gap-3 rounded-xl border-2 border-[#0F172A]/25 p-3.5 bg-[#F7F6F3] shadow-[2px_2px_0_rgba(15,23,42,0.18)]">
+                  <li
+                    key={step.key}
+                    aria-current={isCurrent ? "step" : undefined}
+                    className="relative grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3"
+                  >
+                    {index < milestones.length - 1 ? (
+                      <span
+                        aria-hidden="true"
+                        className="absolute -bottom-4 left-[1.0625rem] top-9 w-px bg-[var(--sd-line)]"
+                      />
+                    ) : null}
                     <span
                       className={cn(
-                        "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl border-2 border-[#0F172A]/38 font-black",
-                        isPast && "bg-[#4AA382] text-black shadow-[2px_2px_0_rgba(15,23,42,0.22)]",
-                        isCurrent && "bg-[#D8A87B] text-black shadow-[2px_2px_0_rgba(15,23,42,0.24)]",
-                        isFuture && "bg-white text-slate-400",
+                        "relative z-[1] mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border-2 border-[var(--sd-raised)] font-bold shadow-[var(--sd-shadow-1)]",
+                        isPast && "bg-[var(--sd-success)] text-white",
+                        isCurrent && "bg-[var(--sd-blue-600)] text-white",
+                        isFuture && "bg-[var(--sd-soft-solar)] text-[var(--sd-muted)]",
                       )}
                     >
                       {isPast ? (
-                        <CheckCircle2 aria-hidden="true" className="stroke-[3]" />
+                        <CheckCircle2 aria-hidden="true" className="size-4" />
                       ) : isCurrent ? (
-                        <Clock aria-hidden="true" className="stroke-[3]" />
+                        <Clock aria-hidden="true" className="size-4" />
                       ) : (
-                        <Lock aria-hidden="true" className="stroke-[3]" />
+                        <Lock aria-hidden="true" className="size-4" />
                       )}
                     </span>
-                    <div className="min-w-0">
+                    <div className={cn("min-w-0 rounded-[var(--sd-radius-surface)] px-3 py-2", isCurrent && "bg-[var(--sd-selected)]")}>
                       <h3
                         className={cn(
-                          "text-sm font-black uppercase tracking-wider",
-                          isFuture ? "text-slate-500" : "text-black",
+                          "text-sm font-bold leading-5",
+                          isFuture ? "text-[var(--sd-muted)]" : "text-[var(--sd-ink)]",
                         )}
                       >
-                        {locale === "th" ? step.labelTh : step.label}
+                        {t(`steps.${step.key}`)}
                       </h3>
-                      <p className="mt-1 text-xs font-bold text-slate-700">
-                        {isPast
-                          ? locale === "th" ? "เสร็จสิ้นแล้ว" : "Completed"
-                          : isCurrent
-                            ? locale === "th" ? "กำลังดำเนินการ" : "In progress"
-                            : locale === "th" ? "ยังไม่เริ่มต้น" : "Pending"}
+                      <p className={cn(
+                        "mt-1 text-xs font-semibold",
+                        isPast && "text-[var(--sd-success)]",
+                        isCurrent && "text-[var(--sd-navy-900)]",
+                        isFuture && "text-[var(--sd-muted)]",
+                      )}>
+                        {t(`status.${step.status}`)}
                       </p>
                     </div>
                   </li>
@@ -371,21 +398,37 @@ export default async function PublicTrackerPage({ params }: PublicTrackerPagePro
             </ol>
           </div>
 
-          <aside className="border-t-2 border-[#0F172A]/20 bg-[#F7F6F3] p-6 sm:p-8 md:border-l-2 md:border-t-0">
-            <div className="flex size-12 items-center justify-center rounded-xl border-2 border-[#2B9EB3]/60 bg-[#2B9EB3]/20 text-[#0F172A] shadow-[2px_2px_0_rgba(43,158,179,0.24)]">
-              <ShieldCheck aria-hidden="true" className="stroke-[3]" />
+          <aside className="border-t border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-5 sm:p-8 md:border-l md:border-t-0">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--sd-navy-900)]">
+                  {t("soliaLabel")}
+                </p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-[var(--sd-text)]">
+                  {t("soliaMessage")}
+                </p>
+              </div>
+              <SoliaGuide
+                alt={t("soliaAlt")}
+                pose="pointing"
+                className="h-28 w-24 shrink-0"
+                imageSizes="96px"
+                loading="lazy"
+              />
             </div>
-            <h2 className="mt-5 text-lg font-black uppercase tracking-wider text-black">
-              {locale === "th" ? "เข้าถึงพอร์ทัลแบบเต็ม" : "Open the full portal"}
-            </h2>
-            <p className="mt-2 text-xs font-bold leading-6 text-slate-700">
-              {locale === "th"
-                ? "เพื่อความเป็นส่วนตัว ข้อมูลระบบ เอกสาร และราคาจะซ่อนไว้ในหน้านี้ กรอกอีเมลที่ลงทะเบียนเพื่อรับลิงก์ที่ปลอดภัย"
-                : "System details, documents, and pricing stay hidden here. Enter the registered email to receive a secure access link."}
+            <div className="mt-6 flex size-11 items-center justify-center rounded-[var(--sd-radius-control)] border border-[var(--sd-cyan-400)] bg-[var(--sd-cyan-100)] text-[var(--sd-navy-900)] shadow-[var(--sd-shadow-1)]">
+              <ShieldCheck aria-hidden="true" className="size-5" />
+            </div>
+            <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--sd-navy-900)]">
+              {t("portal.secureLabel")}
             </p>
+            <h2 className="mt-2 text-xl font-extrabold tracking-tight text-[var(--sd-ink)]">
+              {t("portal.title")}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--sd-text)]">{t("portal.description")}</p>
 
-            <div className="mt-5 border-t-2 border-[#0F172A]/18 pt-5">
-              <PublicMagicLinkForm trackingRef={cleanRef} locale={locale} />
+            <div className="mt-6 border-t border-[var(--sd-line)] pt-6">
+              <PublicMagicLinkForm trackingRef={cleanRef} locale={activeLocale} />
             </div>
           </aside>
         </section>

@@ -1,7 +1,8 @@
 "use client";
 
-import { Suspense, useEffect, useState, useRef } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter, useParams } from "next/navigation";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { CheckCircle2, AlertCircle, RefreshCw, ArrowRight, ShieldCheck, User } from "@/components/ui/icons";
 import { getLineBotBasicId, checkLineLinkStatusByNonce, linkLineAccountViaLiff, checkLineLinkedStatus } from "@/app/actions/profile";
 import { createClient } from "@/utils/supabase/client";
@@ -12,16 +13,41 @@ import { GsapPulse, GsapReveal, GsapSpinner } from "@/components/ui/GsapMotion";
 import { useTranslations } from "next-intl";
 
 // Dynamically load the LINE LIFF SDK script from CDN
-const loadLiffScript = (): Promise<any> => {
+type LiffProfile = Readonly<{
+  userId: string;
+  displayName: string;
+  pictureUrl?: string;
+}>;
+
+type LiffClient = Readonly<{
+  init: (config: { liffId: string }) => Promise<void>;
+  isInClient: () => boolean;
+  isLoggedIn: () => boolean;
+  login: () => void;
+  getProfile: () => Promise<LiffProfile>;
+  closeWindow: () => void;
+}>;
+
+type LiffWindow = Window & { liff?: LiffClient };
+
+const loadLiffScript = (): Promise<LiffClient | null> => {
   return new Promise((resolve) => {
-    if (typeof window === "undefined") return resolve(null);
-    if ((window as any).liff) return resolve((window as any).liff);
+    if (typeof window === "undefined") {
+      resolve(null);
+      return;
+    }
+
+    const liffWindow = window as LiffWindow;
+    if (liffWindow.liff) {
+      resolve(liffWindow.liff);
+      return;
+    }
 
     const script = document.createElement("script");
     script.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
     script.async = true;
     script.onload = () => {
-      resolve((window as any).liff);
+      resolve((window as LiffWindow).liff ?? null);
     };
     script.onerror = () => {
       resolve(null);
@@ -51,122 +77,73 @@ function LineCallbackContent() {
 
   // LIFF specific states
   const [isLiffMode, setIsLiffMode] = useState(false);
-  const [liffLoaded, setLiffLoaded] = useState(false);
-  const [liffProfile, setLiffProfile] = useState<any>(null);
+  const [liffProfile, setLiffProfile] = useState<LiffProfile | null>(null);
   const [liffError, setLiffError] = useState<string | null>(null);
-  const [liffId, setLiffId] = useState<string>("");
-  const [liffObj, setLiffObj] = useState<any>(null);
-  const [isDbLinked, setIsDbLinked] = useState(false);
+  const [liffObj, setLiffObj] = useState<LiffClient | null>(null);
 
   // Supabase auth state
-  const supabase = createClient();
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const supabase = useMemo(() => createClient(), []);
+  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [checkingUser, setCheckingUser] = useState(true);
   const [lineLoading, setLineLoading] = useState(false);
 
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollIntervalRef = useRef<number | null>(null);
   const pollAttempts = useRef(0);
 
-  // 1. Fetch user session and listen to changes
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setCurrentUser(user);
-        checkDatabaseLinkState();
-      } else {
-        setCheckingUser(false);
-      }
-    }).catch(() => {
-      setCheckingUser(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        setCurrentUser(session.user);
-        checkDatabaseLinkState();
-      } else {
-        setCurrentUser(null);
-        setIsDbLinked(false);
-        setCheckingUser(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase]);
-
-  // Check database linking state
-  const checkDatabaseLinkState = async () => {
+  const checkDatabaseLinkState = useCallback(async () => {
     try {
-      const result = await checkLineLinkedStatus();
-      if (result.linked) {
-        setIsDbLinked(true);
-      } else {
-        setIsDbLinked(false);
-      }
-    } catch (err) {
+      await checkLineLinkedStatus();
+    } catch (err: unknown) {
       console.error("Failed to check DB link status:", err);
     } finally {
       setCheckingUser(false);
     }
-  };
-
-  // 2. LIFF SDK Load & Initialization
-  useEffect(() => {
-    setIsLineWebView(/Line/i.test(navigator.userAgent));
-    
-    getLineBotBasicId().then((id) => {
-      if (id) setBotBasicId(id);
-    });
-
-    const activeLiffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || "";
-    setLiffId(activeLiffId);
-
-    if (activeLiffId) {
-      loadLiffScript().then((liff) => {
-        if (liff) {
-          setLiffObj(liff);
-          setLiffLoaded(true);
-          
-          liff.init({ liffId: activeLiffId }).then(() => {
-            // Check if we are running inside the LINE app WebView
-            if (liff.isInClient()) {
-              setIsLiffMode(true);
-              setStatus("loading"); // Start in loading state
-              
-              if (!liff.isLoggedIn()) {
-                liff.login();
-              } else {
-                liff.getProfile().then((profile: any) => {
-                  setLiffProfile(profile);
-                  // Stop loading once LIFF profile is resolved
-                  setStatus("success"); 
-                }).catch((err: any) => {
-                  console.error("LIFF getProfile error:", err);
-                  setLiffError("Failed to fetch LINE profile details.");
-                  setStatus("failed");
-                });
-              }
-            } else {
-              // Not in LINE client, use standard flow
-              initializeStandardFlow();
-            }
-          }).catch((err: any) => {
-            console.error("LIFF init error:", err);
-            // Fall back to standard flow if LIFF fails
-            initializeStandardFlow();
-          });
-        } else {
-          initializeStandardFlow();
-        }
-      });
-    } else {
-      initializeStandardFlow();
-    }
   }, []);
 
-  const initializeStandardFlow = () => {
+  const checkUserLinkStatus = useCallback(async () => {
+    if (!nonce) {
+      setStatus("failed");
+      setErrorMessage(t("errors.missingNonce"));
+      if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
+      return;
+    }
+
+    try {
+      const result = await checkLineLinkStatusByNonce(nonce);
+
+      if (result.success) {
+        setDbSynced(true);
+
+        window.setTimeout(() => {
+          setMenuSwapped(true);
+          setStatus("success");
+          if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
+        }, 800);
+      } else if (!result.pending) {
+        setStatus("failed");
+        setErrorMessage(result.error || t("errors.verificationFailed"));
+        if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
+      }
+    } catch (err: unknown) {
+      console.error("Error checking LINE link status:", err);
+    }
+  }, [nonce, t]);
+
+  const startDbPolling = useCallback(() => {
+    void checkUserLinkStatus();
+
+    pollIntervalRef.current = window.setInterval(() => {
+      pollAttempts.current += 1;
+      void checkUserLinkStatus();
+
+      if (pollAttempts.current >= 6) {
+        if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
+        setStatus("timeout");
+      }
+    }, 1500);
+  }, [checkUserLinkStatus]);
+
+  const initializeStandardFlow = useCallback(() => {
     if (linkResult === "failed") {
       setStatus("failed");
       setErrorMessage(t("errors.cancelled"));
@@ -179,36 +156,23 @@ function LineCallbackContent() {
       return;
     }
 
-    // Start polling DB status
     setStatus("loading");
     startDbPolling();
-  };
+  }, [linkResult, startDbPolling, t]);
 
-  // 3. Clean up intervals on unmount
-  useEffect(() => {
-    return () => {
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-    };
-  }, []);
+  const handleRedirect = useCallback(() => {
+    if (isLiffMode && liffObj) {
+      liffObj.closeWindow();
+    } else if (isLineWebView) {
+      window.location.href = `https://line.me/R/ti/p/${botBasicId || "@solardream"}`;
+    } else {
+      router.push(`/${locale}/profile`);
+    }
+  }, [botBasicId, isLiffMode, isLineWebView, liffObj, locale, router]);
 
-  // Standard Nonce Polling Flow
-  const startDbPolling = () => {
-    checkUserLinkStatus();
-
-    pollIntervalRef.current = setInterval(() => {
-      pollAttempts.current += 1;
-      checkUserLinkStatus();
-
-      if (pollAttempts.current >= 6) {
-        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-        setStatus("timeout");
-      }
-    }, 1500);
-  };
-
-  const retryVerification = () => {
+  const retryVerification = useCallback(() => {
     if (pollIntervalRef.current) {
-      clearInterval(pollIntervalRef.current);
+      window.clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
     }
     pollAttempts.current = 0;
@@ -217,37 +181,128 @@ function LineCallbackContent() {
     setMenuSwapped(false);
     setCountdown(3);
     initializeStandardFlow();
-  };
+  }, [initializeStandardFlow]);
 
-  const checkUserLinkStatus = async () => {
-    if (!nonce) {
-      setStatus("failed");
-      setErrorMessage(t("errors.missingNonce"));
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+  const handleLiffAccountLink = useCallback(async () => {
+    if (!liffProfile?.userId) {
+      toast.error("Unable to resolve LINE profile ID.");
       return;
     }
 
+    setLineLoading(true);
     try {
-      const result = await checkLineLinkStatusByNonce(nonce);
-      
-      if (result.success) {
+      const res = await linkLineAccountViaLiff(liffProfile.userId);
+      if (res.error) {
+        toast.error(res.error);
+        setLiffError(res.error);
+      } else {
+        toast.success("Successfully linked your LINE account!");
         setDbSynced(true);
-        
-        setTimeout(() => {
-          setMenuSwapped(true);
-          setStatus("success");
-          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-        }, 800);
-      } else if (!result.pending) {
-        setStatus("failed");
-        setErrorMessage(result.error || t("errors.verificationFailed"));
-        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-      }
-    } catch (err: any) {
-      console.error("Error checking LINE link status:", err);
-    }
-  };
 
+        window.setTimeout(() => {
+          liffObj?.closeWindow();
+        }, 2000);
+      }
+    } catch (err: unknown) {
+      console.error("LIFF Account linking error:", err);
+      toast.error("Connection error during account linking.");
+    } finally {
+      setLineLoading(false);
+    }
+  }, [liffObj, liffProfile]);
+
+  // 1. Fetch user session and listen to changes
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setCurrentUser(user);
+        void checkDatabaseLinkState();
+      } else {
+        setCheckingUser(false);
+      }
+    }).catch(() => {
+      setCheckingUser(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setCurrentUser(session.user);
+        void checkDatabaseLinkState();
+      } else {
+        setCurrentUser(null);
+        setCheckingUser(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [checkDatabaseLinkState, supabase]);
+
+  // 2. LIFF SDK Load & Initialization
+  useEffect(() => {
+    const lineWebViewTimer = window.setTimeout(() => {
+      setIsLineWebView(/Line/i.test(navigator.userAgent));
+    }, 0);
+
+    getLineBotBasicId().then((id) => {
+      if (id) setBotBasicId(id);
+    });
+
+    const activeLiffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || "";
+
+    if (activeLiffId) {
+      loadLiffScript().then((liff) => {
+        if (liff) {
+          setLiffObj(liff);
+          
+          liff.init({ liffId: activeLiffId }).then(() => {
+            // Check if we are running inside the LINE app WebView
+            if (liff.isInClient()) {
+              setIsLiffMode(true);
+              setStatus("loading"); // Start in loading state
+              
+              if (!liff.isLoggedIn()) {
+                liff.login();
+              } else {
+                liff.getProfile().then((profile) => {
+                  setLiffProfile(profile);
+                  // Stop loading once LIFF profile is resolved
+                  setStatus("success"); 
+                }).catch((err: unknown) => {
+                  console.error("LIFF getProfile error:", err);
+                  setLiffError("Failed to fetch LINE profile details.");
+                  setStatus("failed");
+                });
+              }
+            } else {
+              // Not in LINE client, use standard flow
+              initializeStandardFlow();
+            }
+          }).catch((err: unknown) => {
+            console.error("LIFF init error:", err);
+            // Fall back to standard flow if LIFF fails
+            initializeStandardFlow();
+          });
+        } else {
+          initializeStandardFlow();
+        }
+      });
+    } else {
+      window.setTimeout(initializeStandardFlow, 0);
+    }
+
+    return () => window.clearTimeout(lineWebViewTimer);
+  }, [initializeStandardFlow]);
+
+  // 3. Clean up intervals on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
+    };
+  }, []);
+
+  // Standard Nonce Polling Flow
   // Success countdown to redirect / close window
   useEffect(() => {
     if (status !== "success" && status !== "timeout") return;
@@ -267,49 +322,7 @@ function LineCallbackContent() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [status, isLiffMode, dbSynced]);
-
-  const handleRedirect = () => {
-    if (isLiffMode && liffObj) {
-      liffObj.closeWindow();
-    } else if (isLineWebView) {
-      window.location.href = `https://line.me/R/ti/p/${botBasicId || "@solardream"}`;
-    } else {
-      router.push(`/${locale}/profile`);
-    }
-  };
-
-  const handleLiffAccountLink = async () => {
-    if (!liffProfile || !liffProfile.userId) {
-      toast.error("Unable to resolve LINE profile ID.");
-      return;
-    }
-
-    setLineLoading(true);
-    try {
-      const res = await linkLineAccountViaLiff(liffProfile.userId);
-      if (res.error) {
-        toast.error(res.error);
-        setLiffError(res.error);
-      } else {
-        toast.success("Successfully linked your LINE account!");
-        setDbSynced(true);
-        setIsDbLinked(true);
-        
-        // Wait 2 seconds and close the LIFF WebView automatically
-        setTimeout(() => {
-          if (liffObj) {
-            liffObj.closeWindow();
-          }
-        }, 2000);
-      }
-    } catch (err) {
-      console.error("LIFF Account linking error:", err);
-      toast.error("Connection error during account linking.");
-    } finally {
-      setLineLoading(false);
-    }
-  };
+  }, [dbSynced, handleRedirect, isLiffMode, status]);
 
   // --- RENDER STATES ---
 
@@ -388,7 +401,7 @@ function LineCallbackContent() {
               )}
               <div className="space-y-0.5">
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{t("lineProfile")}</span>
-                <h4 className="text-sm font-extrabold text-slate-900">{liffProfile.displayName}</h4>
+                <h2 className="text-sm font-extrabold text-slate-900">{liffProfile.displayName}</h2>
                 <p className="text-[10px] text-slate-400 truncate max-w-[180px]">ID: {liffProfile.userId.slice(0, 8)}...</p>
               </div>
             </div>
@@ -397,7 +410,7 @@ function LineCallbackContent() {
           {/* Web App Profile Widget */}
           <div className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl p-5 text-left space-y-0.5">
             <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{t("solardreamProfile")}</span>
-            <h4 className="text-sm font-extrabold text-slate-900">{currentUser.email}</h4>
+            <h2 className="text-sm font-extrabold text-slate-900">{currentUser.email}</h2>
             <p className="text-[10px] text-slate-400">{t("signedIn")}</p>
           </div>
 
@@ -455,7 +468,7 @@ function LineCallbackContent() {
             <HypotrochoidLoader size={96} color="#B7D1EA" className="text-[#B7D1EA]" />
 
             <div className="space-y-2">
-              <h3 className="text-base font-bold text-slate-800">{t("finalizing")}</h3>
+              <h2 className="text-base font-bold text-slate-800">{t("finalizing")}</h2>
               <p className="text-xs text-slate-500 max-w-xs mx-auto">
                 {t("finalizingDescription")}
               </p>
@@ -506,13 +519,13 @@ function LineCallbackContent() {
           <GsapReveal className="w-full flex flex-col items-center space-y-6">
             <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center shadow-inner relative">
               <GsapPulse className="absolute inset-0 bg-emerald-100 rounded-full opacity-30" scale={1.16}>
-                <span className="sr-only">Connection confirmed</span>
+                <span className="sr-only">{t("connectionConfirmed")}</span>
               </GsapPulse>
               <ShieldCheck className="w-10 h-10 text-emerald-500" />
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-lg font-black text-slate-800">{t("successTitle")}</h3>
+              <h2 className="text-lg font-black text-slate-800">{t("successTitle")}</h2>
               <p className="text-xs text-slate-500 max-w-xs mx-auto">
                 {t("successDescription")}
               </p>
@@ -547,7 +560,7 @@ function LineCallbackContent() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-lg font-black text-slate-800">{t("failedTitle")}</h3>
+              <h2 className="text-lg font-black text-slate-800">{t("failedTitle")}</h2>
               <p className="text-xs text-rose-600 max-w-xs mx-auto">
                 {errorMessage || t("errors.unexpected")}
               </p>
@@ -582,7 +595,7 @@ function LineCallbackContent() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-lg font-black text-slate-800">{t("pendingTitle")}</h3>
+              <h2 className="text-lg font-black text-slate-800">{t("pendingTitle")}</h2>
               <p className="text-xs text-slate-500 max-w-xs mx-auto">
                 {t("pendingDescription")}
               </p>

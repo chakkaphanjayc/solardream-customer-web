@@ -57,6 +57,7 @@ export default function EditorialHeader({
   const headerRef = useRef<HTMLElement | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<Readonly<Record<string, boolean>>>({});
   const reduceMotion = useReducedMotion() ?? false;
   const isThai = locale === "th";
@@ -90,6 +91,38 @@ export default function EditorialHeader({
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
+
+  useEffect(() => {
+    const sections = coreLinks
+      .map((link) => document.getElementById(link.id))
+      .filter((section): section is HTMLElement => section !== null);
+    if (!sections.length) return;
+
+    const visibleSectionIds = new Set<string>();
+    const updateActiveSection = () => {
+      const nextSection = sections
+        .filter((section) => visibleSectionIds.has(section.id))
+        .sort((first, second) => first.getBoundingClientRect().top - second.getBoundingClientRect().top)[0]?.id;
+      setActiveSection(nextSection ?? "");
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            visibleSectionIds.add(entry.target.id);
+          } else {
+            visibleSectionIds.delete(entry.target.id);
+          }
+        });
+        updateActiveSection();
+      },
+      { rootMargin: "-22% 0px -62% 0px", threshold: [0, 0.2, 0.5] },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [coreLinks]);
 
   useEffect(() => {
     const header = headerRef.current;
@@ -149,11 +182,23 @@ export default function EditorialHeader({
       </div>
 
       <nav className={styles.desktopNavigation} aria-label={labels.navigation}>
-        {coreLinks.map((link) => <Link href={link.href} key={link.id}>{link.label}</Link>)}
+        {coreLinks.map((link) => {
+          const isActive = activeSection === link.id;
+          return (
+            <Link
+              href={link.href}
+              key={link.id}
+              className={isActive ? styles.navigationActive : undefined}
+              aria-current={isActive ? "location" : undefined}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
       </nav>
 
       <div className={styles.headerActions}>
-        <div className={styles.languageSwitch} aria-label={labels.language}>
+        <div className={styles.languageSwitch} role="group" aria-label={labels.language}>
           <Link className={!isThai ? styles.languageActive : ""} href="/en">EN</Link>
           <span aria-hidden="true">|</span>
           <Link className={isThai ? styles.languageActive : ""} href="/th">TH</Link>

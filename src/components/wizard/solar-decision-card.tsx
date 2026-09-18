@@ -145,7 +145,7 @@ export function SolarDecisionCard({
             <button
               type="button"
               onClick={onPrimary}
-              className="wizard-ui-primary min-h-12 w-full px-4 py-3 text-sm rounded-full bg-[#B7D1EA] hover:bg-[#A5C2DE] text-white font-bold flex items-center justify-center gap-2 active:scale-95 shadow-md"
+              className="solar-ui-primary min-h-12 w-full rounded-full px-4 py-3 text-sm font-bold active:scale-95"
             >
               <span>{primaryLabel}</span>
               <ArrowRight className="size-4" aria-hidden="true" />
@@ -153,7 +153,7 @@ export function SolarDecisionCard({
             <button
               type="button"
               onClick={onSecondary}
-              className="wizard-ui-secondary min-h-11 w-full px-4 py-2.5 text-xs rounded-full border border-[#CBC7BE] bg-[#F0EEE9] hover:bg-[#DCE8F5] text-[#2E2C27] font-bold flex items-center justify-center gap-2 active:scale-95"
+              className="solar-ui-secondary min-h-11 w-full rounded-full px-4 py-2.5 text-xs font-bold active:scale-95"
             >
               <SlidersHorizontal className="size-4 text-[#4F7FA8]" aria-hidden="true" />
               <span>{secondaryLabel}</span>

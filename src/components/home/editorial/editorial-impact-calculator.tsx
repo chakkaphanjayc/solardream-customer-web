@@ -5,6 +5,7 @@ import { useId, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { FiArrowUpRight, FiCheck, FiZap } from "react-icons/fi";
 
+import { EnergyLine } from "@/components/brand/energy-line";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import {
   BILL_IMPACT_DEFAULT_MONTHLY_BILL_THB,
@@ -138,6 +139,7 @@ export default function EditorialImpactCalculator({
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: reduceMotion ? 0 : 0.7, ease: [0.16, 1, 0.3, 1] }}
       >
+        <EnergyLine className={styles.calculatorEnergyLine} />
         <div className={styles.calculatorControls}>
           <div className={styles.calculatorControlHeader}>
             <label htmlFor={billInputId}>{labels.billLabel}</label>

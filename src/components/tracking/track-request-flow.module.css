@@ -798,7 +798,7 @@
 .detailList span,
 .textButton,
 .resetButton {
-  color: #4f7fa8;
+  color: #315e82;
 }
 
 .formHeading h2,
@@ -914,11 +914,15 @@
 .timelineStatus {
   border-color: rgba(79, 127, 168, 0.18);
   background: rgba(183, 209, 234, 0.18);
-  color: #4f7fa8;
+  color: #315e82;
 }
 
 .timelineItemActive .timelineStatus {
   border-color: rgba(79, 127, 168, 0.3);
   background: rgba(183, 209, 234, 0.36);
   color: #1C1C1A;
+}
+
+.trackStepsKicker {
+  color: #315e82;
 }
