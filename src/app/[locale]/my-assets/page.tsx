@@ -5,7 +5,6 @@ import { getMyInstalledAssets } from "@/app/actions/afterSales";
 import MyAssetsClient from "./MyAssetsClient";
 import { PageShell } from "@/components/ui/page-shell";
 
-export const instant = false;
 
 
 function getQueryValue(value: string | string[] | undefined) {

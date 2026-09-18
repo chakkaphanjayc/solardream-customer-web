@@ -13,7 +13,6 @@ export const metadata: Metadata = {
   description: "Check the cryptographic integrity of a signed SolarDream PDF.",
 };
 
-export const instant = false;
 
 type VerifyDocumentPageProps = Readonly<{
   params: Promise<{ locale: string }>;

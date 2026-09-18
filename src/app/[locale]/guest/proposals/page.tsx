@@ -11,7 +11,6 @@ import {
 } from "@/lib/servicePortal";
 import GuestProposalsClient from "./GuestProposalsClient";
 
-export const instant = false;
 
 interface DBProposal {
   id: string;

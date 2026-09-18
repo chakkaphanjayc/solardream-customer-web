@@ -13,7 +13,6 @@ import FeatureGuard from "@/components/features/FeatureGuard";
 import { PageShell } from "@/components/ui/page-shell";
 import { SolarStatePanel } from "@/components/ui/solar-system";
 
-export const instant = false;
 
 
 export default async function ServicesPage({

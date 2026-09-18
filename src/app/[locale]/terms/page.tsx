@@ -10,7 +10,6 @@ interface PageProps {
   params: Promise<{ locale: string }>;
 }
 
-export const instant = false;
 
 
 export default async function TermsPage({ params }: PageProps) {

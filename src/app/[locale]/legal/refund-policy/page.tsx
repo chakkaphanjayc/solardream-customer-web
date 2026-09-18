@@ -9,7 +9,6 @@ interface PageProps {
   params: Promise<{ locale: string }>;
 }
 
-export const instant = false;
 
 export default async function RefundPolicyPage({ params }: PageProps) {
   const { locale } = await params;

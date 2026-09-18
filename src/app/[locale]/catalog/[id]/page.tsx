@@ -16,7 +16,6 @@ interface PageProps {
   params: Promise<{ id: string; locale: string }>;
 }
 
-export const instant = false;
 
 type ProductDetail = ErpnextCatalogProduct;
 

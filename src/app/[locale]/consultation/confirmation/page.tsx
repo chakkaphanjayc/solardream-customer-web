@@ -12,7 +12,6 @@ interface ConsultationConfirmationPageProps {
   searchParams: Promise<{ from?: string; ref?: string }>;
 }
 
-export const instant = false;
 
 export default async function ConsultationConfirmationPage({
   params,

@@ -19,7 +19,6 @@ interface ProposalTrackingPageProps {
   }>;
 }
 
-export const instant = false;
 
 
 export default async function ProposalTrackingPage({ params }: ProposalTrackingPageProps) {

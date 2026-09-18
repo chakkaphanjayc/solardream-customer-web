@@ -1,1 +1,1 @@
-export { default, instant } from "../../privacy/page";
+export { default } from "../../privacy/page";

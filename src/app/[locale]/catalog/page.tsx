@@ -21,7 +21,6 @@ import type {
 // The catalog combines URL filters, live inventory, and editable bundles.
 // Keep the filtered feed request-time; its independent public reads can be
 // cached without serving stale inventory to a customer.
-export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getCachedPageSeo("catalog");

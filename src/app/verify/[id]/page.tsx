@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const instant = false;
 
 export default async function VerificationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

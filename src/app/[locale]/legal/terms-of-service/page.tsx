@@ -1,1 +1,1 @@
-export { default, instant } from "../../terms/page";
+export { default } from "../../terms/page";

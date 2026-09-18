@@ -7,7 +7,6 @@ import { PageShell, PageHeader } from "@/components/ui/page-shell";
 
 // Bundle pricing is managed content that can change independently of the
 // catalog index; keep this data-heavy feed request-time for correctness.
-export const instant = false;
 
 
 type StorefrontBundle = ComponentProps<typeof BundlesCatalogClient>["initialBundles"][number];

@@ -12,7 +12,6 @@ import { Card } from "@/components/ui/card";
 // Article detail pages resolve a request locale and live publication state;
 // keep the route blocking while the article payload is served from its tag
 // cache in the public read action.
-export const instant = false;
 
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {

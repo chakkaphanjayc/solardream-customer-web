@@ -21,13 +21,9 @@ import {
 import { isLocale, type Locale } from "@/i18n/locales";
 import { getDiscourseSsoStartUrl } from "@/lib/discourseConnect";
 
-const isCloudflareBuild = process.env.SOLARDREAM_CLOUDFLARE_BUILD === "1";
-
 // The locale shell resolves editable SEO settings and locale-aware URL metadata
-// at request time. Keep that intentional runtime boundary explicit under
-// Next.js Cache Components so the metadata stream is not reported as a
-// blocking prerender error in development.
-export const instant = false;
+// at request time. The explicit request boundary below keeps both deployment
+// targets from trying to prerender request-scoped locale data.
 
 // Use next-intl to pass translations into nested Client Components.
 import { NextIntlClientProvider } from "next-intl";
@@ -175,12 +171,10 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }>) {
-  // Keep locale routes request-time rendered when the Cloudflare build uses
-  // the legacy Next cache model. This prevents build-time data access while
-  // retaining the same runtime data boundary used by Cache Components.
-  if (isCloudflareBuild) {
-    await connection();
-  }
+  // Keep locale routes request-time rendered in both build modes. This
+  // prevents build-time data access and provides the request boundary needed
+  // by the Cache Components runtime before reading locale params.
+  await connection();
 
   const { locale } = await params;
   const activeLocale = isLocale(locale) ? locale : "th";

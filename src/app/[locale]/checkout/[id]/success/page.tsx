@@ -8,7 +8,6 @@ interface PageProps {
   params: Promise<{ id: string; locale: string }>;
 }
 
-export const instant = false;
 
 export default async function CheckoutSuccessPage({ params }: PageProps) {
   const { id, locale } = await params;

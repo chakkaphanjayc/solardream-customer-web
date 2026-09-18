@@ -17,7 +17,6 @@ type BlogArticlePageProps = Readonly<{
   params: Promise<{ locale: string; slug: string }>;
 }>;
 
-export const instant = false;
 
 function formatArticleDate(value: string, locale: string) {
   return new Intl.DateTimeFormat(locale === "th" ? "th-TH" : "en-US", {

@@ -12,7 +12,6 @@ interface PageProps {
   searchParams: Promise<{ paymentSession?: string; paymentRequest?: string }>;
 }
 
-export const instant = false;
 
 function toConfigurationData(value: unknown): Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value)

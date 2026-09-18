@@ -20,7 +20,6 @@ interface PublicTrackerPageProps {
   }>;
 }
 
-export const instant = false;
 
 type MilestoneStatus = "completed" | "active" | "upcoming";
 type MilestoneKey =

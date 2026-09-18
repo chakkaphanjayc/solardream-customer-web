@@ -13,7 +13,6 @@ import { Card } from "@/components/ui/card";
 
 // The listing combines the cached article feed with request-scoped localized
 // copy. Keep the route blocking while the article query remains tag-cached.
-export const instant = false;
 
 
 export async function generateMetadata(): Promise<Metadata> {

@@ -3,7 +3,6 @@ import CustomerServiceClient from "./CustomerServiceClient";
 
 // Feature flags are backed by request-time/runtime configuration for the
 // authenticated portal and should not be forced through build-time prerender.
-export const instant = false;
 
 export default async function CustomerServicePage() {
   const [enabled, afterSalesEnabled] = await Promise.all([

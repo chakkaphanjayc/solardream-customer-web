@@ -12,7 +12,6 @@ import { createClient } from "@/utils/supabase/server";
 import { Card } from "@/components/ui/card";
 import { PageShell } from "@/components/ui/page-shell";
 
-export const instant = false;
 
 interface RegistrationPageProps {
   params: Promise<{ locale: string; id: string }>;

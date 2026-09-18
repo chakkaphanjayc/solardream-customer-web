@@ -11,7 +11,6 @@ interface PageProps {
 }
 
 // Compliance copy is read from request-time editable settings when present.
-export const instant = false;
 
 export default async function PrivacyPolicyPage({ params }: PageProps) {
   const { locale } = await params;

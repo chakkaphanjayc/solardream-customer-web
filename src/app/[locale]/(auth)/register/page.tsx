@@ -5,7 +5,6 @@ import { getPortalClaimPrefill, SERVICE_PORTAL_CLAIM_COOKIE } from "@/lib/servic
 
 // Registration may receive a request-scoped service-portal claim cookie.
 // Keep this auth handoff request-time rendered under Next 16 Cache Components.
-export const instant = false;
 
 export default async function RegisterPage() {
   const cookieStore = await cookies();

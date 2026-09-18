@@ -21,7 +21,6 @@ import { createClient } from "@/utils/supabase/server";
 
 type JsonRecord = Record<string, unknown>;
 
-export const instant = false;
 
 export default async function ServiceOrderPage({
   params,

@@ -22,7 +22,6 @@ export const metadata: Metadata = {
 
 // The tracking form can read request-time/session data through its client
 // island. This route intentionally opts out of instant prerender validation.
-export const instant = false;
 
 export default async function TrackPage({
   params,

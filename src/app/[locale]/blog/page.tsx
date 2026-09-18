@@ -8,7 +8,6 @@ import { BLOG_ARTICLE_DEFINITIONS } from "@/lib/blogArticles";
 // next-intl resolves the request-scoped message catalog here. Keep this
 // lightweight editorial index request-bound while data-backed public surfaces
 // use explicit cache helpers.
-export const instant = false;
 
 function formatArticleDate(value: string, locale: string) {
   return new Intl.DateTimeFormat(locale === "th" ? "th-TH" : "en-US", {

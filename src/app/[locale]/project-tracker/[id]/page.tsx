@@ -21,7 +21,6 @@ import { SoliaGuide } from "@/components/brand/solia-scenes";
 import { SolarProgressStepper } from "@/components/ui/solar-system";
 import { SolarRouteShell } from "@/components/ui/solar-route-shell";
 
-export const instant = false;
 
 interface TrackerPageProps {
   params: Promise<{

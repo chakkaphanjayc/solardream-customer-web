@@ -8,7 +8,6 @@ export const metadata = {
   description: "Explore real residential solar installation projects by SolarDream across Chiang Mai, Bangkok, and Phuket.",
 };
 
-export const instant = false;
 
 type WorksPageProps = Readonly<{
   params: Promise<{ locale: string }>;
