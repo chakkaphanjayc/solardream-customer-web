@@ -19,7 +19,7 @@ import {
   getCachedNavigationItems,
 } from "@/lib/public-content-cache";
 import { isLocale, type Locale } from "@/i18n/locales";
-import { getDiscourseSsoStartUrl } from "@/lib/discourseConnect";
+import { getOptionalDiscourseSsoStartUrl } from "@/lib/discourseConnect";
 
 // The locale shell resolves editable SEO settings and locale-aware URL metadata
 // at request time. The explicit request boundary below keeps both deployment
@@ -134,6 +134,7 @@ async function LocaleRuntimeLayout({ activeLocale, children }: LocaleRuntimeLayo
     getCachedLocalizationConfig(),
     getCachedNavigationItems(activeLocale),
   ]);
+  const forumUrl = getOptionalDiscourseSsoStartUrl()?.toString() ?? "";
 
   // Client islands across the public site and operations console use their own
   // namespaces. Supplying the complete locale catalog prevents a translated
@@ -150,7 +151,7 @@ async function LocaleRuntimeLayout({ activeLocale, children }: LocaleRuntimeLayo
               <SiteChrome
                 initialGlobalBanner={activeBanner}
                 complianceSettings={compliance ?? null}
-                forumUrl={getDiscourseSsoStartUrl().toString()}
+                forumUrl={forumUrl}
                 websiteSettings={getLocalizedWebsiteSettings(websiteSettings, activeLocale)}
                 navigationItems={navigationItems}
               >

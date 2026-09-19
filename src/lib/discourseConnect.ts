@@ -145,6 +145,22 @@ export function getDiscourseSsoStartUrl() {
   return new URL("session/sso", baseUrl);
 }
 
+/**
+ * The public site can still render while the optional forum integration is
+ * being configured. Keep the strict helper above for routes that explicitly
+ * need Discourse, but do not let an absent forum URL break the whole locale
+ * layout or homepage.
+ */
+export function getOptionalDiscourseSsoStartUrl() {
+  if (!process.env.DISCOURSE_FORUM_URL?.trim()) return null;
+
+  try {
+    return getDiscourseSsoStartUrl();
+  } catch {
+    return null;
+  }
+}
+
 export function getDiscourseForumUrl() {
   const forumUrl = new URL(getRequiredEnvironmentValue("DISCOURSE_FORUM_URL"));
   if (forumUrl.protocol !== "https:" && forumUrl.protocol !== "http:") {

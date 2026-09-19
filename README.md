@@ -68,6 +68,28 @@ Configure server-only values such as `DATABASE_URL` and
 only to the Worker runtime is not available when Next.js inlines a
 `NEXT_PUBLIC_*` variable during the build. Never commit `.env` or secrets.
 
+Workers Builds variables are only available while the build is running; they
+are not automatically exposed to the deployed Worker. Add the values needed
+by server-rendered routes under the Worker’s **Runtime variables and secrets**
+section, or set them with Wrangler before deploying:
+
+```bash
+npx wrangler secret put DATABASE_URL
+npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+npx wrangler secret put DISCOURSE_SSO_SECRET
+npx wrangler secret put ERPNEXT_API_KEY
+npx wrangler secret put ERPNEXT_API_SECRET
+```
+
+Do not leave `DATABASE_URL` as a plaintext Workers Builds variable. Move it
+to a runtime secret and rotate the database password if it has already been
+exposed in the Cloudflare dashboard.
+
+Keep the public `NEXT_PUBLIC_*` values in the Workers Builds environment so
+they are inlined into the browser bundle. `DISCOURSE_FORUM_URL` is checked in
+as a non-secret Worker variable in `wrangler.jsonc`; the forum SSO secret must
+still be configured as a runtime secret.
+
 ## Container
 
 ```bash

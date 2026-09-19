@@ -8,7 +8,8 @@
     "global_fetch_strictly_public"
   ],
   "vars": {
-    "SOLARDREAM_APP_SURFACE": "customer"
+    "SOLARDREAM_APP_SURFACE": "customer",
+    "DISCOURSE_FORUM_URL": "https://forum.solar-dream.org/"
   },
   "assets": {
     "directory": ".open-next/assets",

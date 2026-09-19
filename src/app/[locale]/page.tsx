@@ -14,7 +14,7 @@ import { getCachedPageSeo } from "@/app/actions/seo";
 import { getConfiguredFeaturedPortfolioProjects } from "@/lib/portfolioShowcase";
 import { toPortfolioProjectListItem } from "@/types/portfolio";
 import { getCachedNavigationItems } from "@/lib/public-content-cache";
-import { getDiscourseSsoStartUrl } from "@/lib/discourseConnect";
+import { getOptionalDiscourseSsoStartUrl } from "@/lib/discourseConnect";
 import type { Metadata } from "next";
 
 
@@ -59,6 +59,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
     toPortfolioProjectListItem,
   );
   const siteUrl = getConfiguredPublicSiteUrl();
+  const forumUrl = getOptionalDiscourseSsoStartUrl()?.toString() ?? "";
   const localBusinessSchema: JsonLdObject = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -87,7 +88,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
         )}
         initialShowcaseProjects={initialShowcaseProjects}
         navigationItems={navigationItems}
-        forumUrl={getDiscourseSsoStartUrl().toString()}
+        forumUrl={forumUrl}
       />
     </div>
   );
