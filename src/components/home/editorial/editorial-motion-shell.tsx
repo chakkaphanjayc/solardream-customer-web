@@ -191,7 +191,7 @@ export default function EditorialMotionShell({
         aria-hidden="true"
         style={{ transform: `scaleX(${readingProgress})` }}
       />
-      {children}
+      <div className={styles.motionShell}>{children}</div>
       <div
         className={`${styles.preloader} ${preloaderComplete ? styles.preloaderComplete : ""}`}
         role="status"

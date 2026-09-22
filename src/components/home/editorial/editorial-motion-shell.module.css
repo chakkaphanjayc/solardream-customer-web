@@ -75,7 +75,11 @@
   line-height: 1.6;
 }
 
-:global([data-solar-tilt]) {
+.motionShell {
+  display: contents;
+}
+
+.motionShell :global([data-solar-tilt]) {
   --solar-tilt-x: 0deg;
   --solar-tilt-y: 0deg;
   transform: perspective(1000px) rotateX(var(--solar-tilt-x)) rotateY(var(--solar-tilt-y));
@@ -83,7 +87,7 @@
   will-change: transform;
 }
 
-:global([data-solar-tilt][data-tilt-active="false"]) {
+.motionShell :global([data-solar-tilt][data-tilt-active="false"]) {
   transform: none;
 }
 
@@ -96,7 +100,7 @@
     transition-duration: 0ms;
   }
 
-  :global([data-solar-tilt]) {
+  .motionShell :global([data-solar-tilt]) {
     transform: none !important;
     transition: none !important;
   }
