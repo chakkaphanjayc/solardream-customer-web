@@ -13,10 +13,7 @@ import { getConfiguredPublicSiteUrl } from "@/lib/siteUrl";
 import { getCachedPageSeo } from "@/app/actions/seo";
 import { getConfiguredFeaturedPortfolioProjects } from "@/lib/portfolioShowcase";
 import { toPortfolioProjectListItem } from "@/types/portfolio";
-import { getCachedNavigationItems } from "@/lib/public-content-cache";
-import { getOptionalDiscourseSsoStartUrl } from "@/lib/discourseConnect";
 import type { Metadata } from "next";
-
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getCachedPageSeo("home");
@@ -38,7 +35,6 @@ type LandingPageProps = Readonly<{
   params: Promise<{ locale: string }>;
 }>;
 
-
 export default async function LandingPage({ params }: LandingPageProps) {
   // With Next 16 cacheComponents enabled, connection() is the supported
   // request-time boundary for this homepage instead of dynamic/revalidate.
@@ -46,20 +42,14 @@ export default async function LandingPage({ params }: LandingPageProps) {
 
   const { locale } = await params;
   const activeLocale = isLocale(locale) ? locale : "th";
-  const [
-    websiteSettings,
-    initialShowcaseProjectsData,
-    navigationItems,
-  ] = await Promise.all([
+  const [websiteSettings, initialShowcaseProjectsData] = await Promise.all([
     getCachedWebsiteSettings(),
     getConfiguredFeaturedPortfolioProjects(10),
-    getCachedNavigationItems(activeLocale),
   ]);
   const initialShowcaseProjects = initialShowcaseProjectsData.map(
     toPortfolioProjectListItem,
   );
   const siteUrl = getConfiguredPublicSiteUrl();
-  const forumUrl = getOptionalDiscourseSsoStartUrl()?.toString() ?? "";
   const localBusinessSchema: JsonLdObject = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -81,14 +71,12 @@ export default async function LandingPage({ params }: LandingPageProps) {
         <OAuthCodeBridge />
       </Suspense>
       <SolarEditorialHome
-        locale={locale}
+        locale={activeLocale}
         websiteSettings={getLocalizedWebsiteSettings(
           websiteSettings,
           activeLocale,
         )}
         initialShowcaseProjects={initialShowcaseProjects}
-        navigationItems={navigationItems}
-        forumUrl={forumUrl}
       />
     </div>
   );

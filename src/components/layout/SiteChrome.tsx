@@ -78,7 +78,7 @@ export default function SiteChrome({
       {routePolicy.showGlobalBanner && (
         <GlobalBanner initialData={initialGlobalBanner} />
       )}
-      {routePolicy.showNavigation && !routePolicy.isHome && (
+      {routePolicy.showNavigation && (
         <div
           data-site-header
           className="layer-chrome pointer-events-none fixed inset-x-0 top-0 z-[var(--layer-chrome)]"

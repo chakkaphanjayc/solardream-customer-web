@@ -48,6 +48,7 @@ export default function EditorialEnergyStudio({ labels }: EditorialEnergyStudioP
   return (
     <div
       className={styles.lifestyleMedia}
+      data-solar-tilt
       data-studio-active={activeStep}
       data-studio-progress={progress.toFixed(2)}
     >

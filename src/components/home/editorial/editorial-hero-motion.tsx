@@ -16,6 +16,7 @@ import styles from "./solar-editorial-home.module.css";
 gsap.registerPlugin(ScrollTrigger);
 
 export type EditorialHeroLabels = Readonly<{
+  sectionIndex: string;
   eyebrow: string;
   titleLineOne: string;
   titleLineTwo: string;
@@ -134,7 +135,7 @@ export default function EditorialHeroMotion({ locale, labels }: EditorialHeroMot
   }, []);
 
   return (
-    <section ref={rootRef} className={styles.hero} aria-labelledby="editorial-hero-title" data-hero-root>
+    <section ref={rootRef} id="hero" className={styles.hero} aria-labelledby="editorial-hero-title" data-hero-root>
       <ImpactHeadline
         className={styles.heroCopy}
         eyebrowClassName={styles.heroEyebrow}
@@ -142,7 +143,12 @@ export default function EditorialHeroMotion({ locale, labels }: EditorialHeroMot
         descriptionClassName={styles.heroDescription}
         headingId="editorial-hero-title"
         headingLevel="h1"
-        eyebrow={<span data-hero-copy>{labels.eyebrow}</span>}
+        eyebrow={
+          <>
+            <span className={styles.heroIndex} data-hero-copy>{labels.sectionIndex}</span>
+            <span data-hero-copy>{labels.eyebrow}</span>
+          </>
+        }
         title={
           <>
             <span data-hero-copy>{labels.titleLineOne}</span>
@@ -169,7 +175,7 @@ export default function EditorialHeroMotion({ locale, labels }: EditorialHeroMot
         </div>
       </ImpactHeadline>
 
-      <figure className={styles.heroMedia} aria-label={labels.mediaLabel}>
+      <figure className={styles.heroMedia} aria-label={labels.mediaLabel} data-solar-tilt>
         <HalftonePattern className={styles.heroHalftone} />
         <SpeedLines className={styles.heroSpeedLines} />
         <div className={`${styles.heroCard} ${styles.heroCardPrimary}`} data-hero-card data-hero-parallax="up">

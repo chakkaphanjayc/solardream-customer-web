@@ -326,9 +326,11 @@ export default function FloatingNavbar({
   const hasProductItem = headerNavigationItems.some((item) =>
     /product|ผลิตภัณฑ์|สินค้า/i.test(`${item.id} ${item.label} ${item.url}`),
   );
-  const visibleHomeSectionLinks = homeSectionLinks.filter(
-    (item) => item.id !== "product" || !hasProductItem,
-  );
+  const visibleHomeSectionLinks = includeHomeSections
+    ? homeSectionLinks.filter(
+        (item) => item.id !== "product" || !hasProductItem,
+      )
+    : [];
 
   const renderMobileNavigation = () => (
     <>
@@ -476,7 +478,7 @@ export default function FloatingNavbar({
 
             <DesktopHeaderNavigation
               items={headerNavigationItems}
-              homeSectionLinks={homeSectionLinks}
+              homeSectionLinks={visibleHomeSectionLinks}
               locale={locale}
               forumUrl={forumUrl}
               isThai={isThai}

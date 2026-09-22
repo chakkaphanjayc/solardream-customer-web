@@ -1,0 +1,568 @@
+.sectionShell {
+  width: min(100%, 90rem);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 5vw, 5rem);
+}
+
+.sectionHeader {
+  display: grid;
+  grid-template-columns: auto minmax(2rem, 1fr);
+  column-gap: 0.9rem;
+  align-items: center;
+  max-width: 62rem;
+}
+
+.sectionIndex {
+  grid-column: 1;
+  margin: 0;
+  color: #0b4ca8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.sectionLine {
+  grid-column: 2;
+  display: block;
+  height: 1px;
+  background: #b7d1ea;
+}
+
+.sectionHeader h2 {
+  grid-column: 1 / -1;
+  max-width: 19ch;
+  margin: 1.1rem 0 0;
+  color: #10213b;
+  font-size: clamp(2.15rem, 4.3vw, 4.6rem);
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  line-height: 0.99;
+  text-wrap: balance;
+}
+
+.sectionHeader > p:last-child {
+  grid-column: 1 / -1;
+  max-width: 62ch;
+  margin: 1.3rem 0 0;
+  color: #526477;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.sectionHeaderDark .sectionIndex {
+  color: #3e6685;
+}
+
+.sectionHeaderDark .sectionLine {
+  background: rgb(79 127 168 / 42%);
+}
+
+.sectionHeaderDark h2 {
+  color: #10213b;
+}
+
+.sectionHeaderDark > p:last-child {
+  color: #526477;
+}
+
+.hardware {
+  position: relative;
+  overflow: hidden;
+  padding-block: clamp(5rem, 10vw, 9rem);
+  border-top: 1px solid #d6e2f1;
+  background: #ffffff;
+}
+
+.indexStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  color: #526477;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.statusDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #ffd84d;
+  box-shadow: 0 0 0 0.22rem rgb(255 216 77 / 24%);
+}
+
+.marqueeStack {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: clamp(3rem, 6vw, 5rem);
+}
+
+.marqueeViewport {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+}
+
+.marqueeTrack {
+  display: flex;
+  width: max-content;
+  align-items: stretch;
+  gap: 0.75rem;
+  padding-inline: 0.75rem;
+}
+
+.marqueeLeft {
+  animation: marqueeLeft 36s linear infinite;
+}
+
+.marqueeRight {
+  animation: marqueeRight 42s linear infinite;
+}
+
+.partnerItem {
+  display: inline-flex;
+  min-width: 13rem;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #d6e2f1;
+  background: #f7faff;
+  color: #10213b;
+}
+
+.partnerMark {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #b7d1ea;
+  border-radius: 50%;
+  color: #0b4ca8;
+  font-size: 0.7rem;
+}
+
+.partnerItem > span:last-child {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.partnerItem strong {
+  font-size: 0.85rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.partnerItem small {
+  color: #526477;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.57rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.marqueeClone {
+  display: inline-flex;
+  gap: 0.75rem;
+}
+
+.impact {
+  padding-block: clamp(5rem, 11vw, 10rem);
+  background: #eef5ff;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin-top: clamp(3rem, 6vw, 5rem);
+  border-top: 1px solid #b7d1ea;
+  border-bottom: 1px solid #b7d1ea;
+}
+
+.metric {
+  min-width: 0;
+  min-height: 16rem;
+  padding: 1.25rem clamp(0.8rem, 2vw, 1.7rem) 1.6rem;
+  border-right: 1px solid #b7d1ea;
+}
+
+.metric:first-child {
+  padding-left: 0;
+}
+
+.metric:last-child {
+  border-right: 0;
+  padding-right: 0;
+}
+
+.metricIndex,
+.benefitLabel {
+  color: #0b4ca8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.metricValue {
+  display: block;
+  margin-top: 3.8rem;
+  color: #10213b;
+  font-size: clamp(2.7rem, 5vw, 5.8rem);
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  line-height: 0.88;
+}
+
+.metric h3 {
+  max-width: 17ch;
+  margin: 1.5rem 0 0;
+  color: #10213b;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.metric p {
+  max-width: 20ch;
+  margin: 0.65rem 0 0;
+  color: #526477;
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.challenge {
+  padding-block: clamp(5rem, 11vw, 10rem);
+  border-top: 1px solid #d8e3ef;
+  background: #f0eee9;
+  color: #10213b;
+}
+
+.challengeGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.72fr);
+  gap: clamp(2rem, 8vw, 8rem);
+  align-items: start;
+  margin-top: clamp(3rem, 6vw, 5rem);
+}
+
+.challengeList {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgb(79 127 168 / 36%);
+}
+
+.challengeList li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.9rem;
+  align-items: start;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid rgb(79 127 168 / 24%);
+  color: #526477;
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  line-height: 1.55;
+}
+
+.challengeList svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.25rem;
+  color: #3e6685;
+}
+
+.challengeCallout {
+  position: relative;
+  padding: clamp(1.3rem, 3vw, 2.4rem);
+  border: 1px solid rgb(79 127 168 / 52%);
+  background: linear-gradient(145deg, rgb(255 255 255 / 92%), rgb(234 242 248 / 88%));
+  box-shadow: 10px 10px 0 rgb(79 127 168 / 12%);
+}
+
+.challengeCallout::before {
+  position: absolute;
+  top: -0.4rem;
+  left: 1.3rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 1px solid #3e6685;
+  background: #f0eee9;
+  content: "";
+  transform: rotate(45deg);
+}
+
+.challengeCallout > span {
+  color: #3e6685;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.challengeCallout p {
+  margin: 1.3rem 0 0;
+  color: #10213b;
+  font-size: clamp(1.45rem, 3vw, 2.7rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1.08;
+}
+
+.challengeCallout a,
+.benefitFooter a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 2rem;
+  color: #3e6685;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.challengeCallout a:hover,
+.benefitFooter a:hover {
+  color: #10213b;
+}
+
+.challengeCallout a svg,
+.benefitFooter a svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.benefits {
+  padding-block: clamp(5rem, 11vw, 10rem);
+  background: #ffffff;
+}
+
+.benefitGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: clamp(3rem, 6vw, 5rem);
+}
+
+.benefit {
+  min-height: 20rem;
+  padding: 1.25rem 1.25rem 1.5rem;
+  border: 1px solid #d6e2f1;
+  background: #f7faff;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.benefit:hover,
+.benefit:focus-within {
+  border-color: #126bff;
+  background: #eef5ff;
+  box-shadow: 8px 8px 0 rgb(18 107 255 / 10%);
+}
+
+.benefitTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #0b4ca8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.benefitTopline svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.benefitLabel {
+  display: block;
+  margin-top: 4.8rem;
+}
+
+.benefit h3 {
+  margin: 0.65rem 0 0;
+  color: #10213b;
+  font-size: clamp(1.35rem, 2.2vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.benefit > p:last-child {
+  max-width: 34ch;
+  margin: 1rem 0 0;
+  color: #526477;
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+.benefitFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #d6e2f1;
+  color: #526477;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.benefitFooter span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.benefitFooter span svg {
+  color: #0b4ca8;
+}
+
+.benefitFooter a {
+  margin-top: 0;
+  color: #0b4ca8;
+  white-space: nowrap;
+}
+
+.proof {
+  padding-block: clamp(5rem, 11vw, 10rem);
+  background: #eef5ff;
+}
+
+@keyframes marqueeLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 0.375rem));
+  }
+}
+
+@keyframes marqueeRight {
+  from {
+    transform: translateX(calc(-50% - 0.375rem));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 62rem) {
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric:nth-child(2) {
+    border-right: 0;
+  }
+
+  .metric:nth-child(n + 3) {
+    border-top: 1px solid #b7d1ea;
+  }
+
+  .metric:nth-child(3) {
+    padding-left: 0;
+  }
+
+  .metric:nth-child(4) {
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 52rem) {
+  .challengeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .challengeCallout {
+    max-width: 36rem;
+  }
+}
+
+@media (max-width: 44rem) {
+  .sectionHeader {
+    display: block;
+  }
+
+  .sectionLine {
+    width: 4rem;
+    margin-top: 0.9rem;
+  }
+
+  .sectionHeader h2 {
+    margin-top: 1rem;
+    font-size: clamp(2rem, 10vw, 3.25rem);
+  }
+
+  .sectionHeader > p:last-child {
+    font-size: 0.92rem;
+  }
+
+  .metric {
+    min-height: 14rem;
+    padding-inline: 0.8rem;
+  }
+
+  .metricValue {
+    margin-top: 2.9rem;
+    font-size: clamp(2.35rem, 12vw, 3.4rem);
+  }
+
+  .metric h3 {
+    font-size: 0.82rem;
+  }
+
+  .metric p {
+    font-size: 0.67rem;
+  }
+
+  .benefitGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .benefit {
+    min-height: 0;
+  }
+
+  .benefitLabel {
+    margin-top: 2.6rem;
+  }
+
+  .benefitFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .marqueeLeft,
+  .marqueeRight {
+    animation-duration: 54s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marqueeLeft,
+  .marqueeRight {
+    animation: none;
+  }
+
+  .marqueeClone {
+    display: none;
+  }
+
+  .benefit {
+    transition: none;
+  }
+}

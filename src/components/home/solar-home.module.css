@@ -563,8 +563,8 @@
 .wordmarkMark {
   position: relative;
   display: inline-flex;
-  width: 2.35rem;
-  height: 2.35rem;
+  width: 2.15rem;
+  height: 2.15rem;
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
@@ -573,17 +573,17 @@
 }
 
 .wordmarkLogo {
-  width: 3.2rem;
-  height: 3.2rem;
+  width: 2.95rem;
+  height: 2.95rem;
   max-width: none;
   object-fit: contain;
-  transform: scale(1.32);
+  transform: scale(1.22);
 }
 
 .wordmarkText {
   position: relative;
   display: block;
-  width: clamp(6.5rem, 10vw, 8.25rem);
+  width: clamp(6.25rem, 9vw, 7.75rem);
   aspect-ratio: 3919 / 1253;
 }
 
@@ -3833,8 +3833,18 @@
     gap: 0.15rem;
   }
 
+  .navInner {
+    gap: 0.35rem;
+    padding-inline: 0.55rem;
+  }
+
   .navExtras {
-    display: none;
+    display: flex;
+  }
+
+  .navUtilityButton {
+    width: 2.5rem;
+    min-height: 2.5rem;
   }
 
   .navAuthButton {
@@ -3844,6 +3854,25 @@
 
   .languageLink {
     padding-inline: 0.55rem;
+  }
+
+  .navTrackButton {
+    width: 2.5rem;
+    padding-inline: 0;
+  }
+
+  .navTrackButton span {
+    display: none;
+  }
+
+  .navAuthButton {
+    width: 2.5rem;
+    justify-content: center;
+    padding-inline: 0 !important;
+  }
+
+  .navAuthButton :global(.authSignInLabel) {
+    display: none;
   }
 
   .navCta {

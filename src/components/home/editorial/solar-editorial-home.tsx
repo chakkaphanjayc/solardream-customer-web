@@ -7,14 +7,12 @@ import { AnimeMascot } from "@/components/brand/manga-primitives";
 import { resolveHeaderNavigationUrl } from "@/lib/header-navigation";
 import type { PortfolioProjectListItem } from "@/types/portfolio";
 
-import EditorialHeader from "./editorial-header";
-import EditorialBeforeAfter from "./editorial-before-after";
-import EditorialEnergyStudio from "./editorial-energy-studio";
 import EditorialHeroMotion from "./editorial-hero-motion";
-import EditorialImpactCalculator from "./editorial-impact-calculator";
+import EditorialMasterSections from "./editorial-master-sections";
+import EditorialMotionShell from "./editorial-motion-shell";
 import EditorialProjects from "./editorial-projects";
 import EditorialRhythmNavigator from "./editorial-rhythm-navigator";
-import EditorialWorkflow from "./editorial-workflow";
+import { getMasterCopy } from "./editorial-master-copy";
 import type { SolarEditorialHomeProps } from "./editorial-home.types";
 import styles from "./solar-editorial-home.module.css";
 
@@ -59,8 +57,6 @@ export default async function SolarEditorialHome({
   locale,
   websiteSettings,
   initialShowcaseProjects,
-  navigationItems,
-  forumUrl,
 }: SolarEditorialHomeProps) {
   const t = await getTranslations({ locale, namespace: "HomeEditorial" });
   const wizardHref = `/${locale}/wizard`;
@@ -68,62 +64,51 @@ export default async function SolarEditorialHome({
   const projects = initialShowcaseProjects.filter(isCredibleProject).slice(0, 4);
   const activeSocials = websiteSettings.socialLinks.filter((item) => item.isActive);
   const currentYear = new Date().getFullYear();
+  const masterCopy = getMasterCopy(locale);
 
   return (
-    <div className={styles.page} data-solar-surface="future-manga">
-      <EditorialHeader
-        locale={locale}
-        companyName={websiteSettings.company.companyName}
-        navigationItems={navigationItems}
-        forumUrl={forumUrl}
-        hasProjects={projects.length > 0}
-        labels={{
-          menu: t("navigation.menu"),
-          openMenuAria: t("navigation.openMenuAria"),
-          closeMenuAria: t("navigation.closeMenuAria"),
-          primaryCta: t("navigation.primaryCta"),
-          secondaryCta: t("navigation.secondaryCta"),
-          navigation: t("footer.navigation"),
-          concept: t("navigation.concept"),
-          projects: t("navigation.projects"),
-          solutions: t("navigation.solutions"),
-          calculator: t("navigation.calculator"),
-          about: t("navigation.about"),
-          track: t("navigation.track"),
-          language: t("navigation.languageSwitch"),
-          ecoBadge: t("navigation.ecoBadge"),
-        }}
-      />
+    <EditorialMotionShell
+      preloaderSystemLabel={masterCopy.preloaderSystem}
+      preloaderLabel={masterCopy.preloader}
+    >
+      <div className={styles.page} data-solar-surface="future-manga">
+        <div>
+          <EditorialHeroMotion
+            locale={locale}
+            labels={{
+              sectionIndex: "01 / HERO & OVERVIEW",
+              eyebrow: t("hero.eyebrow"),
+              titleLineOne: t("hero.titleLineOne"),
+              titleLineTwo: t("hero.titleLineTwo"),
+              description: t("hero.description"),
+              primaryCta: t("hero.primaryCta"),
+              primaryHint: t("hero.primaryHint"),
+              secondaryCta: t("hero.secondaryCta"),
+              secondaryHint: t("hero.secondaryHint"),
+              mediaLabel: t("hero.mediaLabel"),
+              visual: {
+                kicker: t("hero.visual.kicker"),
+                status: t("hero.visual.status"),
+                imageLabel: t("hero.visual.imageLabel"),
+                home: t("hero.visual.home"),
+                usage: t("hero.visual.usage"),
+                roof: t("hero.visual.roof"),
+                system: t("hero.visual.system"),
+                tracking: t("hero.visual.tracking"),
+                note: t("hero.visual.note"),
+                badgeClean: t("hero.visual.badgeClean"),
+                badgeStep: t("hero.visual.badgeStep"),
+                mascotAlt: t("hero.visual.mascotAlt"),
+              },
+            }}
+          />
 
-      <div>
-        <EditorialHeroMotion
-          locale={locale}
-          labels={{
-            eyebrow: t("hero.eyebrow"),
-            titleLineOne: t("hero.titleLineOne"),
-            titleLineTwo: t("hero.titleLineTwo"),
-            description: t("hero.description"),
-            primaryCta: t("hero.primaryCta"),
-            primaryHint: t("hero.primaryHint"),
-            secondaryCta: t("hero.secondaryCta"),
-            secondaryHint: t("hero.secondaryHint"),
-            mediaLabel: t("hero.mediaLabel"),
-            visual: {
-              kicker: t("hero.visual.kicker"),
-              status: t("hero.visual.status"),
-              imageLabel: t("hero.visual.imageLabel"),
-              home: t("hero.visual.home"),
-              usage: t("hero.visual.usage"),
-              roof: t("hero.visual.roof"),
-              system: t("hero.visual.system"),
-              tracking: t("hero.visual.tracking"),
-              note: t("hero.visual.note"),
-              badgeClean: t("hero.visual.badgeClean"),
-              badgeStep: t("hero.visual.badgeStep"),
-              mascotAlt: t("hero.visual.mascotAlt"),
-            },
-          }}
-        />
+          <EditorialMasterSections
+            locale={locale}
+            wizardHref={wizardHref}
+            buildHref={buildHref}
+            projects={projects}
+          />
 
         <EditorialRhythmNavigator
           labels={{
@@ -161,127 +146,6 @@ export default async function SolarEditorialHome({
           }}
         />
 
-        <section id="solutions" className={styles.lifestyle} aria-labelledby="lifestyle-title">
-          <EditorialEnergyStudio
-            labels={{
-              eyebrow: t("studio.eyebrow"),
-              status: t("studio.status"),
-              canvasLabel: t("studio.canvasLabel"),
-              insightLabel: t("studio.insightLabel"),
-              controlsLabel: t("studio.controlsLabel"),
-              mascotAlt: t("studio.mascotAlt"),
-              steps: [
-                {
-                  id: "bill",
-                  label: t("studio.steps.bill.label"),
-                  title: t("studio.steps.bill.title"),
-                  description: t("studio.steps.bill.description"),
-                },
-                {
-                  id: "home",
-                  label: t("studio.steps.home.label"),
-                  title: t("studio.steps.home.title"),
-                  description: t("studio.steps.home.description"),
-                },
-                {
-                  id: "sun",
-                  label: t("studio.steps.sun.label"),
-                  title: t("studio.steps.sun.title"),
-                  description: t("studio.steps.sun.description"),
-                },
-                {
-                  id: "system",
-                  label: t("studio.steps.system.label"),
-                  title: t("studio.steps.system.title"),
-                  description: t("studio.steps.system.description"),
-                },
-              ],
-            }}
-          />
-          <div className={styles.lifestyleCopy}>
-            <p className={styles.sectionMarker}>{t("lifestyle.eyebrow")}</p>
-            <h2 id="lifestyle-title">{t("lifestyle.title")}</h2>
-            <p>{t("lifestyle.body")}</p>
-          </div>
-        </section>
-
-        <EditorialWorkflow
-          labels={{
-            eyebrow: t("workflow.eyebrow"),
-            title: t("workflow.title"),
-            description: t("workflow.description"),
-            status: t("workflow.status"),
-            panelTitle: t("workflow.panelTitle"),
-            panelDescription: t("workflow.panelDescription"),
-            outcome: t("workflow.outcome"),
-            stepOne: {
-              index: t("workflow.stepOne.index"),
-              title: t("workflow.stepOne.title"),
-              description: t("workflow.stepOne.description"),
-            },
-            stepTwo: {
-              index: t("workflow.stepTwo.index"),
-              title: t("workflow.stepTwo.title"),
-              description: t("workflow.stepTwo.description"),
-            },
-            stepThree: {
-              index: t("workflow.stepThree.index"),
-              title: t("workflow.stepThree.title"),
-              description: t("workflow.stepThree.description"),
-            },
-            stepFour: {
-              index: t("workflow.stepFour.index"),
-              title: t("workflow.stepFour.title"),
-              description: t("workflow.stepFour.description"),
-            },
-            stepFive: {
-              index: t("workflow.stepFive.index"),
-              title: t("workflow.stepFive.title"),
-              description: t("workflow.stepFive.description"),
-            },
-          }}
-        />
-
-        <EditorialBeforeAfter
-          labels={{
-            eyebrow: t("beforeAfter.eyebrow"),
-            title: t("beforeAfter.title"),
-            description: t("beforeAfter.description"),
-            before: t("beforeAfter.before"),
-            after: t("beforeAfter.after"),
-            beforeAlt: t("beforeAfter.beforeAlt"),
-            afterAlt: t("beforeAfter.afterAlt"),
-            sliderLabel: t("beforeAfter.sliderLabel"),
-          }}
-        />
-
-        <EditorialImpactCalculator
-          locale={locale}
-          wizardHref={wizardHref}
-          labels={{
-            eyebrow: t("calculator.eyebrow"),
-            title: t("calculator.title"),
-            description: t("calculator.description"),
-            billLabel: t("calculator.billLabel"),
-            billHint: t("calculator.billHint"),
-            billMin: t("calculator.billMin"),
-            billMax: t("calculator.billMax"),
-            savingsLabel: t("calculator.savingsLabel"),
-            annualSavingsLabel: t("calculator.annualSavingsLabel"),
-            co2Label: t("calculator.co2Label"),
-            treesLabel: t("calculator.treesLabel"),
-            systemSizeLabel: t("calculator.systemSizeLabel"),
-            impactLabel: t("calculator.impactLabel"),
-            estimateTag: t("calculator.estimateTag"),
-            disclaimer: t("calculator.disclaimer"),
-            action: t("calculator.action"),
-            success: t("calculator.success"),
-            unitMonth: t("calculator.unitMonth"),
-            unitYear: t("calculator.unitYear"),
-            currencySymbol: t("calculator.currencySymbol"),
-          }}
-        />
-
         <section className={styles.pathways} aria-labelledby="pathways-title">
           <div className={styles.sectionHeading}>
             <p className={styles.sectionMarker}>{t("pathways.eyebrow")}</p>
@@ -294,6 +158,7 @@ export default async function SolarEditorialHome({
                 key={path}
                 href={path === "wizard" ? wizardHref : buildHref}
                 className={styles.pathway}
+                data-solar-tilt
               >
                 <span className={styles.pathwayPortal} aria-hidden="true">
                   <span>{t(`pathways.${path}.label`)}</span>
@@ -327,11 +192,11 @@ export default async function SolarEditorialHome({
         </section>
 
         {projects.length > 0 ? (
-          <section id="projects" className={styles.projects} aria-labelledby="projects-title">
+          <section id="proof" className={styles.projects} aria-labelledby="projects-title">
             <div className={styles.sectionHeading}>
-              <p className={styles.sectionMarker}>{t("projects.eyebrow")}</p>
-              <h2 id="projects-title">{t("projects.title")}</h2>
-              <p>{t("projects.description")}</p>
+              <p className={styles.sectionMarker}>{masterCopy.proof.eyebrow}</p>
+              <h2 id="projects-title">{masterCopy.proof.title}</h2>
+              <p>{masterCopy.proof.description}</p>
             </div>
             <EditorialProjects
               locale={locale}
@@ -410,9 +275,13 @@ export default async function SolarEditorialHome({
           <div>
             <Link href={`/${locale}/privacy`}>{t("footer.privacy")}</Link>
             <Link href={`/${locale}/terms`}>{t("footer.terms")}</Link>
+            <a href="#hero" className={styles.footerBackToTop}>
+              {masterCopy.backToTop} ↑
+            </a>
           </div>
         </div>
       </footer>
-    </div>
+        </div>
+    </EditorialMotionShell>
   );
 }

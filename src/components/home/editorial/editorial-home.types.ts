@@ -1,4 +1,3 @@
-import type { HeaderNavigationItem } from "@/lib/header-navigation";
 import type { WebsiteSettings } from "@/lib/websiteSettingsTypes";
 import type { PortfolioProjectListItem } from "@/types/portfolio";
 
@@ -7,6 +6,4 @@ export type SolarEditorialHomeProps = Readonly<{
   locale: string;
   websiteSettings: WebsiteSettings;
   initialShowcaseProjects: readonly PortfolioProjectListItem[];
-  navigationItems: readonly HeaderNavigationItem[];
-  forumUrl: string;
 }>;
