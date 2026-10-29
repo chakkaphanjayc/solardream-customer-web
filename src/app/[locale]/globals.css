@@ -8501,6 +8501,29 @@ html body[data-solar-ui="customer"]
 html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   [data-solar-surface="atelier"]
+  [data-bagui="button"][data-button-variant="line"] {
+  border-color: #06c755 !important;
+  background: #06c755 !important;
+  color: #111827 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  [data-solar-surface="atelier"]
+  [data-bagui="button"][data-button-variant="line"]:is(
+    :hover,
+    :focus-visible
+  ):not(:disabled) {
+  border-color: #05b94f !important;
+  background: #05b94f !important;
+  color: #111827 !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  [data-solar-surface="atelier"]
   :is(
     .solar-route-card,
     .solar-build-section,

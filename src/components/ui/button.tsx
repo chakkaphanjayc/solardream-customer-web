@@ -10,6 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: "border border-[var(--sd-blue-600)] bg-[var(--sd-blue-600)] text-white shadow-[var(--sd-shadow-1)] hover:bg-[#0B5BE0] hover:-translate-y-0.5 hover:shadow-[var(--sd-shadow-2)]",
+        line: "border border-[#06C755] bg-[#06C755] text-[#111827] shadow-[var(--sd-shadow-1)] hover:bg-[#05B94F] hover:-translate-y-0.5 hover:shadow-[var(--sd-shadow-2)]",
         secondary: "border border-[var(--sd-blue-600)] bg-white text-[var(--sd-blue-600)] shadow-none hover:bg-[var(--sd-soft-solar)] hover:-translate-y-0.5 hover:shadow-[var(--sd-shadow-1)]",
         tonal: "border border-[var(--sd-blue-600)] bg-[var(--sd-selected)] text-[var(--sd-ink)] shadow-none hover:bg-[var(--sd-cyan-100)] hover:-translate-y-0.5 hover:shadow-[var(--sd-shadow-1)]",
         outline: "border border-[var(--sd-line)] bg-white text-[var(--sd-ink)] shadow-none hover:border-[var(--sd-blue-500)] hover:bg-[var(--sd-soft-solar)] hover:-translate-y-0.5 hover:shadow-[var(--sd-shadow-1)]",
