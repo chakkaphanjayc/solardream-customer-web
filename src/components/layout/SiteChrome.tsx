@@ -64,6 +64,7 @@ export default function SiteChrome({
     <div
       suppressHydrationWarning
       data-solar-ui={routePolicy.isAdmin ? "operations" : "customer"}
+      data-customer-design={routePolicy.isAdmin ? undefined : "solar-atelier"}
       className={cn(
         "bagui-page sd-site-shell relative isolate flex w-full min-w-0 flex-col min-h-dvh",
         isAlwaysLocked && "h-dvh max-h-dvh overflow-hidden",

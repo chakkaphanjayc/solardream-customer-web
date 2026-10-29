@@ -1,0 +1,12 @@
+---
+description: Follow the repository's autonomous implementation and verification workflow.
+alwaysApply: true
+---
+
+# Autonomous Loop
+
+- Follow the root `AGENTS.md` and its SolarDream product/design references.
+- Continue through implementation phases without asking for confirmation. Make reversible, scoped decisions and report material risks after the work is complete.
+- After each queued task, run `npm run typecheck`, `npm run lint`, and `npm run test`. Fix failures up to three times; then revert only the task-owned files or hunks and document the failure in `REVIEW_INBOX.md`.
+- Never use a broad restore command in a dirty worktree. Preserve pre-existing staged, unstaged, and untracked work.
+- Commit only the task-owned changes. Update `STATE.md` after each task and use the exact review-card format in `REVIEW_INBOX.md` for important changes.
