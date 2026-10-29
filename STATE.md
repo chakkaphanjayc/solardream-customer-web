@@ -2,14 +2,14 @@
 
 ## 📋 Backlog (Auto-Queue)
 
-- SDUX-008: Confirm the customer production-image CI passes after isolating pull request builds from the production Server Actions secret.
+No remaining scoped tasks.
 
 ## ✅ Auto-Completed & Committed
 
 - SDUX-005: Improved LINE CTA contrast and share control readability, focus indication, and 44px touch targets. Runtime-checked support and a share preview at 390px with no horizontal overflow. Commit `ab6c958`.
 - SDUX-006: Aligned cookie preference reads and writes with the strict privacy consent API contract; added schema-backed tests. Commit `9a6d36c`.
-- SDUX-007: Restored the production environment validator referenced by the Dockerfile and tested required build inputs and Server Actions AES key handling. `npm run typecheck`, `npm run lint`, `npm run test` (25/25), `npm run validate:production-env`, and `git diff --check` passed. Commit `cb3e20e`.
-- SDUX-008: Updated PR CI to create a masked, per-run AES key for build verification instead of passing a production secret into branch-controlled builds. Local checks passed; hosted production-image CI is pending. Commit `9d54c20`.
+- SDUX-007: Restored the production environment validator referenced by the Dockerfile and tested required build inputs and Server Actions AES key handling. `npm run typecheck`, `npm run lint`, `npm run test` (25/25), `npm run validate:production-env`, and hosted production-image CI passed. Commit `cb3e20e`.
+- SDUX-008: Updated PR CI to create a masked, per-run AES key for build verification instead of passing a production secret into branch-controlled builds. Local checks and hosted production-image CI passed. Commit `9d54c20`.
 
 - SDUX-001: Applied the Solar Atelier design system to the shared customer shell, typography, navigation, footer, cookie banner, and route surfaces. Commit `922b780`.
 - SDUX-002: Restyled home, profile, proposal list, and proposal detail while preserving route and data behavior. Commit `922b780`.

@@ -11,7 +11,7 @@
 ### 🔔 [SDUX-007] Restore production build environment validation
 - **Why you need to see this**: The production Docker build now enforces deployment inputs and validates the Server Actions encryption key before embedding it in the build.
 - **Files Changed**: `scripts/validate-production-build-env.mjs`, `src/lib/productionBuildEnv.test.ts` (`cb3e20e`)
-- **Verification**: Passed (`npm run typecheck`, `npm run lint`, `npm run test` with 25/25 passing, `npm run validate:production-env`, `git diff --check`); hosted production-image CI pending.
+- **Verification**: Passed (`npm run typecheck`, `npm run lint`, `npm run test` with 25/25 passing, `npm run validate:production-env`, `git diff --check`, hosted production-image CI run [40910356305](https://github.com/chakkaphanjayc/solardream-customer-web/actions/runs/40910356305)).
 - **Key Decision / Risk**:
   - Accepts only canonical Base64 AES keys of 16, 24, or 32 bytes, matching Next.js; validation errors never print key values.
   - HTTP is accepted only for the loopback Supabase fixture currently used by CI.
@@ -19,7 +19,7 @@
 ### 🔔 [SDUX-008] Isolate pull request builds from the production key
 - **Why you need to see this**: CI previously passed the production Server Actions encryption secret into builds that execute branch-controlled code.
 - **Files Changed**: `.github/workflows/ci.yml` (`9d54c20`)
-- **Verification**: Passed (`npm run typecheck`, `npm run lint`, `npm run test` with 25/25 passing, `npm run verify:standalone`, workflow YAML parse); hosted production-image CI pending.
+- **Verification**: Passed (`npm run typecheck`, `npm run lint`, `npm run test` with 25/25 passing, `npm run verify:standalone`, workflow YAML parse, hosted production-image CI run [40910356305](https://github.com/chakkaphanjayc/solardream-customer-web/actions/runs/40910356305)).
 - **Key Decision / Risk**:
   - PR builds use a masked random 32-byte key shared only by that run's two build steps.
   - Production deployment builds still need their configured persistent key; this CI job does not validate that production secret.
