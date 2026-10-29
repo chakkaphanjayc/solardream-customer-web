@@ -6,6 +6,9 @@ No remaining scoped tasks.
 
 ## ✅ Auto-Completed & Committed
 
+- SDUX-005: Improved LINE CTA contrast and share control readability, focus indication, and 44px touch targets. Runtime-checked support and a share preview at 390px with no horizontal overflow. Commit `ab6c958`.
+- SDUX-006: Aligned cookie preference reads and writes with the strict privacy consent API contract; added schema-backed tests. Commit `9a6d36c`.
+
 - SDUX-001: Applied the Solar Atelier design system to the shared customer shell, typography, navigation, footer, cookie banner, and route surfaces. Commit `922b780`.
 - SDUX-002: Restyled home, profile, proposal list, and proposal detail while preserving route and data behavior. Commit `922b780`.
 - SDUX-003: Visually checked English desktop home and Thai mobile home at 390px, menu interaction, and signed-out profile/proposal redirects. Signed-in profile and proposal screens could not be observed in the available browser session. Commit `922b780`.
