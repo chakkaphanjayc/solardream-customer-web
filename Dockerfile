@@ -60,6 +60,6 @@ EXPOSE 3100
 STOPSIGNAL SIGTERM
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
-    CMD-SHELL wget -q -O /dev/null --timeout=4 "http://127.0.0.1:${PORT}/api/health/live" || exit 1
+    CMD wget -q -O /dev/null --timeout=4 "http://127.0.0.1:${PORT}/api/health/live" || exit 1
 
 CMD ["node", "server.js"]
