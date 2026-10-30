@@ -2,9 +2,18 @@
 
 ## 📋 Backlog (Auto-Queue)
 
-No remaining scoped tasks.
+- SDUX-010 (P1, routine): Redesign the rooftop visualizer for a customer-first, mobile-responsive workflow; the current interface reads as a dense engineering tool with undersized controls. Evidence: `src/app/[locale]/visualizer/VisualizerClient.tsx`, `src/app/[locale]/visualizer/SimulatorOverlay.tsx`.
+- SDUX-011 (P1, important): Make proposal signing keyboard-accessible and preserve the drawn signature across resize/orientation changes with clear recovery feedback. Evidence: `src/components/CustomerPortal/SignaturePad.tsx`, `src/components/proposals/detail/ProposalSignatureModal.tsx`.
+- SDUX-012 (P1, important): Make both payment-slip upload controls keyboard-operable without changing the payment API or settlement flow. Evidence: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx`.
+- SDUX-013 (P1, routine): Give tracking gallery tiles button semantics and the image viewer proper dialog focus/close behavior. Evidence: `src/app/[locale]/my-proposal/[id]/tracking/TrackingGallery.tsx`.
+- SDUX-014 (P2, routine): Associate quote-checkout labels with fields and show field-specific missing-input feedback in maintenance booking. Evidence: `src/app/[locale]/checkout/quote/QuoteCheckoutClient.tsx`, `src/app/[locale]/support/maintenance/PreventiveMaintenanceBooking.tsx`.
+- SDUX-015 (P2, important): Announce payment and warranty loading, success, and error state changes to assistive technology without changing payment decisions. Evidence: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx`, `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`.
+- SDUX-016 (P2, routine): Review low-contrast tracker and tracking labels against WCAG 2.2 and verify warranty status text on its actual background. Evidence: `src/app/[locale]/project-tracker/[id]/page.tsx`, `src/components/tracking/track-request-flow.module.css`, `src/app/[locale]/globals.css` (warranty status styles), `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`.
 
 ## ✅ Auto-Completed & Committed
+
+- UXLOOP-001: Added route-family audit, one-task-per-run, CI, PR, review, and production-deployment rules to `AGENTS.md` and Cursor; registered the enabled weekday 09:00 Asia/Bangkok Orca automation on this PR worktree.
+- SDUX-009: Scoped Solar Atelier primary actions to the DESIGN.md Nantucket fill with dark foreground, including hover and focus states. Runtime checks confirm the login primary action is 46px tall and powder blue with Abyss text; a representative Nantucket action measured 11.33:1 at rest and 9.67:1 on hover. `npm run typecheck`, `npm run lint`, and `npm run test` passed after implementation; wizard runtime checked at 390px, 768px, and 1280px with no horizontal overflow and axe reported 0 violations (1 contrast check incomplete due layered decoration).
 
 - SDUX-005: Improved LINE CTA contrast and share control readability, focus indication, and 44px touch targets. Runtime-checked support and a share preview at 390px with no horizontal overflow. Commit `ab6c958`.
 - SDUX-006: Aligned cookie preference reads and writes with the strict privacy consent API contract; added schema-backed tests. Commit `9a6d36c`.
@@ -17,3 +26,11 @@ No remaining scoped tasks.
 - SDUX-004: `npm run typecheck` passed; `npm run lint` passed with existing warnings; `npm run test` passed (16 tests). Commit `922b780`.
 - Harness setup: documented canonical verification commands and autonomous worktree rules in `AGENTS.md`, added the always-on Cursor rule, and replaced the unavailable Jest test command with the repository's Node/tsx test discovery runner. Commit `922b780`.
 - Initial scan found no actionable `TODO`, `FIXME`, or `XXX` markers in source; the `XXX` matches were phone and tracking-number examples.
+
+## Route Family Coverage
+
+- Home and shared shell: Prior Solar Atelier redesign; current source audit reviewed.
+- Wizard: Rendered in Next.js at 390px, 768px, and 1280px; axe reported zero violations.
+- Catalog: Runtime route shows its connection fallback because local database and Supabase configuration are unavailable.
+- Profile and proposals: Source reviewed; signed-in and signature routes need runtime credentials/fixtures.
+- Visualizer, checkout/payment, tracking, warranty/portal, and maintenance: Source-level QA backlog recorded; runtime checks need representative local data/session.
