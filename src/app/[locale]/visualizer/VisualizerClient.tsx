@@ -516,7 +516,8 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                       ))}
                     </select>
                     <p className="text-[9px] text-slate-600 font-semibold pl-1">
-                      {selectedProduct.desc} • {t("fields.panelSize", { width: selectedProduct.width, height: selectedProduct.height })}
+                      {selectedProduct.desc ? `${selectedProduct.desc} • ` : ""}
+                      {t("fields.panelSize", { width: selectedProduct.width, height: selectedProduct.height })}
                       {` • ${selectedProduct.source} catalog`}
                     </p>
 

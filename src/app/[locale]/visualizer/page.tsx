@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import VisualizerClient from "./VisualizerClient";
 import { getVisualizerPanelProducts } from "@/app/actions/visualizerProducts";
 import { PageShell } from "@/components/ui/page-shell";
@@ -9,7 +9,7 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
+}, parent: ResolvingMetadata): Promise<Metadata> {
   const { locale } = await params;
   const isEnglish = locale === "en";
   const title = isEnglish
@@ -18,11 +18,32 @@ export async function generateMetadata({
   const description = isEnglish
     ? "Plan a rooftop solar layout, see where panels fit, and review an estimate for your home."
     : "วางแผนตำแหน่งแผงโซลาร์บนหลังคา ดูการจัดวาง และตรวจสอบประมาณการสำหรับบ้านของคุณ";
+  const inheritedMetadata = await parent;
 
-  return { title, description };
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/${locale}/visualizer`,
+      languages: {
+        th: "/th/visualizer",
+        en: "/en/visualizer",
+      },
+    },
+    openGraph: {
+      ...inheritedMetadata.openGraph,
+      title,
+      description,
+      locale: isEnglish ? "en_US" : "th_TH",
+      type: "website",
+    },
+    twitter: {
+      ...inheritedMetadata.twitter,
+      title,
+      description,
+    },
+  };
 }
-
-
 export default async function VisualizerPage() {
   const panelProducts = await getVisualizerPanelProducts();
 

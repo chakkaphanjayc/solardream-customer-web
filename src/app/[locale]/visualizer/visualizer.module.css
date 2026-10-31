@@ -234,10 +234,9 @@
 .emptyCard {
   width: min(100%, 640px);
   border: 1px solid #d7e0e8;
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.88);
+  border-radius: 16px;
+  background: #fff;
   padding: clamp(1.5rem, 5vw, 3.5rem);
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
 }
 
 .emptyIcon {
@@ -246,7 +245,7 @@
   height: 58px;
   place-items: center;
   border: 1px solid #a9c4df;
-  border-radius: 19px;
+  border-radius: 12px;
   background: var(--visualizer-blue);
   color: var(--visualizer-ink);
 }
@@ -281,7 +280,8 @@
 
 .emptyStatus {
   margin-top: 1.5rem;
-  border-left: 3px solid var(--visualizer-copper);
+  border: 1px solid #e8d4bc;
+  border-radius: 12px;
   background: #faf7f2;
   padding: 0.85rem 1rem;
   color: #563e2e;
