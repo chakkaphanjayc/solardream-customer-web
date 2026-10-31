@@ -14,11 +14,8 @@ import {
   Edit3,
   Sun,
   Cpu,
-  Menu,
-  X,
-  ChevronLeft,
-  ChevronRight
 } from "@/components/ui/icons";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -40,6 +37,7 @@ import { GsapPulse, GsapSpinner } from "@/components/ui/GsapMotion";
 import { trackProductEvent } from "@/lib/productAnalytics";
 import VisxSunArc from "@/components/charts/VisxSunArc";
 import { SoliaGuide } from "@/components/brand/solia-scenes";
+import styles from "./visualizer.module.css";
 
 function MapLoading() {
   const t = useTranslations("VisualizerClient");
@@ -89,7 +87,7 @@ const CompassSlider = ({
     ticks.push(i);
   }
   return (
-    <div className="relative w-full bg-slate-950 border border-slate-800 rounded-xl p-3 pt-5 overflow-hidden select-none">
+    <div className="relative w-full rounded-xl border border-slate-200 bg-slate-50 p-3 pt-5 overflow-hidden select-none">
       {/* Tape scale */}
       <div className="relative h-8 flex items-end justify-between px-1">
         {ticks.map((tick) => {
@@ -108,19 +106,19 @@ const CompassSlider = ({
           return (
             <div key={tick} className="flex flex-col items-center flex-1 relative">
               {/* Tick Mark */}
-              <div 
+              <div
                 className={cn(
-                  "w-[1px] bg-slate-700 transition-colors",
+                  "w-[1px] bg-slate-300 transition-colors",
                   isMajor ? "h-4 bg-slate-400" : isMedium ? "h-3" : "h-1.5",
-                  Math.abs(value - tick) < 7.5 ? "bg-[#1CBBBB]" : ""
-                )} 
+                  Math.abs(value - tick) < 7.5 ? "bg-[#315B7C]" : ""
+                )}
               />
               {/* Label */}
               {label && (
                 <span className={cn(
                   "text-[8px] font-black absolute -top-4 font-mono transition-colors",
-                  isMajor ? "text-slate-300" : "text-slate-500",
-                  Math.abs(value - tick) < 7.5 ? "text-[#1CBBBB]" : ""
+                  isMajor ? "text-slate-700" : "text-slate-600",
+                  Math.abs(value - tick) < 7.5 ? "text-[#315B7C]" : ""
                 )}>
                   {label}
                 </span>
@@ -140,12 +138,12 @@ const CompassSlider = ({
           value={value}
           aria-label={ariaLabel}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#1CBBBB] focus:outline-none"
+          className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#315B7C] focus:outline-none"
         />
       </div>
       
       {/* Current Degree display */}
-      <div className="absolute top-1.5 right-3 text-[9px] font-black font-mono text-[#1CBBBB]">
+      <div className="absolute top-1.5 right-3 text-[9px] font-black font-mono text-[#315B7C]">
         {value}°
       </div>
     </div>
@@ -190,7 +188,6 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
   } | null>(null);
   
   const [activeTab, setActiveTab] = useState<'roof' | 'shading' | 'electrical'>('roof');
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
   const visualizerAnalyticsInitializedRef = useRef(false);
 
   useEffect(() => {
@@ -210,13 +207,19 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
   };
 
   const runAiAnalysis = async () => {
+    const address = addressSearch.trim();
+    if (!address) {
+      toast.error(t("toast.addressRequired"));
+      return;
+    }
+
     setIsAiAnalyzing(true);
     setAiAnalysisResult(null);
     try {
       const response = await fetch("/api/analyze-roof", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: addressSearch || "Bangkok, Thailand", bounds: null })
+        body: JSON.stringify({ address, bounds: null })
       });
       const data = await response.json() as RoofAnalysisPayload;
       if (data.success && typeof data.roofAreaSqm === "number" && typeof data.pitchDegrees === "number" && typeof data.confidence === "number") {
@@ -260,13 +263,13 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
   // ── Shared Aggregate Analytics ──────────────────────────────────────────
   const aggregateData = getAggregateAnalytics(
     roofs,
-    selectedProduct.power,
+    selectedProduct?.power ?? 0,
     daytimeUsagePercent,
     electricityRate,
   );
   const totalPanelsAll = aggregateData.totalPanels;
   const totalPowerAll  = aggregateData.totalKwp * 1000; // in W for display
-  const totalCostAll   = totalPanelsAll * selectedProduct.price;
+  const totalCostAll   = totalPanelsAll * (selectedProduct?.price ?? 0);
 
   const thailandYield = calculateThailandSolarYield({
     systemKwp: aggregateData.totalKwp,
@@ -339,82 +342,112 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
     }
   };
 
+  if (!selectedProduct) {
+    return (
+      <div id="visualizer-shell" className={styles.shell}>
+        <header className={styles.header}>
+          <Link href={`/${locale}`} className={styles.brandLink}>
+            <span className={styles.brandMark} aria-hidden="true">
+              <Sun className="h-5 w-5" />
+            </span>
+            <span className={styles.brandText}>{t("header.title")}</span>
+          </Link>
+          <Button asChild variant="outline" className={styles.headerAction}>
+            <Link href={`/${locale}`}>{t("actions.home")}</Link>
+          </Button>
+        </header>
+
+        <div className={styles.emptyMain}>
+          <section className={styles.emptyCard} aria-labelledby="visualizer-empty-title">
+            <div className={styles.emptyIcon} aria-hidden="true">
+              <Sun className="h-7 w-7" />
+            </div>
+            <p className={styles.eyebrow}>{t("sections.plannerBadge")}</p>
+            <h1 id="visualizer-empty-title" className={styles.emptyTitle}>{t("empty.catalogTitle")}</h1>
+            <p className={styles.emptyDescription}>{t("empty.catalogDescription")}</p>
+            <p className={styles.emptyStatus} role="status">{t("empty.catalogStatus")}</p>
+            <div className={styles.emptyActions}>
+              <Button asChild variant="outline" className={styles.primaryAction}>
+                <Link href={`/${locale}/wizard`}>{t("empty.startSizing")}</Link>
+              </Button>
+              <Button asChild variant="outline" className={styles.secondaryAction}>
+                <Link href={`/${locale}`}>{t("actions.home")}</Link>
+              </Button>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-dvh w-full flex-col overflow-hidden bg-[#F0EEE9]">
-      {/* Sleek edge-to-edge dark slate header with top safe area spacing */}
-      <header className="sd-safe-pt-3-add z-50 flex h-20 w-full shrink-0 items-center justify-between gap-2 border-b border-slate-800 bg-slate-900 px-3 sm:px-6 sm:pt-6">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#1CBBBB] flex items-center justify-center shadow-md shadow-[#1CBBBB]/20">
-            <Cpu className="w-5 h-5 text-white" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-sm font-black tracking-wider text-white uppercase flex items-center gap-2">
-              <span className="truncate">{t("header.title")}</span>
-              <span className="hidden text-[9px] font-black bg-slate-800 text-[#1CBBBB] px-2 py-0.5 rounded border border-slate-700/60 uppercase tracking-widest min-[420px]:inline">
-                {t("header.version")}
-              </span>
-            </h1>
-            <p className="hidden text-[9px] font-bold uppercase tracking-wider text-slate-400 sm:block">
-              {t("header.subtitle")}
-            </p>
-          </div>
+    <div id="visualizer-shell" className={styles.shell}>
+      <header className={styles.header}>
+        <Link href={`/${locale}`} className={styles.brandLink}>
+          <span className={styles.brandMark} aria-hidden="true">
+            <Cpu className="h-5 w-5" />
+          </span>
+          <span className={styles.brandCopy}>
+            <span className={styles.brandText}>{t("header.title")}</span>
+            <span className={styles.brandSubtitle}>{t("header.subtitle")}</span>
+          </span>
+        </Link>
+
+        <div className={styles.headerMeta}>
+          <span className={styles.metaLabel}>{t("header.editing")}</span>
+          <span className={styles.metaValue}>{activeRoof?.name || ""}</span>
+          <span className={styles.metaDivider} aria-hidden="true" />
+          <span className={styles.metaLabel}>{t("header.area")}</span>
+          <span className={styles.metaValue}>
+            {t("units.metersSize", { width: activeRoof?.width ?? 0, height: activeRoof?.height ?? 0 })}
+          </span>
         </div>
 
-        {/* Center: Active roof display */}
-        <div className="hidden md:flex items-center gap-2 bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2">
-          <span className="text-[9px] font-black uppercase text-slate-500">{t("header.editing")}</span>
-          <span className="text-xs font-black text-[#1CBBBB] font-mono">{activeRoof?.name || ""}</span>
-          <span className="text-slate-600">|</span>
-          <span className="text-[9px] font-black uppercase text-slate-500">{t("header.area")}</span>
-          <span className="text-xs font-black text-white font-mono">{t("units.metersSize", { width: activeRoof?.width ?? 0, height: activeRoof?.height ?? 0 })}</span>
-        </div>
-
-        {/* Right Action Buttons */}
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            onClick={() => setIsConfigOpen(!isConfigOpen)}
-            className="flex min-h-11 items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs font-black uppercase text-slate-300 transition-all hover:border-slate-700 hover:bg-slate-900/60 lg:hidden"
-          >
-            {isConfigOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-            <span>{t("actions.config")}</span>
-          </button>
-          <Link href={`/${locale}`} className="hidden rounded-xl border border-slate-850 bg-slate-950/40 px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-300 transition-all hover:border-slate-700 hover:bg-slate-900/60 hover:text-white sm:inline-flex">
-            {t("actions.home")}
-          </Link>
-          <Link href={`/${locale}/build`} className="hidden rounded-xl bg-[#1CBBBB] px-4 py-2 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-[#1CBBBB]/10 transition-all hover:bg-[#159999] md:inline-flex">
-            {t("actions.backToBuild")}
-          </Link>
-        </div>
+        <nav className={styles.headerActions} aria-label={t("header.navigationLabel")}>
+          <Button asChild variant="outline" className={styles.headerAction}>
+            <Link href={`/${locale}`}>{t("actions.home")}</Link>
+          </Button>
+          <Button asChild variant="outline" className={styles.primaryAction}>
+            <Link href={`/${locale}/build`}>{t("actions.backToBuild")}</Link>
+          </Button>
+        </nav>
       </header>
 
-      {/* Main Workspace below header */}
-      <div className="relative flex w-full flex-1 flex-row gap-4 overflow-hidden bg-[#F0EEE9] px-3 py-4 sm:px-6 sm:py-8 lg:gap-8 lg:px-20">
+      <div className={styles.workspace}>
 
-      {/* ──── LEFT COLUMN: Scrollable Tabbed Panel with mobile overlay configuration ──── */}
-      <div className={cn(
-        "h-full w-[min(420px,calc(100vw-1.5rem))] shrink-0 overflow-y-auto bg-white p-4 sm:p-6 rounded-2xl shadow-lg border border-slate-100 flex flex-col transition-all duration-300 z-40",
-        "fixed lg:static top-20 bottom-0 left-0",
-        isConfigOpen ? "translate-x-0 shadow-2xl lg:shadow-none" : "-translate-x-full lg:translate-x-0"
-      )}>
+      <aside id="visualizer-settings" aria-labelledby="visualizer-settings-heading" className={styles.settings}>
 
         {/* Sticky Tab Header */}
-        <div className="sticky top-0 z-50 bg-white border-b border-slate-100 pb-3 flex flex-col gap-3 shrink-0">
+        <div className={styles.settingsHeader}>
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-700">{t("sections.configuration")}</h2>
-            <span className="text-[8px] font-black uppercase tracking-widest text-[#1CBBBB] border border-[#1CBBBB]/30 bg-[#1CBBBB]/5 px-2 py-0.5 rounded">{t("sections.plannerBadge")}</span>
+            <h2 id="visualizer-settings-heading" className="text-xs font-black uppercase tracking-widest text-slate-700">{t("sections.configuration")}</h2>
+            <span className="text-[8px] font-black uppercase tracking-widest text-[#315B7C] border border-[#315B7C]/30 bg-[#315B7C]/5 px-2 py-0.5 rounded">{t("sections.plannerBadge")}</span>
           </div>
-                  <div className="flex gap-5 overflow-x-auto" role="tablist" aria-label={locale === "th" ? "ส่วนตั้งค่าเครื่องมือวางแผง" : "Planner configuration sections"} style={{ scrollbarWidth: 'none' }}>
+          <div className={styles.tabs} role="tablist" aria-label={t("tabs.label")}>
             {([
               { key: 'roof', label: t("tabs.roof") },
               { key: 'shading', label: t("tabs.shading") },
               { key: 'electrical', label: t("tabs.electrical") },
             ] as { key: 'roof' | 'shading' | 'electrical'; label: string }[]).map(tab => (
-              <button key={tab.key} type="button"
+              <button key={tab.key} id={`visualizer-tab-${tab.key}`} type="button"
                 onClick={() => setActiveTab(tab.key)}
+                onKeyDown={(event) => {
+                  if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+                  event.preventDefault();
+                  const tabs = Array.from(event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? []);
+                  const currentIndex = tabs.indexOf(event.currentTarget);
+                  const direction = event.key === "ArrowRight" ? 1 : -1;
+                  const nextTab = tabs[(currentIndex + direction + tabs.length) % tabs.length];
+                  if (!nextTab) return;
+                  const nextKey = nextTab.id.replace("visualizer-tab-", "") as "roof" | "shading" | "electrical";
+                  setActiveTab(nextKey);
+                  nextTab.focus();
+                }}
                 role="tab"
                 aria-selected={activeTab === tab.key}
-                className={`pb-3 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors border-b-2 ${activeTab === tab.key ? 'border-[#1CBBBB] text-[#1CBBBB]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                aria-controls="visualizer-panel"
+                tabIndex={activeTab === tab.key ? 0 : -1}
+                className={`pb-3 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors border-b-2 ${activeTab === tab.key ? 'border-[#315B7C] text-[#315B7C]' : 'border-transparent text-slate-600 hover:text-slate-800'}`}
               >
                 {tab.label}
               </button>
@@ -442,19 +475,19 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
         </div>
 
         {/* Tab Content */}
-        <div className="py-5 space-y-6 flex-1">
+        <div id="visualizer-panel" role="tabpanel" aria-labelledby={`visualizer-tab-${activeTab}`} tabIndex={0} className="py-5 space-y-6 flex-1 outline-none">
 
           {/* ══ TAB 1: Roof & Sizing ══ */}
           {activeTab === 'roof' && (
             <>
               {/* Mode Toggle */}
               <div className="flex rounded-xl overflow-hidden border border-slate-200 bg-slate-50 mb-6">
-                <button onClick={() => setPlannerMode('2d')}
+                <button type="button" aria-pressed={plannerMode === '2d'} onClick={() => setPlannerMode('2d')}
                   className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest text-center transition-all ${plannerMode === '2d' ? 'bg-white text-slate-900 shadow-sm border border-slate-100 rounded-lg' : 'text-slate-500 hover:text-slate-700'}`}>
                   2D Canvas
                 </button>
-                <button onClick={() => setPlannerMode('maps')}
-                  className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${plannerMode === 'maps' ? 'bg-white text-[#1CBBBB] shadow-sm border border-slate-100 rounded-lg' : 'text-slate-500 hover:text-slate-700'}`}>
+                <button type="button" aria-pressed={plannerMode === 'maps'} onClick={() => setPlannerMode('maps')}
+                  className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${plannerMode === 'maps' ? 'bg-white text-[#315B7C] shadow-sm border border-slate-100 rounded-lg' : 'text-slate-500 hover:text-slate-700'}`}>
                   <Layers className="w-3 h-3" /><span>{t("actions.satelliteMode")}</span>
                 </button>
               </div>
@@ -463,21 +496,21 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
               {plannerMode === '2d' ? (
                 <div className="space-y-6">
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-100 pb-2.5 flex items-center gap-1.5">
-                    <Compass className="w-3.5 h-3.5 text-[#1CBBBB]" />
+                    <Compass className="w-3.5 h-3.5 text-[#315B7C]" />
                     {t("sections.inputs")}
                   </h3>
 
                   {/* Product Selection */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex justify-between">
+                    <label htmlFor="visualizer-panel-product" className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex justify-between">
                       <span>{t("fields.product")}</span>
-                      <span className="text-[#1CBBBB] lowercase">{t("fields.specifications")}</span>
+                      <span className="text-[#315B7C] lowercase">{t("fields.specifications")}</span>
                     </label>
                     <select id="visualizer-panel-product" aria-label={t("fields.product")} value={selectedProductId} onChange={(e) => {
                       const nextProductId = e.target.value;
                       setSelectedProductId(nextProductId);
                     }}
-                      className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 focus:border-[#1CBBBB] rounded-xl px-3 py-2.5 outline-none transition-all cursor-pointer">
+                      className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 focus:border-[#315B7C] rounded-xl px-3 py-2.5 outline-none transition-all cursor-pointer">
                       {solarProducts.map(p => (
                         <option key={p.id} value={p.id}>{p.name} ({p.power}W) — {formatPrice(p.price)}</option>
                       ))}
@@ -494,7 +527,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                         <input type="range" min="0" max="360" step="1" aria-label={locale === "th" ? "การหมุนแผงโซลาร์" : "Panel rotation"}
                           value={activeRoof?.panelRotation ?? 0}
                           onChange={(e) => updateActiveRoof('panelRotation', Number(e.target.value))}
-                          className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#1CBBBB]" />
+                          className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#315B7C]" />
                         <span className="text-xs font-black text-slate-900 font-mono w-8 text-right shrink-0">
                           {activeRoof?.panelRotation ?? 0}°
                         </span>
@@ -505,26 +538,22 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                     <div className="mt-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.quantity")}</span>
                       <div className="flex items-center gap-2">
-                        <button type="button" onClick={(e) => {
+                        <button type="button" aria-label={t("actions.removePanel")} onClick={(e) => {
                           e.stopPropagation();
                           const p = activeRoof?.panels || [];
                           if (p.length > 0)
                             updateActiveRoof("panels", p.slice(0, -1));
                         }}
-                          className="w-7 h-7 rounded-lg bg-brand-surface border border-slate-200 flex items-center justify-center font-bold text-slate-700 hover:bg-slate-100 cursor-pointer text-sm">-</button>
-                        <input
-                          type="text"
-                          readOnly
-                          value={activeRoof?.panels?.length ?? 0}
-                          aria-label={t("fields.quantity")}
-                          className="text-xs font-black text-slate-900 font-mono w-8 text-center bg-transparent border-none outline-none focus:ring-0 focus:outline-none pointer-events-none"
-                        />
-                        <button type="button" onClick={(e) => {
+                          className="flex h-11 w-11 items-center justify-center rounded-lg bg-brand-surface border border-slate-200 font-bold text-slate-700 hover:bg-slate-100 cursor-pointer text-lg">−</button>
+                        <output role="status" aria-live="polite" aria-label={t("fields.quantity")} className="w-10 text-center text-sm font-black text-slate-900 font-mono">
+                          {activeRoof?.panels?.length ?? 0}
+                        </output>
+                        <button type="button" aria-label={t("actions.addPanel")} onClick={(e) => {
                           e.stopPropagation();
                           const p = activeRoof?.panels || [];
                           updateActiveRoof("panels", [...p, { id: `p-${Date.now()}`, x: 0, y: 0, rotation: 0 }]);
                         }}
-                          className="w-7 h-7 rounded-lg bg-brand-surface border border-slate-200 flex items-center justify-center font-bold text-slate-700 hover:bg-slate-100 cursor-pointer text-sm">+</button>
+                          className="flex h-11 w-11 items-center justify-center rounded-lg bg-brand-surface border border-slate-200 font-bold text-slate-700 hover:bg-slate-100 cursor-pointer text-lg">+</button>
                       </div>
                     </div>
                   </div>
@@ -533,24 +562,26 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                   <div className="space-y-2 pt-2 border-t border-slate-100">
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex justify-between">
                       <span>{t("fields.selectRoof")}</span>
-                      <span className="text-[#1CBBBB] lowercase">{t("fields.tabsLabel")}</span>
+                      <span className="text-[#315B7C] lowercase">{t("fields.tabsLabel")}</span>
                     </label>
                     <div className="flex flex-wrap gap-1.5">
                       {roofs.map(r => (
-                        <div key={r.id} onClick={() => setActiveRoofId(r.id)}
-                          className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border cursor-pointer",
-                            r.id === activeRoofId ? "bg-[#1CBBBB]/10 text-[#1CBBBB] border-[#1CBBBB]/20 shadow-sm" : "bg-brand-surface text-slate-500 border-slate-200 hover:text-slate-700")}>
-                          <span>{r.name}</span>
+                        <div key={r.id} className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-0.5">
+                          <button type="button" aria-pressed={r.id === activeRoofId} onClick={() => setActiveRoofId(r.id)}
+                            className={cn("min-h-11 rounded-lg px-3 text-[10px] font-black uppercase tracking-wider transition-all",
+                              r.id === activeRoofId ? cn(styles.selectedOption, "shadow-sm") : "text-slate-600 hover:bg-slate-50")}>
+                            {r.name}
+                          </button>
                           {roofs.length > 1 && (
                             <button type="button" aria-label={locale === "th" ? `ลบ${r.name}` : `Delete ${r.name}`} onClick={(e) => { e.stopPropagation(); handleDeleteRoof(r.id); }}
-                              className="p-0.5 rounded hover:bg-slate-200 text-slate-400 hover:text-rose-500">
+                              className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-600">
                               <Trash2 className="w-3 h-3 stroke-[2.5]" />
                             </button>
                           )}
                         </div>
                       ))}
-                      <button onClick={handleAddRoof}
-                        className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border border-dashed border-[#1CBBBB] text-[#1CBBBB] bg-[#1CBBBB]/5 hover:bg-[#1CBBBB]/10 cursor-pointer flex items-center gap-1">
+                      <button type="button" onClick={handleAddRoof}
+                        className="min-h-11 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider border border-dashed border-slate-500 text-slate-800 bg-white hover:bg-slate-100 cursor-pointer flex items-center gap-1">
                         <Plus className="w-3 h-3" /><span>{t("actions.addRoof")}</span>
                       </button>
                     </div>
@@ -558,34 +589,34 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
 
                   {/* Roof Name Editor */}
                   <div className="pt-2 border-t border-slate-100">
-                    <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/60 rounded-xl px-3 py-2 focus-within:border-[#1CBBBB] group/title">
+                    <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/60 rounded-xl px-3 py-2 focus-within:border-[#315B7C] group/title">
                       <input type="text" aria-label={t("placeholders.roofName")} value={activeRoof.name}
                         onChange={(e) => updateRoofName(activeRoof.id, e.target.value)}
                         className="w-full text-sm font-bold text-slate-900 bg-transparent border-none outline-none"
                         placeholder={t("placeholders.roofName")} />
-                      <Edit3 className="w-4 h-4 text-slate-400 group-hover/title:text-[#1CBBBB]" />
+                      <Edit3 className="w-4 h-4 text-slate-400 group-hover/title:text-[#315B7C]" />
                     </div>
                   </div>
 
                   {/* Dimensions */}
                   <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.width")} <span className="text-[#1CBBBB] font-mono">{t("units.meters", { value: activeRoof.width })}</span></label>
+                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.width")} <span className="text-[#315B7C] font-mono">{t("units.meters", { value: activeRoof.width })}</span></label>
                       <input type="range" min="4" max="30" step="0.5" aria-label={t("fields.width")} value={activeRoof.width} onChange={(e) => updateActiveRoof('width', Number(e.target.value))}
-                        className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#1CBBBB]" />
+                        className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#315B7C]" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.length")} <span className="text-[#1CBBBB] font-mono">{t("units.meters", { value: activeRoof.height })}</span></label>
+                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.length")} <span className="text-[#315B7C] font-mono">{t("units.meters", { value: activeRoof.height })}</span></label>
                       <input type="range" min="3" max="20" step="0.5" aria-label={t("fields.length")} value={activeRoof.height} onChange={(e) => updateActiveRoof('height', Number(e.target.value))}
-                        className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#1CBBBB]" />
+                        className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#315B7C]" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.pitch")} <span className="text-[#D8A87B] font-mono">{activeRoof.pitch}°</span></label>
+                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.pitch")} <span className="text-[#8A5731] font-mono">{activeRoof.pitch}°</span></label>
                       <input type="range" min="0" max="45" step="1" aria-label={t("fields.pitch")} value={activeRoof.pitch} onChange={(e) => updateActiveRoof('pitch', Number(e.target.value))}
                         className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#D8A87B]" />
                     </div>
                     <div className="space-y-1.5 col-span-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.roofAzimuth")} <span className="text-[#D8A87B] font-mono">{activeRoof.roofOrientation}°</span></label>
+                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.roofAzimuth")} <span className="text-[#8A5731] font-mono">{activeRoof.roofOrientation}°</span></label>
                       <CompassSlider
                         value={activeRoof.roofOrientation}
                         ariaLabel={t("fields.roofAzimuth")}
@@ -601,29 +632,29 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
+                        aria-pressed={(activeRoof.roofType ?? 'concrete') === 'concrete'}
                         onClick={() => updateActiveRoof('roofType', 'concrete')}
                         className={cn(
                           "py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all flex flex-col items-center justify-center gap-1 cursor-pointer",
                           (activeRoof.roofType ?? 'concrete') === 'concrete'
-                            ? "bg-[#1CBBBB] text-white border-[#1CBBBB] shadow-sm"
-                            : "bg-brand-surface text-slate-500 border-slate-200 hover:bg-slate-50"
+                            ? cn(styles.selectedOption, "shadow-sm")
+                            : "bg-brand-surface text-slate-700 border-slate-200 hover:bg-slate-50"
                         )}
                       >
                         <span>{t("roofTypes.concrete")}</span>
-                        <span className="text-[8px] opacity-75">(Concrete Tile)</span>
                       </button>
                       <button
                         type="button"
+                        aria-pressed={activeRoof.roofType === 'metal'}
                         onClick={() => updateActiveRoof('roofType', 'metal')}
                         className={cn(
                           "py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all flex flex-col items-center justify-center gap-1 cursor-pointer",
                           activeRoof.roofType === 'metal'
-                            ? "bg-[#1CBBBB] text-white border-[#1CBBBB] shadow-sm"
-                            : "bg-brand-surface text-slate-500 border-slate-200 hover:bg-slate-50"
+                            ? cn(styles.selectedOption, "shadow-sm")
+                            : "bg-brand-surface text-slate-700 border-slate-200 hover:bg-slate-50"
                         )}
                       >
                         <span>{t("roofTypes.metal")}</span>
-                        <span className="text-[8px] opacity-75">(Metal Sheet)</span>
                       </button>
                     </div>
                   </div>
@@ -632,10 +663,10 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                   <div className="space-y-1 pt-2 border-t border-slate-100">
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex justify-between">
                       <span>{t("fields.setback")}</span>
-                      <span className="text-[#1CBBBB] font-mono">{t("units.meters", { value: setbackMargin })}</span>
+                      <span className="text-[#315B7C] font-mono">{t("units.meters", { value: setbackMargin })}</span>
                     </label>
                     <input type="range" min="0" max="2" step="0.1" aria-label={t("fields.setback")} value={setbackMargin} onChange={(e) => setSetbackMargin(Number(e.target.value))}
-                      className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#1CBBBB]" />
+                      className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#315B7C]" />
                   </div>
 
                   {/* Meter & Phase */}
@@ -643,8 +674,8 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.meterType")}</label>
                     <div className="grid grid-cols-2 gap-2">
                       {(['NORMAL', 'TOU'] as const).map(m => (
-                        <button key={m} onClick={() => setMeterType(m)}
-                          className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all ${meterType === m ? 'bg-[#1CBBBB] text-white border-[#1CBBBB]' : 'bg-brand-surface text-slate-500 border-slate-200 hover:bg-slate-50'}`}>
+                        <button key={m} type="button" aria-pressed={meterType === m} onClick={() => setMeterType(m)}
+                          className={cn("min-h-11 rounded-xl px-3 text-[10px] font-black uppercase tracking-wider border transition-all", meterType === m ? styles.selectedOption : "bg-brand-surface text-slate-700 border-slate-200 hover:bg-slate-50")}>
                           {m === 'NORMAL' ? t("meter.normal") : t("meter.tou")}
                         </button>
                       ))}
@@ -653,10 +684,10 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">{t("fields.electricalPhase")}</label>
                     <div className="grid grid-cols-2 gap-2">
                       {(['1-Phase', '3-Phase'] as const).map(ph => (
-                        <button key={ph} onClick={() => setElectricalPhase(ph)}
-                          className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all flex flex-col items-center ${electricalPhase === ph ? (ph === '1-Phase' ? 'bg-slate-900 text-white border-slate-900' : 'bg-[#1CBBBB] text-white border-[#1CBBBB]') : 'bg-brand-surface text-slate-500 border-slate-200 hover:bg-slate-50'}`}>
+                        <button key={ph} type="button" aria-pressed={electricalPhase === ph} onClick={() => setElectricalPhase(ph)}
+                          className={cn("min-h-11 rounded-xl px-3 text-[10px] font-black uppercase tracking-wider border transition-all flex flex-col items-center justify-center", electricalPhase === ph ? (ph === '1-Phase' ? "bg-slate-900 text-white border-slate-900" : styles.selectedOption) : "bg-brand-surface text-slate-700 border-slate-200 hover:bg-slate-50")}>
                           <span>{ph === '1-Phase' ? '1 Phase (220V)' : '3 Phase (380V)'}</span>
-                          <span className="text-[8px] opacity-70">{ph === '1-Phase' ? t("phase.oneHint") : t("phase.threeHint")}</span>
+                          <span className="text-[8px]">{ph === '1-Phase' ? t("phase.oneHint") : t("phase.threeHint")}</span>
                         </button>
                       ))}
                     </div>
@@ -682,10 +713,10 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-slate-500">
                         <span>{t("fields.daytimeUsage")}</span>
-                        <span className="text-[#1CBBBB] font-mono">{daytimeUsagePercent}%</span>
+                        <span className="text-[#315B7C] font-mono">{daytimeUsagePercent}%</span>
                       </div>
                       <input type="range" min="10" max="100" step="5" aria-label={t("fields.daytimeUsage")} value={daytimeUsagePercent} onChange={(e) => setDaytimeUsagePercent(Number(e.target.value))}
-                        className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#1CBBBB]" />
+                        className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#315B7C]" />
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-slate-500">
@@ -716,15 +747,15 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                 /* Satellite Map Config */
                 <div className="bg-brand-surface border border-slate-200 rounded-2xl p-4 space-y-3">
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100 pb-2.5 flex items-center gap-1.5">
-                    <Compass className="w-3.5 h-3.5 text-[#1CBBBB]" />
+                    <Compass className="w-3.5 h-3.5 text-[#315B7C]" />
                     {t("sections.satelliteRoofAnalysis")}
                   </h3>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.addressSearch")}</label>
+                    <label htmlFor="visualizer-address-search" className="text-[10px] font-black uppercase tracking-wider text-slate-500">{t("fields.addressSearch")}</label>
                     <div className="flex gap-2">
-                      <input type="text" aria-label={t("fields.addressSearch")} value={addressSearch} onChange={(e) => setAddressSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                      <input id="visualizer-address-search" type="text" value={addressSearch} onChange={(e) => setAddressSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         placeholder={t("placeholders.addressSearch")}
-                        className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 focus:border-[#1CBBBB] rounded-xl px-3 py-2.5 outline-none" />
+                        className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 focus:border-[#315B7C] rounded-xl px-3 py-2.5 outline-none" />
                       <button type="button" onClick={handleSearch}
                         className="px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer transition-colors">{t("actions.search")}</button>
                     </div>
@@ -735,7 +766,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                     <li>{t("mapInstructions.area")}</li>
                   </ul>
                   <button type="button" onClick={runAiAnalysis} disabled={isAiAnalyzing}
-                    className="w-full py-3 bg-gradient-to-r from-[#1CBBBB] to-[#159999] text-white rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60">
+                    className={cn("w-full min-h-11 rounded-xl py-3 text-[10px] font-black uppercase tracking-widest cursor-pointer flex items-center justify-center gap-2 transition-colors disabled:opacity-60", styles.primaryCanvasAction)}>
                     {isAiAnalyzing ? (
                       <>
                         <GsapSpinner className="w-3.5 h-3.5" />
@@ -763,12 +794,12 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
                         {aiAnalysisResult && (
                           <>
                             <div className="bg-brand-surface p-2.5 border border-slate-200 rounded-xl">
-                              <span className="text-[8px] font-black uppercase text-[#1CBBBB] block">{t("ai.area")}</span>
-                              <span className="text-sm font-black text-[#1CBBBB] font-mono">{t("units.squareMeters", { value: aiAnalysisResult.area })}</span>
+                              <span className="text-[8px] font-black uppercase text-[#315B7C] block">{t("ai.area")}</span>
+                              <span className="text-sm font-black text-[#315B7C] font-mono">{t("units.squareMeters", { value: aiAnalysisResult.area })}</span>
                             </div>
                             <div className="bg-brand-surface p-2.5 border border-slate-200 rounded-xl">
-                              <span className="text-[8px] font-black uppercase text-[#D8A87B] block">{t("ai.pitch")}</span>
-                              <span className="text-sm font-black text-[#D8A87B] font-mono">{aiAnalysisResult.pitch}°</span>
+                              <span className="text-[8px] font-black uppercase text-[#8A5731] block">{t("ai.pitch")}</span>
+                              <span className="text-sm font-black text-[#8A5731] font-mono">{aiAnalysisResult.pitch}°</span>
                             </div>
                           </>
                         )}
@@ -928,49 +959,54 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
           )}
 
           {/* ══ ALWAYS VISIBLE: Analytics Board ══ */}
-          <div className="bg-brand-surface border border-slate-200 rounded-2xl p-4 space-y-3">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100 pb-2.5">
+          <div className={cn("bg-brand-surface border border-slate-200 rounded-2xl p-4 space-y-3", styles.summaryCard)}>
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-600 border-b border-slate-100 pb-2.5">
               {t("sections.analyticsRoi")}
             </h3>
             <div className="grid grid-cols-2 gap-2">
               <div className="p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t("analytics.totalPanels")}</p>
-                <p className="text-xl font-black text-slate-800 font-mono"><AnimatedNumber value={totalPanelsAll} /> <span className="text-[10px] text-slate-500">{t("units.panels")}</span></p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">{t("analytics.totalPanels")}</p>
+                <p className="text-xl font-black text-slate-800 font-mono"><AnimatedNumber value={totalPanelsAll} /> <span className="text-[10px] text-slate-700">{t("units.panels")}</span></p>
               </div>
-              <div className="p-3 bg-[#1CBBBB]/5 border border-[#1CBBBB]/10 rounded-xl">
-                <p className="text-[9px] font-black uppercase tracking-widest text-[#1CBBBB]">{t("analytics.totalCapacity")}</p>
-                <p className="text-xl font-black text-slate-800 font-mono"><AnimatedNumber value={totalPowerAll / 1000} decimals={2} /> <span className="text-[10px] text-slate-500">{t("units.kwp")}</span></p>
+              <div className="p-3 bg-[#315B7C]/5 border border-[#315B7C]/10 rounded-xl">
+                <p className="text-[9px] font-black uppercase tracking-widest text-[#315B7C]">{t("analytics.totalCapacity")}</p>
+                <p className="text-xl font-black text-slate-800 font-mono"><AnimatedNumber value={totalPowerAll / 1000} decimals={2} /> <span className="text-[10px] text-slate-700">{t("units.kwp")}</span></p>
               </div>
-              <div className="p-3 bg-[#1CBBBB]/5 border border-[#1CBBBB]/10 rounded-xl">
-                <p className="text-[9px] font-black uppercase tracking-widest text-[#1CBBBB]">{t("analytics.monthlySavings")}</p>
-                <p className="text-xl font-black text-[#1CBBBB] font-mono">{financialInputsReady ? <AnimatedNumber value={estimatedSavingsMonthly} formatter={(amount) => formatPrice(Math.round(amount))} /> : t("analytics.locked")}</p>
+              <div className="p-3 bg-[#315B7C]/5 border border-[#315B7C]/10 rounded-xl">
+                <p className="text-[9px] font-black uppercase tracking-widest text-[#315B7C]">{t("analytics.monthlySavings")}</p>
+                <p className="text-xl font-black text-[#315B7C] font-mono">{financialInputsReady ? <AnimatedNumber value={estimatedSavingsMonthly} formatter={(amount) => formatPrice(Math.round(amount))} /> : t("analytics.locked")}</p>
               </div>
               <div className="p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t("analytics.paybackPeriod")}</p>
-                <p className="text-xl font-black text-[#D8A87B] font-mono">{financialInputsReady && paybackPeriodYears > 0 ? <AnimatedNumber value={paybackPeriodYears} decimals={1} suffix={` ${t("analytics.yearShort")}`} /> : t("analytics.notAvailable")}</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">{t("analytics.paybackPeriod")}</p>
+                <p className="text-xl font-black text-[#8A5731] font-mono">{financialInputsReady && paybackPeriodYears > 0 ? <AnimatedNumber value={paybackPeriodYears} decimals={1} suffix={` ${t("analytics.yearShort")}`} /> : t("analytics.notAvailable")}</p>
               </div>
-              <div className="p-3 bg-brand-surface border border-slate-200 rounded-xl col-span-2 grid grid-cols-3 gap-2">
-                <div>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t("analytics.thailandPsh")}</p>
-                  <p className="text-sm font-black text-slate-800 font-mono"><AnimatedNumber value={thailandYield.peakSunHours} decimals={2} suffix="h" /></p>
+              <details className="col-span-2 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                <summary className="flex min-h-11 cursor-pointer items-center px-3 text-xs font-bold text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#315B7C]">
+                  {t("analytics.moreDetails")}
+                </summary>
+                <div className="grid grid-cols-3 gap-2 border-t border-slate-100 p-3">
+                  <div>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">{t("analytics.thailandPsh")}</p>
+                    <p className="text-sm font-black text-slate-800 font-mono"><AnimatedNumber value={thailandYield.peakSunHours} decimals={2} suffix="h" /></p>
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">{t("analytics.qualityFactor")}</p>
+                    <p className="text-sm font-black text-slate-800 font-mono"><AnimatedNumber value={thailandYield.performanceRatio * 100} suffix="%" /></p>
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">{t("analytics.annualYield")}</p>
+                    <p className="text-sm font-black text-slate-800 font-mono"><AnimatedNumber value={thailandYield.annualKwh} suffix=" kWh" /></p>
+                  </div>
+                  <div className="col-span-3 border-t border-slate-100 pt-2">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">{t("analytics.panelMaterialEstimate")}</p>
+                    <p className="text-lg font-black text-slate-800 font-mono"><AnimatedNumber value={totalCostAll} formatter={(amount) => formatPrice(Math.round(amount))} /></p>
+                    <p className="text-[9px] text-slate-500 font-semibold mt-1">{t("analytics.materialEstimateNote")}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t("analytics.qualityFactor")}</p>
-                  <p className="text-sm font-black text-slate-800 font-mono"><AnimatedNumber value={thailandYield.performanceRatio * 100} suffix="%" /></p>
-                </div>
-                <div>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t("analytics.annualYield")}</p>
-                  <p className="text-sm font-black text-slate-800 font-mono"><AnimatedNumber value={thailandYield.annualKwh} suffix=" kWh" /></p>
-                </div>
-              </div>
-              <div className="p-3 bg-brand-surface border border-slate-200 rounded-xl col-span-2">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t("analytics.panelMaterialEstimate")}</p>
-                <p className="text-xl font-black text-slate-800 font-mono"><AnimatedNumber value={totalCostAll} formatter={(amount) => formatPrice(Math.round(amount))} /></p>
-                <p className="text-[9px] text-slate-400 font-semibold mt-1">{t("analytics.materialEstimateNote")}</p>
-              </div>
+              </details>
             </div>
             <div className="bg-slate-50 border border-slate-100 p-3 rounded-xl text-[10px] text-slate-500 font-semibold flex gap-2 leading-relaxed">
-              <Info className="w-3.5 h-3.5 text-[#1CBBBB] shrink-0 mt-0.5" />
+              <Info className="w-3.5 h-3.5 text-[#315B7C] shrink-0 mt-0.5" />
               <span><strong className="text-slate-700 uppercase">{t("help.knowledgeLabel")}</strong> {t("help.multiRoof")}</span>
             </div>
             {!financialInputsReady && (
@@ -982,12 +1018,10 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
 
         </div>
         {/* End Tab Content */}
-      </div>
-      {/* End Left Column */}
+      </aside>
 
-      {/* ──── RIGHT COLUMN: Full-height Canvas ──── */}
-      <div className="flex-1 h-full relative bg-slate-50 overflow-hidden">
-        <InteractiveCursor label="Drag" className="w-full h-full">
+      <section className={styles.canvas} aria-label={plannerMode === "2d" ? t("canvas.multiRoofPlanner") : t("canvas.satellitePlanner")}>
+        <InteractiveCursor label={t("canvas.dragPanels")} className="w-full h-full">
 
         {plannerMode === '2d' ? (
           <div className="w-full h-full relative overflow-hidden">
@@ -995,23 +1029,18 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
             <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-start pointer-events-none">
               <div className="bg-brand-surface/80 backdrop-blur-md p-3 rounded-2xl shadow-sm border border-slate-200/50 pointer-events-auto max-w-xs">
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                  <Maximize2 className="w-3.5 h-3.5 text-[#1CBBBB]" size={14} />
+                  <Maximize2 className="w-3.5 h-3.5 text-[#315B7C]" size={14} />
                   {t("canvas.multiRoofPlanner")}
                 </h3>
                 <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">{t("canvas.freeformPlacement")}</p>
               </div>
-              <span className="text-[8px] font-black uppercase tracking-widest text-white bg-[#1CBBBB] px-3 py-1.5 rounded-full shadow-sm">{t("canvas.liveRenderer")}</span>
             </div>
             <SimulatorOverlay
               activeRoof={activeRoof}
-              allRoofs={roofs}
               selectedProduct={selectedProduct}
               shadingMonth={shadingMonth}
               shadingTimeHour={shadingTimeHour}
               onPanelUpdate={(newPanels) => updateActiveRoof('panels', newPanels)}
-              daytimeUsagePercent={daytimeUsagePercent}
-              electricityRate={electricityRate}
-              financialInputsReady={financialInputsReady}
               setbackMargin={setbackMargin}
             />
           </div>
@@ -1021,12 +1050,12 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
             <div className="absolute top-4 left-4 right-4 z-[400] flex justify-between items-start pointer-events-none">
               <div className="bg-brand-surface/80 backdrop-blur-md p-3 rounded-2xl shadow-sm border border-slate-200/50 pointer-events-auto max-w-xs">
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-[#1CBBBB]" size={14} />
+                  <Layers className="w-3.5 h-3.5 text-[#315B7C]" size={14} />
                   {t("canvas.satellitePlanner")}
                 </h3>
                 <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">{t("canvas.traceBoundary")}</p>
               </div>
-              <span className="text-[8px] font-black uppercase tracking-widest text-white bg-[#1CBBBB] px-3 py-1.5 rounded-full shadow-sm pointer-events-auto">{t("actions.satelliteMode")}</span>
+              <span className="text-[8px] font-black uppercase tracking-widest text-slate-900 bg-[#B7D1EA] px-3 py-1.5 rounded-full shadow-sm pointer-events-auto">{t("actions.satelliteMode")}</span>
             </div>
             <div className="flex-1 w-full h-full relative z-0">
               <MapRoofSelector
@@ -1054,7 +1083,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
             {/* Bottom Action Bar */}
             <div className="absolute bottom-5 left-5 right-5 z-[400] bg-brand-surface/95 backdrop-blur-md border border-slate-200 shadow-xl rounded-2xl p-3.5 flex justify-between items-center pointer-events-auto">
               <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold">
-                <GsapPulse className="w-2.5 h-2.5 rounded-full bg-[#1CBBBB] shrink-0" scale={1.16}>
+                <GsapPulse className="w-2.5 h-2.5 rounded-full bg-[#315B7C] shrink-0" scale={1.16}>
                   <span className="sr-only">{t("actions.ready")}</span>
                 </GsapPulse>
                 <span>{t("canvas.traceRoofBoundary")}</span>
@@ -1062,7 +1091,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
               <button type="button"
                 onClick={() => { setIsGenerating(true); setTimeout(() => { setIsGenerating(false); setPlannerMode('2d'); }, 800); }}
                 disabled={isGenerating}
-                className="px-5 py-2.5 bg-[#1CBBBB] hover:bg-[#159999] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all active:scale-[0.98] flex items-center gap-1.5 disabled:opacity-80 disabled:cursor-not-allowed">
+                className={cn("min-h-11 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all active:scale-[0.98] flex items-center gap-1.5 disabled:opacity-80 disabled:cursor-not-allowed", styles.primaryCanvasAction)}>
                 {isGenerating ? (
                   <>
                     <GsapSpinner className="w-3.5 h-3.5" />
@@ -1074,31 +1103,9 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
           </div>
         )}
 
-        {/* Sidebar Toggle Button floating on the canvas */}
-        <button
-          type="button"
-          onClick={() => setIsConfigOpen(!isConfigOpen)}
-          title={isConfigOpen ? t("actions.hideSettings") : t("actions.showSettings")}
-          className="absolute bottom-4 right-4 z-40 p-3 bg-[#B7D1EA] hover:bg-[#99bcdd] text-slate-900 rounded-full shadow-lg transition-all flex items-center justify-center pointer-events-auto"
-        >
-          {isConfigOpen ? <ChevronLeft className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
-        </button>
         </InteractiveCursor>
+      </section>
       </div>
-      {/* End Right Column */}
-
-      {/* Responsive Lock Shield over Cloud Dancer backdrop */}
-      <div className="fixed inset-0 z-[9999] hidden flex-col items-center justify-center bg-[#F0EEE9] p-6 text-center portrait:flex landscape:hidden lg:hidden">
-        <GsapPulse className="w-20 h-20 bg-[#B7D1EA]/30 rounded-3xl flex items-center justify-center mb-6">
-          <GsapSpinner className="w-10 h-10 text-slate-800" />
-        </GsapPulse>
-        <h2 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wider">{t("orientationLock.title")}</h2>
-        <p className="text-xs font-black text-slate-500 max-w-sm leading-relaxed uppercase tracking-wider">
-          {t("orientationLock.description")}
-        </p>
-      </div>
-
-    </div>
     </div>
   );
 }
