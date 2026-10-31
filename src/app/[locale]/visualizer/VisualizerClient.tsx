@@ -388,7 +388,7 @@ export default function VisualizerClient({ initialProducts = fallbackVisualizerP
             <Cpu className="h-5 w-5" />
           </span>
           <span className={styles.brandCopy}>
-            <span className={styles.brandText}>{t("header.title")}</span>
+            <h1 className={styles.brandText}>{t("header.title")}</h1>
             <span className={styles.brandSubtitle}>{t("header.subtitle")}</span>
           </span>
         </Link>

@@ -54,6 +54,7 @@
 }
 
 .brandText {
+  margin: 0;
   overflow: hidden;
   font-size: 0.95rem;
   font-weight: 800;
