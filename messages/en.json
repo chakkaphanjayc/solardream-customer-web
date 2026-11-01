@@ -6127,9 +6127,31 @@
   },
   "SignaturePad": {
     "drawingArea": "Signature drawing area",
+    "methodLabel": "Signature method",
+    "drawMethod": "Draw signature",
+    "typeMethod": "Type your name",
+    "drawingInstructions": "Draw with touch or a mouse. To sign with a keyboard, choose “Type your name” above.",
+    "typingInstructions": "Review the preview, then confirm when it matches the signer name above.",
+    "typedPrompt": "Your typed signature preview will appear here.",
+    "typedPreview": "Typed signature preview for {name}",
+    "applyTypedName": "Use signer name as signature",
     "clear": "Clear",
     "signing": "Signing…",
-    "confirm": "Confirm signature"
+    "confirm": "Confirm signature",
+    "status": {
+      "empty": "Add a drawn or typed signature to enable confirmation.",
+      "ready": "Signature is ready to confirm.",
+      "submitting": "Submitting signature. Please wait.",
+      "submitFailed": "Signature was not submitted. Your signature is still available; review the message and try again.",
+      "preserved": "Your drawn signature was preserved after the canvas resized.",
+      "resizeFailed": "We could not restore your signature after the canvas resized. Please draw it again.",
+      "signatureCreated": "Typed signature preview is ready.",
+      "signatureCleared": "Signature cleared.",
+      "methodChanged": "Signature cleared. Add a new signature using this method.",
+      "nameRequired": "Enter the signer name above before creating a typed signature.",
+      "nameChanged": "The typed signature was cleared because the signer name changed.",
+      "typedUnavailable": "A typed signature could not be created. Please try again."
+    }
   },
   "AdminNavigation": {
     "workspace": {
