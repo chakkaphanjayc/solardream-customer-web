@@ -337,7 +337,7 @@ export default function RegisterForm({
           </div>
         </fieldset>
 
-        <Button type="submit" size="lg" disabled={loading} className="min-h-12 w-full rounded-full bg-[#B7D1EA] text-white hover:bg-[#A5C2DE] active:scale-95 shadow-md font-bold">
+        <Button type="submit" size="lg" disabled={loading} className="min-h-12 w-full rounded-full bg-[#B7D1EA] text-[#0B051D] hover:bg-[#A5C2DE] active:scale-95 shadow-md font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5089bf]">
           {loading ? <Loader2 aria-hidden="true" className="h-5 w-5 animate-spin" /> : null}
           {t("createAccount")}
         </Button>
@@ -383,12 +383,12 @@ function ConsentCheckbox({
         className={cn(
           "mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border transition-colors duration-200 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-ring",
           checked
-            ? "border-[#7CA8D0] bg-[#B7D1EA] text-white"
+            ? "border-[#7CA8D0] bg-[#B7D1EA] text-[#0B051D]"
             : "border-slate-400 bg-white text-transparent",
         )}
         aria-hidden="true"
       >
-        <Check className="h-3.5 w-3.5" />
+        <Check className="h-3.5 w-3.5 stroke-[3]" />
       </span>
       <span>
         <span className="block text-sm font-semibold text-foreground">{label}</span>

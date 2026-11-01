@@ -13,7 +13,12 @@
     "taxId": "TAX ID",
     "address": "ADDRESS",
     "tel": "TEL",
-    "email": "EMAIL"
+    "email": "EMAIL",
+    "newsletterTitle": "Monthly Solar Tips & Insights",
+    "newsletterDescription": "Energy saving techniques, incentives updates, and expert solar insights delivered monthly.",
+    "newsletterPlaceholder": "Enter your email address",
+    "newsletterSubmit": "Subscribe",
+    "newsletterSubscribed": "Thank you for subscribing!"
   },
   "HomeLanding": {
     "nav": {
@@ -2205,7 +2210,8 @@
     "validUntil": "📅 Promotion ends: {date}",
     "includedTitle": "Components Included",
     "specialPrice": "Bundle Special Price",
-    "orderBundle": "Order This Bundle"
+    "askAboutBundle": "Ask about this bundle",
+    "addToCart": "Add to cart"
   },
   "DiscordTestButton": {
     "title": "System Integration Testing",
@@ -2723,7 +2729,23 @@
     "emptyState": {
       "title": "No Components Found",
       "description": "We couldn't find any products matching your active search filters. Try selecting a different category or clearing keyword queries."
-    }
+    },
+    "compare": "Compare",
+    "clearFilters": "Clear all filters",
+    "compareMaxError": "You can compare up to 3 components",
+    "compareDockTitle": "Compare Components",
+    "compareNow": "Compare Now",
+    "clearCompare": "Clear",
+    "compareDescription": "Compare technical specifications side by side.",
+    "compareScrollHint": "Swipe or scroll sideways to compare the selected products.",
+    "compareSpecProduct": "Product",
+    "compareSpecPrice": "Price",
+    "compareSpecWattage": "Wattage",
+    "compareSpecDimensions": "Dimensions",
+    "removeComparedProduct": "Remove {name} from comparison",
+    "scrollToTop": "Back to top",
+    "tier1Badge": "Tier-1 / Best Value",
+    "bundleSectionTitle": "Complete Solar Packages & Bundles"
   },
   "DiscussionThread": {
     "systemPrefix": "⚡ System:",
@@ -3284,6 +3306,14 @@
     "metaDesc": "SolarDream notes on residential solar sizing, savings, installation, and support.",
     "subtitle": "Solar insights",
     "headerTitle": "What SolarDream is helping homeowners understand.",
+    "featured": "Featured Article",
+    "minRead": "min read",
+    "categories": {
+      "all": "All",
+      "news": "News",
+      "solarTips": "Solar Tips",
+      "caseStudies": "Case Studies"
+    },
     "articles": {
       "homepage-feel-expensive": {
         "title": "How to estimate a home solar system before talking to an advisor",
@@ -3353,8 +3383,15 @@
     }
   },
   "WorksPage": {
-    "title": "SolarDream Platform | SolarDream",
-    "metaDesc": "SolarDream tools from weather-aware planning to quotation signing and customer support.",
+    "title": "Solar Project Showcase | SolarDream",
+    "metaDesc": "Explore SolarDream's published residential solar projects, with installation photos and system details when available.",
+    "eyebrow": "Published projects",
+    "heroNote": "Project details across Thailand",
+    "heroTitle": "Solar, already at home.",
+    "heroDescription": "Browse published project photos and system details from SolarDream installations.",
+    "fieldNotes": "Field notes",
+    "installedHomes": "projects in the gallery",
+    "locations": "Project locations across Thailand",
     "subtitle": "SolarDream platform",
     "headerTitle": "Every solar step, connected.",
     "projects": {
@@ -3597,6 +3634,8 @@
       "primaryAction": "Check request status",
       "primaryHint": "Reference lookup is immediate",
       "backHome": "Back to home",
+      "soliaAlt": "Solia pointing to the next step in your request tracking",
+      "soliaMessage": "Start with your reference, then unlock private details only when you need them.",
       "stepsTitle": "How request tracking works",
       "stepsDescription": "Choose the level of detail you need. A reference shows progress; a secure email link opens your private project information.",
       "securityTitle": "Your request stays protected",
@@ -4005,8 +4044,11 @@
     "success": {
       "eyebrow": "Message received",
       "title": "We'll come back with a clear solar next step.",
-      "description": "Thanks for reaching out. We usually reply within one business day with fit, timing, and a useful first recommendation.",
-      "sendAnother": "Send another message"
+      "description": "Thanks for reaching out. We usually reply within 1 business day with fit, timing, and a useful first recommendation.",
+      "sendAnother": "Send another message",
+      "soliaAlt": "Solia successfully delivered your message",
+      "soliaMessage": "Thank you for trusting SolarDream! We will review your home's energy context and respond promptly.",
+      "responseTimeBadge": "We'll reply within 1 business day"
     },
     "fields": {
       "name": "Name",
@@ -4027,6 +4069,7 @@
       "tier3": "$50k - $100k",
       "tier4": "$100k+"
     },
+    "charCount": "{count}/500 characters",
     "sending": "Sending...",
     "send": "Send inquiry"
   },
@@ -4034,12 +4077,17 @@
     "eyebrow": "Solar consultation",
     "title": "Let's plan a solar home that fits your roof.",
     "emailLabel": "Direct email",
+    "phoneLabel": "Direct phone",
+    "chatLineOa": "Chat on LINE OA",
+    "lineOaSubtitle": "Quick response, speak directly with engineers",
     "availabilityLabel": "Availability",
     "availabilityValue": "Consultation slots open this week",
     "serviceAreaLabel": "Service area",
     "serviceAreaValue": "Thailand, remote-first planning",
     "formEyebrow": "Start with context",
-    "formTitle": "Tell us about your roof, bill, and target system."
+    "formTitle": "Tell us about your roof, bill, and target system.",
+    "soliaAlt": "Solia guiding you into a SolarDream consultation",
+    "soliaMessage": "Tell us how your home uses energy, and we’ll help turn the first questions into a clear next step."
   },
   "ForgotPassword": {
     "title": "Reset Password",
@@ -5692,6 +5740,7 @@
     "soliaLabel": "Solia assistant",
     "signedGreeting": "Thank you. Your document has been signed and our team will start the next step right away.",
     "unsignedGreeting": "Please review the equipment and proposal details, then sign the document when you are ready.",
+    "preparingGreeting": "Our team is preparing your quotation. You can review the details here as soon as it is ready.",
     "quotationId": "Quotation ID",
     "trackRef": "Tracking reference",
     "systemCapacity": "System capacity"
@@ -6563,6 +6612,15 @@
     "createdDate": "Created date"
   },
   "HomeEditorial": {
+    "salesHeroMicrocopy": "Start with what you know. No purchase commitment.",
+    "salesBoardHeaderTitle": "WHAT THE QUOTE SHOULD SHOW",
+    "salesBoardHeaderInspectable": "INSPECTABLE",
+    "salesEconomicsCta": "Try the System Simulator →",
+    "skipToProof": "Skip editorial journey to project showcase",
+    "authorityPea": "PEA / MEA planning support",
+    "authorityMea": "Utility requirements considered",
+    "authorityTier1": "Equipment options matched to your system",
+    "backToTop": "Back to top",
     "navigation": {
       "menu": "Menu",
       "close": "Close",

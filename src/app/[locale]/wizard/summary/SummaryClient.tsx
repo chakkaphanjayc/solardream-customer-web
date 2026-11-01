@@ -2532,7 +2532,7 @@ export default function SummaryClient({
                 lift={0}
               >
                 <SolarCard className="solar-summary-overview wizard-ui-section w-full min-w-0 max-w-full">
-                  <div className="solar-summary-overview-header flex flex-shrink-0 flex-col gap-4 border-b border-[#DED8CF]/70 bg-[#F0EEE9]/60 p-4 sm:p-6 xl:flex-row xl:items-end xl:justify-between">
+                  <div className="solar-summary-overview-header flex flex-shrink-0 flex-col gap-4 border-b border-[#DED8CF]/70 p-4 sm:p-6 xl:flex-row xl:items-end xl:justify-between">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2.5 mb-1.5">
                         <span className="inline-flex items-center gap-1.5 rounded-full border border-[#DED8CF] bg-white/80 px-3 py-0.5 text-[11px] font-bold text-[#4F7FA8] shadow-none">
@@ -2869,8 +2869,8 @@ export default function SummaryClient({
                                   <div className="flex items-center justify-between rounded-lg border-2 border-black bg-white p-3">
                                     <span className="text-xs font-bold text-slate-600">
                                       {locale === "th"
-                                        ? "ลดก๊าซ CO₂"
-                                        : "CO₂ Reduced"}
+                                        ? "ประมาณการ CO₂ ที่เลี่ยงได้"
+                                        : "Estimated CO₂ avoided"}
                                     </span>
                                     <span className="text-base font-black text-[#4F7FA8]">
                                       <AnimatedNumber
@@ -3844,8 +3844,8 @@ export default function SummaryClient({
                                   </h3>
                                   <p className="text-sm font-semibold text-[#000]/65 mt-1">
                                     {locale === "th"
-                                      ? "ร่วมขับเคลื่อนพลังงานสะอาดและลดการปล่อยคาร์บอนอย่างยั่งยืน"
-                                      : "Celebrate your carbon offset contribution and ecosystem footprint."}
+                                      ? "ประมาณการ CO₂ ที่เลี่ยงได้จากการผลิตไฟฟ้า โดยอิงปริมาณการผลิตและปัจจัยการปล่อยไฟฟ้า"
+                                      : "Estimated CO₂ avoided through solar generation, using a grid emissions factor."}
                                   </p>
                                 </div>
                               </div>
@@ -3854,7 +3854,7 @@ export default function SummaryClient({
                             <div className="relative z-10 mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                               <ImpactMetricCard
                                 label={
-                                  locale === "th" ? "ลดก๊าซ CO₂" : "CO₂ Reduced"
+                                  locale === "th" ? "ประมาณการ CO₂ ที่เลี่ยงได้" : "Estimated CO₂ avoided"
                                 }
                                 value={ecoImpact.co2TonsPerYear}
                                 unit="tons / year"
@@ -4408,6 +4408,17 @@ export default function SummaryClient({
                         </div>
                       )}
                     </motion.div>
+                    {(["package", "energy", "financial", "impact"] as const)
+                      .filter((panelKey) => panelKey !== activeDashboardTab)
+                      .map((panelKey) => (
+                        <div
+                          key={panelKey}
+                          id={`summary-panel-${panelKey}`}
+                          role="tabpanel"
+                          aria-labelledby={`summary-tab-${panelKey}`}
+                          hidden
+                        />
+                      ))}
                   </div>
                 </SolarCard>
               </SolarDepth>

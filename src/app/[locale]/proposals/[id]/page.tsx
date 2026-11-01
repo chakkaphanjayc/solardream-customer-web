@@ -20,6 +20,13 @@ import { PORTAL_SESSION_COOKIE, validatePortalToken, getSigningSecret } from "@/
 import { verifyHs256Jwt } from "@/lib/signedJwt";
 import ProposalViewTracker from "@/components/analytics/ProposalViewTracker";
 import ProposalDetailView from "@/components/proposals/detail/ProposalDetailView";
+import { getCustomerQuotationReadModel } from "@/server/services/sales/quotation-read-model-service";
+import { listCustomerQuotationNegotiationEvents } from "@/server/services/sales/quotation-negotiation-service";
+import { getQuotationAcceptanceSummary } from "@/server/services/sales/quotation-acceptance-read-service";
+import {
+  hasPublishedCustomerQuotation,
+  redactUnpublishedCustomerProposal,
+} from "@/lib/proposalPortalExposure";
 import type {
   ClientDocumentRequest,
   ClientDeliveryDocument,
@@ -358,8 +365,6 @@ export default async function ProposalReviewPage({
       (await cookies()).get("sd_guest_email")?.value || "";
 
     let hasAccess = isOwner;
-    let hasGuestSpecificToken = false;
-
     // Check specific portal token
     if (!hasAccess && portalToken) {
       const guestToken = await validatePortalToken({
@@ -369,7 +374,6 @@ export default async function ProposalReviewPage({
       });
       if (guestToken) {
         hasAccess = true;
-        hasGuestSpecificToken = true;
       }
     }
 
@@ -399,29 +403,48 @@ export default async function ProposalReviewPage({
     const isLinkedUserAccount = Boolean(directProposal.user?.passwordHash);
     const showAccountCta = !isOwner && !isLinkedUserAccount;
 
-    const proposal = mapProposalRow(
+    const [documentRequests, deliveryDocuments, billingData, documentTemplateCatalog, quotationReadModel, negotiationEvents, acceptance] =
+      await Promise.all([
+        getDocumentRequests(directProposal.id),
+        getDeliveryDocuments(directProposal.id),
+        getPortalBillingData(directProposal.id),
+        getQuotationDocumentTemplateCatalog(),
+        getCustomerQuotationReadModel(directProposal.id, directProposal.revisionNumber),
+        listCustomerQuotationNegotiationEvents(directProposal.id),
+        getQuotationAcceptanceSummary(directProposal.id),
+      ]);
+    const mappedProposal = mapProposalRow(
       directProposal as unknown as ProposalPageRow,
     );
-    const [documentRequests, deliveryDocuments, billingData, documentTemplateCatalog] =
-      await Promise.all([
-        getDocumentRequests(proposal.id),
-        getDeliveryDocuments(proposal.id),
-        getPortalBillingData(proposal.id),
-        getQuotationDocumentTemplateCatalog(),
-      ]);
+    const isQuotationPublished = hasPublishedCustomerQuotation({
+      status: directProposal.status,
+      dispatchStatus: directProposal.dispatchStatus,
+      hasPublishedReadModel: Boolean(quotationReadModel),
+      hasAcceptance: Boolean(acceptance),
+    });
+    const customerQuotationReadModel = isQuotationPublished ? quotationReadModel : null;
+    const proposal = isQuotationPublished
+      ? mappedProposal
+      : redactUnpublishedCustomerProposal(mappedProposal);
+    const customerDeliveryDocuments = isQuotationPublished
+      ? deliveryDocuments
+      : deliveryDocuments.filter((document) => document.deliveryType !== "FINAL_QUOTATION");
     return (
       <>
         <ProposalViewTracker
           quotationId={proposal.erpnextQuotationId || proposal.id}
-          grandTotal={proposal.totalPrice}
+          grandTotal={proposal.totalPrice > 0 ? proposal.totalPrice : null}
         />
         <ProposalDetailView
           proposal={proposal}
           showAccountCta={showAccountCta}
           initialDocumentRequests={documentRequests}
-          initialDeliveryDocuments={deliveryDocuments}
+          initialDeliveryDocuments={customerDeliveryDocuments}
           initialPaymentRequests={billingData.paymentRequests}
           paymentInstructions={billingData.paymentInstructions}
+          quotationReadModel={customerQuotationReadModel}
+          initialNegotiationEvents={negotiationEvents}
+          acceptance={acceptance}
           warrantyTemplates={documentTemplateCatalog.warranties}
         />
       </>
@@ -438,27 +461,46 @@ export default async function ProposalReviewPage({
   }
 
   const row = result.proposal as unknown as ProposalPageRow;
-  const proposal = mapProposalRow(row);
-  const [documentRequests, deliveryDocuments, billingData, documentTemplateCatalog] = await Promise.all([
-    getDocumentRequests(proposal.id),
-    getDeliveryDocuments(proposal.id),
-    getPortalBillingData(proposal.id),
+  const [documentRequests, deliveryDocuments, billingData, documentTemplateCatalog, quotationReadModel, negotiationEvents, acceptance] = await Promise.all([
+    getDocumentRequests(row.id),
+    getDeliveryDocuments(row.id),
+    getPortalBillingData(row.id),
     getQuotationDocumentTemplateCatalog(),
+    getCustomerQuotationReadModel(row.id, row.revisionNumber),
+    listCustomerQuotationNegotiationEvents(row.id),
+    getQuotationAcceptanceSummary(row.id),
   ]);
+  const mappedProposal = mapProposalRow(row);
+  const isQuotationPublished = hasPublishedCustomerQuotation({
+    status: row.status,
+    dispatchStatus: row.dispatchStatus,
+    hasPublishedReadModel: Boolean(quotationReadModel),
+    hasAcceptance: Boolean(acceptance),
+  });
+  const customerQuotationReadModel = isQuotationPublished ? quotationReadModel : null;
+  const proposal = isQuotationPublished
+    ? mappedProposal
+    : redactUnpublishedCustomerProposal(mappedProposal);
+  const customerDeliveryDocuments = isQuotationPublished
+    ? deliveryDocuments
+    : deliveryDocuments.filter((document) => document.deliveryType !== "FINAL_QUOTATION");
 
   return (
     <>
       <ProposalViewTracker
         quotationId={proposal.erpnextQuotationId || proposal.id}
-        grandTotal={proposal.totalPrice}
+        grandTotal={proposal.totalPrice > 0 ? proposal.totalPrice : null}
       />
       <ProposalDetailView
         proposal={proposal}
         showAccountCta={false}
         initialDocumentRequests={documentRequests}
-        initialDeliveryDocuments={deliveryDocuments}
+        initialDeliveryDocuments={customerDeliveryDocuments}
         initialPaymentRequests={billingData.paymentRequests}
         paymentInstructions={billingData.paymentInstructions}
+        quotationReadModel={customerQuotationReadModel}
+        initialNegotiationEvents={negotiationEvents}
+        acceptance={acceptance}
         warrantyTemplates={documentTemplateCatalog.warranties}
       />
     </>

@@ -445,6 +445,16 @@ body:has(.sd-site-shell[data-customer-design="solar-atelier"]) {
   -webkit-backdrop-filter: none !important;
 }
 
+/* The inline filter control remains available while consent is open. Hide the
+   duplicate fixed shortcut so it cannot cover the consent actions or focus. */
+body:has(.solar-cookie-banner) .catalog-mobile-filter-dock {
+  display: none !important;
+}
+
+body:has(.solar-cookie-banner) .catalog-comparison-dock {
+  display: none !important;
+}
+
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner :is(h2, p, a) {
   color: #0f172a !important;
 }
@@ -464,7 +474,7 @@ body:has(.sd-site-shell[data-customer-design="solar-atelier"]) {
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner :is(button, a) {
-  min-height: 40px;
+  min-height: 44px;
   border-radius: 999px !important;
 }
 
@@ -556,7 +566,7 @@ body:has(.sd-site-shell[data-customer-design="solar-atelier"]) {
   }
 
   .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner :is(button, a) {
-    min-height: 36px;
+    min-height: 44px;
   }
 
   .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:last-child > div:last-child {

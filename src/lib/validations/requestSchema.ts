@@ -26,6 +26,8 @@ export const inboundRequestSchema = z.object({
   request_type: z.enum(["WIZARD", "BUILD", "SERVICE"]).optional(),
   requestType: z.enum(["WIZARD", "BUILD", "SERVICE"]).optional(),
   source: z.string().trim().max(80).optional(),
+  idempotency_key: z.string().trim().min(16).max(180).regex(/^[A-Za-z0-9._:-]+$/).optional(),
+  idempotencyKey: z.string().trim().min(16).max(180).regex(/^[A-Za-z0-9._:-]+$/).optional(),
   notes: z.string().trim().max(2_000).optional(),
   preferred_language: z.enum(locales).optional(),
   preferredLanguage: z.enum(locales).optional(),

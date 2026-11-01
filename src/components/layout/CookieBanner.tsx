@@ -324,7 +324,7 @@ export default function CookieBanner({
           aria-label={cookieTitle}
           data-bagui="cookie-banner"
           data-solar-surface="atelier"
-          className="solar-cookie-banner sd-safe-bottom-3-add layer-floating fixed inset-x-3 max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-[24px] border border-[#F7F6F3] bg-[#F0EEE9] p-5 shadow-xl sm:inset-x-6 sm:p-6 md:bottom-6 md:left-auto md:right-6 md:max-w-md lg:max-w-lg"
+          className="solar-cookie-banner sd-safe-bottom-3-add layer-floating fixed inset-x-3 max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-[24px] p-5 sm:inset-x-6 sm:p-6 md:bottom-6 md:left-auto md:right-6 md:max-w-md lg:max-w-lg"
         >
           <div className="flex items-start gap-3.5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[#CBC7BE] bg-[#DCE8F5] text-[#4F7FA8]">
@@ -351,7 +351,7 @@ export default function CookieBanner({
               <button
                 type="button"
                 onClick={() => setIsPreferencesOpen(true)}
-                className="min-w-0 cursor-pointer truncate border-none bg-transparent p-0 text-left font-sans text-[#4E4B44] underline underline-offset-4 transition-colors hover:text-[#3E6685] sm:text-right"
+                className="solar-cookie-manage inline-flex min-h-11 min-w-0 cursor-pointer items-center truncate border-none bg-transparent p-2 text-left font-sans underline underline-offset-4 transition-colors sm:justify-end sm:text-right"
               >
                 {managePreferencesText}
               </button>
@@ -362,7 +362,7 @@ export default function CookieBanner({
                 type="button"
                 onClick={handleDeclineAll}
                 disabled={isSaving}
-                className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-full border border-[#CBC7BE] bg-[#E6E3DC] px-4 py-2 text-xs font-bold text-[#2E2C27] transition-colors hover:bg-[#DCE8F5] active:scale-95 disabled:opacity-50"
+                className="solar-cookie-essential inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full px-4 py-2 text-xs font-bold transition-colors active:scale-95 disabled:opacity-50"
               >
                 {essentialButtonText}
               </button>
@@ -370,7 +370,7 @@ export default function CookieBanner({
                 type="button"
                 onClick={handleAcceptAll}
                 disabled={isSaving}
-                className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-full bg-[#B7D1EA] px-5 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#A5C2DE] hover:shadow active:scale-95 disabled:opacity-50"
+                className="solar-cookie-accept inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full px-5 py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
               >
                 {acceptAllButtonText}
               </button>

@@ -134,13 +134,13 @@ export default async function CatalogPage({ params, searchParams }: PageProps) {
   }
 
   return (
-    <PageShell className="bg-[#F0EEE9] text-[#1C1C1A]">
+    <PageShell className="bg-[var(--background)] text-[var(--sd-ink)]">
       <PageWrapper className="min-h-dvh bg-transparent px-4 pb-20 pt-10 sm:px-6 lg:px-8">
         <div className="mx-auto space-y-12 lg:max-w-[85vw] xl:max-w-[90vw]">
           <PageHeader
             eyebrow={
-              <span className="inline-flex items-center gap-2 rounded-full bg-[#DCE8F5] px-3.5 py-1 text-xs font-bold text-[#2E2C27]">
-                <LayoutGrid className="h-3.5 w-3.5 text-[#4F7FA8]" aria-hidden="true" />
+              <span className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)]/25 px-3.5 py-1 text-xs font-bold text-[var(--accent-foreground)]">
+                <LayoutGrid className="h-3.5 w-3.5 text-[var(--primary-foreground)]" aria-hidden="true" />
                 {t("header.badge")}
               </span>
             }

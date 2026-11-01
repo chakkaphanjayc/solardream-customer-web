@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -16,7 +17,6 @@ import { useTranslations } from "next-intl";
 import {
   FiArrowUpRight,
   FiChevronDown,
-  FiGlobe,
   FiMenu,
   FiSearch,
   FiX,
@@ -28,7 +28,6 @@ import {
   type HeaderNavigationItem,
 } from "@/lib/header-navigation";
 import DesktopHeaderNavigation from "./desktop-header-navigation";
-import { useSolarHomeOptional } from "./solar-home-context";
 import styles from "./solar-home.module.css";
 
 type FloatingNavbarProps = Readonly<{
@@ -55,15 +54,12 @@ export default function FloatingNavbar({
   homeSectionLinks = [],
   extraActions,
   includeHomeSections = true,
-  languageHref: languageHrefProp,
   showDesignCta = true,
   showAuth = true,
   showTrackRequest = true,
 }: FloatingNavbarProps) {
   const isThai = locale === "th";
   const t = useTranslations("Navbar");
-  const solarHome = useSolarHomeOptional();
-  const solarSizeKwp = solarHome?.solarSizeKwp ?? 5;
   const prefersReducedMotion = useReducedMotion();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
@@ -334,6 +330,25 @@ export default function FloatingNavbar({
 
   const renderMobileNavigation = () => (
     <>
+      <div className="mb-3 flex flex-col gap-2 border-b border-[var(--border)] pb-3">
+        <Link
+          href={`/${locale}/wizard`}
+          className="min-h-11 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#B7D1EA] px-5 py-2.5 text-sm font-bold text-[#0B051D] shadow-sm transition-all hover:bg-[#a2c3e2]"
+          onClick={() => setMobileOpen(false)}
+        >
+          <span>{isThai ? "ประเมินระบบฟรี" : "Free Assessment"}</span>
+          <FiArrowUpRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+        <a
+          href="https://line.me/R/ti/p/@solardream"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="min-h-11 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#06C755] px-5 py-2 text-xs font-bold text-[#111827] shadow-sm transition-all hover:bg-[#05b34c]"
+          onClick={() => setMobileOpen(false)}
+        >
+          <span>{isThai ? "ปรึกษาวิศวกรทาง LINE" : "Chat on LINE Official"}</span>
+        </a>
+      </div>
       {visibleHomeSectionLinks.map((item) => (
         <Link
           key={item.id}
@@ -428,8 +443,20 @@ export default function FloatingNavbar({
     </>
   );
 
-  const ctaHref = `/${locale}/build?kw=${solarSizeKwp}`;
-  const languageHref = languageHrefProp ?? (locale === "th" ? "/en" : "/th");
+  const pathname = usePathname();
+  const getAltLocalePath = (targetLocale: string) => {
+    if (locale === targetLocale) return pathname;
+    const segments = pathname.split("/");
+    if (segments[1] === locale || segments[1] === "th" || segments[1] === "en") {
+      segments[1] = targetLocale;
+      return segments.join("/") || `/${targetLocale}`;
+    }
+    return `/${targetLocale}${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
+  };
+
+  const thaiHref = getAltLocalePath("th");
+  const englishHref = getAltLocalePath("en");
+  const ctaHref = `/${locale}/wizard`;
 
   return (
     <>
@@ -440,10 +467,10 @@ export default function FloatingNavbar({
       />
       <header
         ref={headerRef}
-      data-navbar-height="64"
+        data-navbar-height="72"
         data-bagui="premium-glass-navbar"
         data-navigation-source="header-navigation-hierarchy-builder"
-        className={`${styles.nav} backdrop-blur-2xl ${!includeHomeSections ? styles.navRoute : ""} ${isScrolled ? styles.navScrolled : ""} ${isCompact ? styles.navCompact : ""} ${mobileOpen ? styles.navOpen : ""}`}
+        className={`${styles.nav} ${!includeHomeSections ? styles.navRoute : ""} ${isScrolled ? styles.navScrolled : ""} ${isCompact ? styles.navCompact : ""} ${mobileOpen ? styles.navOpen : ""}`}
       >
         <SolarDepth className={styles.navDepth} maxTilt={1.1} lift={0}>
           <div className={styles.navInner}>
@@ -464,15 +491,16 @@ export default function FloatingNavbar({
                 />
               </span>
               <span className={styles.wordmarkText}>
-                <Image
-                  src="/asset/sd-text.png"
-                  alt=""
-                  width={880}
-                  height={281}
-                  priority
-                  sizes="132px"
-                  className={styles.wordmarkTextImage}
-                />
+                <span className="flex items-center gap-1.5">
+                  <span className={styles.wordmarkName}>SolarDream</span>
+                  <span className="hidden xl:inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-600/20">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Clean Energy</span>
+                  </span>
+                </span>
+                <span className={styles.wordmarkDescriptor}>
+                  {isThai ? "แพลตฟอร์มโซลาร์เพื่อบ้านและสิ่งแวดล้อม" : "Clean Solar Platform"}
+                </span>
               </span>
             </Link>
 
@@ -490,16 +518,31 @@ export default function FloatingNavbar({
             />
 
             <div className={styles.navActions}>
-              <Link
-                href={languageHref}
-                className={styles.languageLink}
-                aria-label={isThai ? "เปลี่ยนเป็นภาษาอังกฤษ" : "Switch to Thai"}
+              <div
+                role="group"
+                aria-label={isThai ? "เปลี่ยนภาษา" : "Switch language"}
+                className={styles.languageSwitcher}
                 data-header-action
                 data-header-hover
               >
-                <FiGlobe aria-hidden="true" />
-                <span>{isThai ? "EN" : "TH"}</span>
-              </Link>
+                <Link
+                  href={thaiHref}
+                  className={`${styles.languageSwitcherBtn} ${isThai ? styles.languageSwitcherBtnActive : ""}`}
+                  aria-current={isThai ? "page" : undefined}
+                  aria-label="เปลี่ยนเป็นภาษาไทย"
+                >
+                  TH
+                </Link>
+                <span className={styles.languageSwitcherDivider} aria-hidden="true">/</span>
+                <Link
+                  href={englishHref}
+                  className={`${styles.languageSwitcherBtn} ${!isThai ? styles.languageSwitcherBtnActive : ""}`}
+                  aria-current={!isThai ? "page" : undefined}
+                  aria-label="Switch to English"
+                >
+                  EN
+                </Link>
+              </div>
               {showTrackRequest ? (
                 <Link
                   href={`/${locale}/track`}
@@ -522,7 +565,7 @@ export default function FloatingNavbar({
                   data-header-action
                   data-header-hover
                 >
-                  <span>{isThai ? "ออกแบบของฉัน" : "Design mine"}</span>
+                  <span>{isThai ? "ประเมินระบบฟรี" : "Free Assessment"}</span>
                   <FiArrowUpRight aria-hidden="true" />
                 </Link>
               ) : null}

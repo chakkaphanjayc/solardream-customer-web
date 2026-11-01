@@ -12,7 +12,7 @@ export default function Loading() {
 
         <div className="flex flex-col gap-8 md:flex-row">
           <aside className="w-full md:w-64 lg:w-72 shrink-0">
-            <div className="space-y-4 rounded-[32px] border border-slate-200/60 bg-[#F0EEE9]/80 p-5 shadow-md shadow-slate-200/20 md:p-6">
+            <div className="space-y-4 rounded-3xl border border-slate-200/60 bg-[#F0EEE9]/80 p-5 shadow-md shadow-slate-200/20 md:p-6">
               <Skeleton className="h-5 w-32 rounded-full bg-slate-200/45" />
               <div className="space-y-3 pt-2">
                 <Skeleton className="h-10 w-full rounded-full bg-slate-200/40" />
@@ -34,7 +34,7 @@ export default function Loading() {
               {Array.from({ length: 6 }).map((_, index) => (
                 <div
                   key={index}
-                  className="overflow-hidden rounded-[32px] border border-slate-200/60 bg-[#F0EEE9] shadow-md shadow-slate-200/20"
+                  className="overflow-hidden rounded-3xl border border-slate-200/60 bg-[#F0EEE9] shadow-md shadow-slate-200/20"
                 >
                   <Skeleton className="aspect-[4/3] w-full rounded-none bg-slate-200/35" />
                   <div className="space-y-4 p-4 md:p-6">

@@ -106,8 +106,51 @@ export default function GsapSlider({
     return clamped;
   };
 
+  const dismissKeyboard = () => {
+    if (
+      typeof document !== "undefined" &&
+      document.activeElement instanceof HTMLElement
+    ) {
+      const tag = document.activeElement.tagName.toLowerCase();
+      if (tag === "input" || tag === "textarea") {
+        document.activeElement.blur();
+      }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    let nextValue = value;
+    if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+      e.preventDefault();
+      nextValue = Math.max(min, value - step);
+    } else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+      e.preventDefault();
+      nextValue = Math.min(max, value + step);
+    } else if (e.key === "PageDown") {
+      e.preventDefault();
+      nextValue = Math.max(min, value - step * 5);
+    } else if (e.key === "PageUp") {
+      e.preventDefault();
+      nextValue = Math.min(max, value + step * 5);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      nextValue = min;
+    } else if (e.key === "End") {
+      e.preventDefault();
+      nextValue = max;
+    } else {
+      return;
+    }
+    const clamped = Math.min(max, Math.max(min, Number(nextValue.toFixed(2))));
+    if (clamped !== value) {
+      onChange(clamped);
+    }
+  };
+
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (disabled) return;
+    dismissKeyboard();
     e.preventDefault();
     setIsDragging(true);
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -200,32 +243,26 @@ export default function GsapSlider({
           </div>
         </div>
 
-        {/* Custom Thumb Knob */}
+        {/* Single accessible slider control; the range track is pointer-operable. */}
         <div
           ref={thumbRef}
-          className="absolute top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#5089bf] bg-white shadow-md flex items-center justify-center cursor-grab active:cursor-grabbing z-10 transition-shadow hover:ring-4 hover:ring-[#B7D1EA]/50"
+          role="slider"
+          tabIndex={disabled ? -1 : 0}
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-valuenow={value}
+          aria-valuetext={formattedDisplay}
+          aria-label={ariaLabel || `Slider (${unit})`}
+          aria-disabled={disabled}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsHovered(true)}
+          onBlur={() => setIsHovered(false)}
+          className="absolute top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#5089bf] bg-white shadow-md flex items-center justify-center cursor-grab active:cursor-grabbing z-10 transition-shadow hover:ring-4 hover:ring-[#B7D1EA]/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5089bf]/50 focus-visible:ring-offset-2"
           style={{ left: `${percentage}%` }}
         >
           <div className="h-2.5 w-2.5 rounded-full bg-[#5089bf] shadow-xs" />
         </div>
       </div>
-
-      {/* Accessible Hidden Native Range Input */}
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        disabled={disabled}
-        aria-valuemin={min}
-        aria-valuemax={max}
-        aria-valuenow={value}
-        aria-valuetext={formattedDisplay}
-        aria-label={ariaLabel}
-        className="sr-only"
-      />
 
       {/* Tick Labels below slider */}
       {(() => {

@@ -209,7 +209,7 @@ export default async function RootLayout({
     >
       <body
         data-bagui="app-shell"
-        className={`${notoSansThai.variable} ${geistMono.variable} ${roboto.variable} antialiased bg-[var(--sd-page)] text-[var(--sd-ink)] selection:bg-[var(--sd-selected)] selection:text-[var(--sd-navy-900)]`}
+        className={`${notoSansThai.variable} ${geistMono.variable} ${roboto.variable} antialiased bg-[var(--background)] text-[var(--sd-ink)] selection:bg-[var(--primary)] selection:text-[var(--sd-ink)]`}
         style={{
           fontFamily: `var(--font-roboto), var(--font-noto-sans-thai), sans-serif`,
         }}

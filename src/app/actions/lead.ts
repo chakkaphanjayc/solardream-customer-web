@@ -326,6 +326,7 @@ export async function submitDesignConsultationRequest(data: DesignConsultationIn
         requestType: "WIZARD",
         payload: dynamicCalculations,
         source: (data as { source?: string }).source || "direct",
+        userId,
       });
       inboundRequestId = inboundResult.request?.id ?? null;
     } catch (inboundErr) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import {
   Camera,
@@ -184,12 +185,19 @@ export default function ProfileLayout({ user }: { user: ProfileUser }) {
                 key={tab.id}
                 value={tab.id}
                 className={cn(
-                  "solar-profile-tab group relative flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-full px-4 py-2.5 text-sm font-black transition-all duration-200 ease-expo sm:px-5",
+                  "solar-profile-tab group relative flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-full px-4 py-2.5 text-sm font-black transition-colors duration-200 ease-expo sm:px-5",
                   isActive
-                    ? "z-10 text-slate-950"
+                    ? "z-10 text-[#0B051D]"
                     : "text-slate-600 hover:text-slate-950"
                 )}
               >
+                {isActive ? (
+                  <motion.div
+                    layoutId="profile-active-tab-pill"
+                    className="absolute inset-0 z-[-1] rounded-full bg-[var(--primary)] shadow-xs"
+                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  />
+                ) : null}
                 <tab.icon className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
                 <span>{tab.label}</span>
               </TabsTrigger>

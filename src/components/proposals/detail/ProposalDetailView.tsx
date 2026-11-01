@@ -1,7 +1,7 @@
 "use client";
 
 import GuestProposalSignView from "@/app/[locale]/proposals/[id]/GuestProposalSignView";
-import type { ClientDeliveryDocument, ClientDocumentRequest, ClientPaymentInstructions, ClientPaymentRequest, ClientProposal } from "@/types/proposals";
+import type { ClientDeliveryDocument, ClientDocumentRequest, ClientPaymentInstructions, ClientPaymentRequest, ClientProposal, ProposalAcceptanceDto, ProposalNegotiationEventDto, ProposalQuotationReadModelDto } from "@/types/proposals";
 import type { WarrantyDisclosureTemplateConfig } from "@/lib/quotationDocumentTemplates";
 
 export type ProposalDetailPresentation = "fullscreen" | "embedded";
@@ -13,6 +13,9 @@ export interface ProposalDetailViewProps {
   initialDeliveryDocuments?: ClientDeliveryDocument[];
   initialPaymentRequests?: ClientPaymentRequest[];
   paymentInstructions?: ClientPaymentInstructions;
+  quotationReadModel?: ProposalQuotationReadModelDto | null;
+  initialNegotiationEvents?: ProposalNegotiationEventDto[];
+  acceptance?: ProposalAcceptanceDto | null;
   presentation?: ProposalDetailPresentation;
   showAccountCta?: boolean;
   warrantyTemplates?: WarrantyDisclosureTemplateConfig[];

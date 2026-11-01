@@ -99,7 +99,7 @@ export default function ConfirmActionModal({
               "inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none sm:w-auto active:scale-95 shadow-sm",
               isDestructive
                 ? "bg-[#B3261E] text-white hover:bg-[#8C1D18] focus-visible:ring-[#B3261E]"
-                : "bg-[#B7D1EA] text-white hover:bg-[#A5C2DE] focus-visible:ring-[#B7D1EA]",
+                : "bg-[#B7D1EA] text-[#0B051D] font-bold hover:bg-[#A5C2DE] focus-visible:ring-[#5089bf]",
             )}
           >
             {isConfirming ? t("working") : confirmLabel}

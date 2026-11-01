@@ -5,6 +5,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import QRCode from "qrcode";
 
 import { getSystemSetting } from "@/app/actions/systemSettings";
+import { erpNextCommercialService } from "@/server/services/integrations/erpnext-commercial-service";
 
 const MAX_PDF_BYTES = 25 * 1024 * 1024;
 const MAX_SIGNATURE_BYTES = 2 * 1024 * 1024;
@@ -423,75 +424,35 @@ export async function uploadSignedQuotationPdf(input: {
 }
 
 export async function markErpnextQuotationAccepted(quotationId: string) {
-  const config = await getErpnextSigningConfig();
-  const endpoint = `/api/resource/Quotation/${encodeURIComponent(quotationId)}`;
-  const updateStatus = async (status: "Accepted" | "Approved") => erpFetch(config, endpoint, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ data: { status, workflow_state: status } }),
-  });
-
-  const accepted = await updateStatus("Accepted");
-  if (accepted.ok) return;
-
-  // Some ERPNext workflow configurations expose Approved instead of Accepted.
-  const approved = await updateStatus("Approved");
-  if (!approved.ok) {
-    throw new Error(`ERPNext quotation acceptance update failed with status ${approved.status}.`);
+  try {
+    await erpNextCommercialService.updateQuotation(quotationId, { status: "Accepted", workflow_state: "Accepted" });
+  } catch {
+    // Some ERPNext workflow configurations expose Approved instead of Accepted.
+    await erpNextCommercialService.updateQuotation(quotationId, { status: "Approved", workflow_state: "Approved" });
   }
 }
 
 export async function updateErpnextQuotationSignatureAudit(input: ErpnextQuotationSignatureAudit) {
-  const config = await getErpnextSigningConfig();
   const fields = auditFieldNames();
-  const response = await erpFetch(
-    config,
-    `/api/resource/Quotation/${encodeURIComponent(input.quotationId)}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: {
-          [fields.sha256Hash]: input.sha256Hash,
-          [fields.signedAt]: input.signedAt,
-          [fields.signerIpAddress]: input.signerIpAddress,
-          [fields.signerUserAgent]: input.signerUserAgent,
-          [fields.verificationUrl]: input.verificationUrl,
-        },
-      }),
-    },
-  );
-
-  if (!response.ok) {
+  try {
+    await erpNextCommercialService.updateQuotation(input.quotationId, {
+      [fields.sha256Hash]: input.sha256Hash,
+      [fields.signedAt]: input.signedAt,
+      [fields.signerIpAddress]: input.signerIpAddress,
+      [fields.signerUserAgent]: input.signerUserAgent,
+      [fields.verificationUrl]: input.verificationUrl,
+    });
+  } catch (error) {
     throw new Error(
-      `ERPNext signature audit update failed with status ${response.status}. Configure the Quotation audit fields or ERPNEXT_ESIGN_*_FIELD environment variables.`,
+      "ERPNext signature audit update failed. Configure the Quotation audit fields or ERPNEXT_ESIGN_*_FIELD environment variables.",
+      { cause: error },
     );
   }
 }
 
 export async function getErpnextQuotationSignatureAudit(quotationId: string): Promise<ErpnextQuotationSignatureAudit | null> {
-  const config = await getErpnextSigningConfig();
   const fields = auditFieldNames();
-  const response = await erpFetch(
-    config,
-    `/api/resource/Quotation/${encodeURIComponent(quotationId)}?${new URLSearchParams({
-      fields: JSON.stringify([
-        fields.sha256Hash,
-        fields.signedAt,
-        fields.signerIpAddress,
-        fields.signerUserAgent,
-        fields.verificationUrl,
-      ]),
-    }).toString()}`,
-    { method: "GET" },
-  );
-  if (response.status === 404) return null;
-  if (!response.ok) {
-    throw new Error(`ERPNext signature audit lookup failed with status ${response.status}.`);
-  }
-
-  const body = await response.json().catch(() => null) as { data?: Record<string, unknown> } | null;
-  const data = body?.data;
+  const data = await erpNextCommercialService.getQuotation(quotationId);
   if (!data) return null;
 
   return {

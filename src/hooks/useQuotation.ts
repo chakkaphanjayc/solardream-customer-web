@@ -21,14 +21,27 @@ export type QuotationSnapshot = {
   dispatchStatus: string;
   magicTokenSlug: string;
   erpnextQuotationId: string | null;
+  canonicalRevision: {
+    id: string;
+    revisionNumber: number;
+    status: "DRAFT" | "SENT" | "VIEWED" | "ACCEPTED" | "SUPERSEDED" | "VOID";
+    documentHash: string | null;
+    pdfDocumentReference: string | null;
+    sentAt: string | null;
+    viewedAt: string | null;
+    acceptedAt: string | null;
+    createdAt: string;
+  } | null;
   documentRequests: QuotationDocumentRequestSnapshot[];
   updatedAt: string;
 };
 
-type UpdateQuotationStatusInput = {
+export type UpdateQuotationCommandInput = {
   id: string;
-  status?: string;
-  dispatchStatus?: string;
+  command: "SEND_REVISION" | "MARK_REVISION_VIEWED" | "SUPERSEDE_REVISION" | "VOID_REVISION";
+  revisionId: string;
+  documentHash?: string;
+  pdfDocumentReference?: string;
 };
 
 type UpdateQuotationStatusResponse = {
@@ -51,7 +64,7 @@ async function fetchQuotation(id: string): Promise<QuotationSnapshot> {
   return payload.quotation;
 }
 
-async function updateQuotationStatus(input: UpdateQuotationStatusInput): Promise<UpdateQuotationStatusResponse> {
+async function updateQuotationCommand(input: UpdateQuotationCommandInput): Promise<UpdateQuotationStatusResponse> {
   const response = await fetch(`/api/quotations/${encodeURIComponent(input.id)}`, {
     method: "PATCH",
     headers: {
@@ -59,8 +72,10 @@ async function updateQuotationStatus(input: UpdateQuotationStatusInput): Promise
       Accept: "application/json",
     },
     body: JSON.stringify({
-      status: input.status,
-      dispatchStatus: input.dispatchStatus,
+      command: input.command,
+      revisionId: input.revisionId,
+      ...(input.documentHash ? { documentHash: input.documentHash } : {}),
+      ...(input.pdfDocumentReference ? { pdfDocumentReference: input.pdfDocumentReference } : {}),
     }),
   });
   const payload = await response.json() as UpdateQuotationStatusResponse | { error?: string };
@@ -81,30 +96,11 @@ export function useQuotation(id: string | null | undefined) {
   });
 }
 
-export function useUpdateQuotationStatus() {
+export function useUpdateQuotationCommand() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: updateQuotationStatus,
-    onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: quotationKey(input.id) });
-      const previous = queryClient.getQueryData<QuotationSnapshot>(quotationKey(input.id));
-
-      if (previous) {
-        queryClient.setQueryData<QuotationSnapshot>(quotationKey(input.id), {
-          ...previous,
-          status: input.status ?? previous.status,
-          dispatchStatus: input.dispatchStatus ?? previous.dispatchStatus,
-        });
-      }
-
-      return { previous };
-    },
-    onError: (_error, input, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(quotationKey(input.id), context.previous);
-      }
-    },
+    mutationFn: updateQuotationCommand,
     onSuccess: (payload) => {
       queryClient.setQueryData(quotationKey(payload.quotation.id), payload.quotation);
       void queryClient.invalidateQueries({ queryKey: ["quotations"] });

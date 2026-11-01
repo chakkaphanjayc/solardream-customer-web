@@ -35,6 +35,12 @@ import {
   dispatchVerifiedPaymentNotifications,
 } from "@/lib/services/payment-verifier";
 import { createInstallationProjectFromPayment } from "@/server/services/sales/payment-project-service";
+import { processQuotationAcceptedCommand } from "@/server/services/sales/quotation-acceptance-service";
+import { processERPNextQuotationEvent } from "@/server/services/sales/erpnext-quotation-event-service";
+import {
+  commercialOutboxClaimFilter,
+  createCommercialOutboxDispatcher,
+} from "@/server/services/sales/commercial-outbox";
 import { syncMilestonePaymentToERP } from "@/lib/erpnextPayments";
 import {
   PAYMENT_ERP_SYNC_TOPIC,
@@ -51,6 +57,10 @@ import {
 } from "@/lib/serviceCaseErpnextSync";
 
 const MAX_ATTEMPTS = 8;
+const deliverCommercialOutboxEvent = createCommercialOutboxDispatcher({
+  quotationAccepted: processQuotationAcceptedCommand,
+  erpnextQuotationUpdated: processERPNextQuotationEvent,
+});
 export const PRIVACY_PROVIDER_CLEANUP_TOPIC = "privacy.provider.cleanup";
 export const PRIVACY_AUTH_CLEANUP_TOPIC = "privacy.auth.cleanup";
 type ClaimedEvent = typeof integrationOutbox.$inferSelect;
@@ -108,6 +118,7 @@ async function claimEvents(
         (current_event.status IN ('PENDING', 'RETRY') AND current_event.available_at <= now())
         OR (current_event.status = 'PROCESSING' AND current_event.updated_at <= now() - (${processingLeaseSeconds} * interval '1 second'))
       )
+        ${commercialOutboxClaimFilter()}
         ${installationTopicFilter}
         ${installationOrderingFilter}
         ${aggregateId ? sql`AND current_event.aggregate_id = ${aggregateId}` : sql``}
@@ -343,6 +354,10 @@ async function deliverPaymentNotifications(event: ClaimedEvent) {
 }
 
 async function deliverEvent(event: ClaimedEvent) {
+  if (event.topic.startsWith("commercial.")) {
+    await deliverCommercialOutboxEvent(event);
+    return;
+  }
   if (event.topic === "catalog.sync.requested") {
     const { synchronizeCatalog } =
       await import("@/server/services/sales/catalog/sync/catalog-sync-worker");

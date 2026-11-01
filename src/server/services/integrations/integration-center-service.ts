@@ -46,7 +46,7 @@ export async function getIntegrationCenterSnapshot() {
   ]);
 
   return {
-    configured: erpNextGateway.isConfigured(),
+    configured: await erpNextGateway.isConfiguredAsync(),
     installationSyncEnabled: process.env.ERPNEXT_INSTALLATION_SYNC_ENABLED?.trim().toLowerCase() === "true",
     outboxCounts: countByStatus(outboxCounts),
     projectCounts: countByStatus(projectCounts),
@@ -62,7 +62,7 @@ export async function getIntegrationCenterSnapshot() {
 }
 
 export async function checkERPNextConnection() {
-  if (!erpNextGateway.isConfigured()) {
+  if (!(await erpNextGateway.isConfiguredAsync())) {
     throw new ERPNextGatewayError("CONFIGURATION", "ERPNext integration is not configured.");
   }
   return erpNextGateway.ping();

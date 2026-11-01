@@ -354,10 +354,37 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
     if (!isOpen) return;
 
     const handleModalKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
 
-      event.preventDefault();
-      onClose();
+      if (event.key === "Tab") {
+        if (!modalRef.current) return;
+        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        const focusable = Array.from(focusableElements).filter(
+          (el) => !el.hasAttribute("disabled") && el.getAttribute("aria-hidden") !== "true" && el.offsetParent !== null,
+        );
+        if (focusable.length === 0) return;
+
+        const firstElement = focusable[0];
+        const lastElement = focusable[focusable.length - 1];
+
+        if (event.shiftKey) {
+          if (document.activeElement === firstElement || document.activeElement === modalRef.current) {
+            event.preventDefault();
+            lastElement?.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            event.preventDefault();
+            firstElement?.focus();
+          }
+        }
+      }
     };
 
     window.addEventListener("keydown", handleModalKeyDown);
@@ -535,7 +562,7 @@ function ProjectDetailModal({ project, locale, onClose }: ProjectDetailModalProp
                     </section>
 
                     {/* Financial Impact Cards (Cards: ค่าไฟเดิม, ค่าไฟหลังติด, ประหยัดเฉลี่ย) */}
-                    {project.showFinancials !== false ? (
+                    {project.showFinancials !== false && project.monthlySavingsThb > 0 ? (
                       <section>
                           <h2 className="mb-4 text-xs font-bold uppercase tracking-wider text-[#4E4B44]">
                           {t("financialImpact")}

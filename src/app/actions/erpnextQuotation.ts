@@ -5,25 +5,11 @@ import { db } from "@/db";
 import { consultationLeads, leads, proposals } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireStaff } from "@/lib/auth-guard";
-import { getSystemSetting } from "@/app/actions/systemSettings";
 import { buildErpnextBomItems, extractConfigurationItems } from "@/lib/erpnextBom";
 import { getQuotationDocumentNo, safeSyncProposalQuotationToERP } from "@/lib/erpnext";
 import { getCatalogProductsByIds } from "@/lib/erpnextCatalog";
+import { erpNextCommercialService } from "@/server/services/integrations/erpnext-commercial-service";
 import { trackUmamiServerEvent } from "@/utils/analytics-server";
-import { queueApiLog, serializeError } from "@/utils/logger";
-
-type ErpnextBody = Record<string, unknown>;
-type ErpnextJson = {
-  status: number;
-  data?: Array<Record<string, unknown>> | Record<string, unknown>;
-  exception?: string;
-  message?: string;
-};
-
-type ErpnextCredentials = {
-  baseUrl: string;
-  authHeader: string;
-};
 
 export type ErpnextQuotationEquipmentItem = {
   id: string;
@@ -36,160 +22,6 @@ export type ErpnextQuotationEquipmentItem = {
   amount: number;
 };
 
-class ErpnextRequestError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-    this.name = "ErpnextRequestError";
-  }
-}
-
-const ERPNEXT_REQUEST_TIMEOUT_MS = 15_000;
-const MAX_ERPNEXT_RESPONSE_TEXT_CHARS = 12_000;
-
-async function getErpnextCredentials(): Promise<ErpnextCredentials> {
-  const [baseUrlRaw, apiKeyRaw, apiSecretRaw] = await Promise.all([
-    getSystemSetting("erpnext_site_endpoint"),
-    getSystemSetting("erpnext_api_key"),
-    getSystemSetting("erpnext_api_secret"),
-  ]);
-  const baseUrl = (baseUrlRaw || process.env.ERPNEXT_BASE_URL || "").trim().replace(/\/$/, "");
-  const apiKey = (apiKeyRaw || process.env.ERPNEXT_API_KEY || "").trim();
-  const apiSecret = (apiSecretRaw || process.env.ERPNEXT_API_SECRET || "").trim();
-
-  if (!baseUrl || !apiKey || !apiSecret) {
-    throw new Error("ERPNext configuration is missing. Set ERPNext URL, API key, and API secret in API settings.");
-  }
-
-  return {
-    baseUrl,
-    authHeader: `token ${apiKey}:${apiSecret}`,
-  };
-}
-
-function getHeaders(credentials: ErpnextCredentials) {
-  return {
-    "Content-Type": "application/json",
-    Authorization: credentials.authHeader,
-  };
-}
-
-function extractFrappeServerMessage(errorText: string) {
-  try {
-    const parsed = JSON.parse(errorText) as {
-      _error_message?: unknown;
-      _server_messages?: unknown;
-      exc_type?: unknown;
-      exception?: unknown;
-      message?: unknown;
-    };
-
-    const serverMessagesText = typeof parsed._server_messages === "string"
-      ? parsed._server_messages
-      : "";
-    const serverMessages = serverMessagesText
-      ? JSON.parse(serverMessagesText) as Array<{ message?: unknown; title?: unknown }>
-      : [];
-    const serverMessage = serverMessages
-      .map((entry) => typeof entry.message === "string" ? entry.message.replace(/<[^>]*>/g, "") : "")
-      .find(Boolean);
-
-    return [
-      typeof parsed._error_message === "string" ? parsed._error_message : "",
-      serverMessage || "",
-      typeof parsed.exception === "string" ? parsed.exception : "",
-      typeof parsed.message === "string" ? parsed.message : "",
-    ].find(Boolean) || "";
-  } catch {
-    return "";
-  }
-}
-
-function formatErpnextError(status: number, endpoint: string, errorText: string) {
-  const message = extractFrappeServerMessage(errorText) || errorText || `ERPNext responded with status ${status}`;
-  const isQuotationPermissionError =
-    endpoint.includes("/api/resource/Quotation") &&
-    /permission|No permission|does not have doctype access/i.test(message);
-
-  if (isQuotationPermissionError) {
-    return [
-      "ERPNext API user does not have permission to create Quotation documents.",
-      "Please grant the ERPNext API user a role with Quotation Read/Create/Write access, such as Sales User or Sales Manager, then retry from SolarDream.",
-      `ERPNext detail: ${message}`,
-    ].join(" ");
-  }
-
-  return message;
-}
-
-function parseMaybeJson(text: string) {
-  if (!text) return {};
-  try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    return { raw: text };
-  }
-}
-
-async function erpnextRequest(method: "GET" | "POST" | "PUT", endpoint: string, body?: ErpnextBody): Promise<ErpnextJson> {
-  const credentials = await getErpnextCredentials();
-  const requestHeaders = getHeaders(credentials);
-  let responseWasLogged = false;
-
-  try {
-    const response = await fetch(`${credentials.baseUrl}${endpoint}`, {
-      method,
-      headers: requestHeaders,
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(ERPNEXT_REQUEST_TIMEOUT_MS),
-    });
-    const responseText = (await response.text().catch(() => ""))
-      .slice(0, MAX_ERPNEXT_RESPONSE_TEXT_CHARS);
-    const responseBody = parseMaybeJson(responseText);
-    const errorMessage = response.ok ? null : formatErpnextError(response.status, endpoint, responseText);
-
-    queueApiLog({
-      direction: "OUTBOUND",
-      sourceSystem: "ERPNEXT",
-      endpoint,
-      method,
-      statusCode: response.status,
-      requestHeaders,
-      requestBody: body ?? {},
-      responseBody,
-      errorMessage,
-    });
-    responseWasLogged = true;
-
-    if (!response.ok) {
-      throw new ErpnextRequestError(
-        response.status,
-        errorMessage || `ERPNext responded with status ${response.status}`,
-      );
-    }
-
-    return responseBody as ErpnextJson;
-  } catch (error) {
-    if (!responseWasLogged) {
-      const serialized = serializeError(error);
-      queueApiLog({
-        direction: "OUTBOUND",
-        sourceSystem: "ERPNEXT",
-        endpoint,
-        method,
-        statusCode: 500,
-        requestHeaders,
-        requestBody: body ?? {},
-        responseBody: serialized,
-        errorMessage: serialized.stack || serialized.message,
-      });
-    }
-    throw error;
-  }
-}
 
 function getRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -206,163 +38,12 @@ function getString(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : "";
 }
 
-function extractErpnextResourceName(value: unknown, depth = 0): string | null {
-  // Standard Frappe resource responses use { data: { name } }. Some custom
-  // endpoints return the document directly, an array, or a message wrapper.
-  if (depth > 2) return null;
-
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      const name = extractErpnextResourceName(item, depth + 1);
-      if (name) return name;
-    }
-    return null;
-  }
-
-  const record = getRecord(value);
-  const name = getString(record.name);
-  if (name) return name;
-
-  return extractErpnextResourceName(record.data, depth + 1)
-    || extractErpnextResourceName(record.message, depth + 1);
-}
-
-function isUsableConfiguredName(value: string) {
-  return value.length > 0 && !value.includes("\"") && !/^[^\p{L}\p{N}]+$/u.test(value);
-}
-
-function getFirstResource(data: ErpnextJson["data"]) {
-  return Array.isArray(data) ? data[0] : data;
-}
-
-function getErpnextRows(data: ErpnextJson["data"]): Array<Record<string, unknown>> {
-  if (Array.isArray(data)) return data;
-  const record = getRecord(data);
-  return Array.isArray(record.data)
-    ? record.data.map(getRecord)
-    : [];
-}
-
-async function findErpnextLeadByIdentity(input: { email: string | null; phone: string | null }) {
-  const identities = [
-    { field: "email_id", value: getString(input.email).toLowerCase() },
-    { field: "mobile_no", value: getString(input.phone) },
-  ].filter((identity) => identity.value.length > 0);
-
-  for (const identity of identities) {
-    const filters = encodeURIComponent(JSON.stringify([[identity.field, "=", identity.value]]));
-    const fields = encodeURIComponent(JSON.stringify(["name", "email_id", "mobile_no", "status"]));
-    try {
-      const response = await erpnextRequest(
-        "GET",
-        `/api/resource/Lead?filters=${filters}&fields=${fields}&limit_page_length=1`,
-      );
-      const leadId = getString(getErpnextRows(response.data)[0]?.name);
-      if (leadId) return leadId;
-    } catch (error) {
-      console.warn("[ERPNext Lead Factory] Lead identity lookup skipped:", error);
-    }
-  }
-
-  return null;
-}
-
-function isDuplicateErpnextLeadError(error: unknown) {
-  return (
-    (error instanceof ErpnextRequestError && error.status === 409) ||
-    /DuplicateEntryError|Email Address must be unique/i.test(error instanceof Error ? error.message : "")
-  );
-}
-
-async function getCompanyName() {
-  const configuredCompanyName = (
-    process.env.ERPNEXT_COMPANY_NAME?.trim() ||
-    (await getSystemSetting("erpnext_company_name"))?.trim() ||
-    ""
-  ).trim();
-
-  if (isUsableConfiguredName(configuredCompanyName)) {
-    return configuredCompanyName;
-  }
-
-  const fields = encodeURIComponent(JSON.stringify(["name"]));
-  const filters = encodeURIComponent(JSON.stringify([["Company", "is_group", "=", 0]]));
-  const companies = await erpnextRequest(
-    "GET",
-    `/api/resource/Company?fields=${fields}&filters=${filters}&limit_page_length=2`,
-  );
-  const companyName = extractErpnextResourceName(companies.data);
-
-  if (!companyName) {
-    throw new Error(
-      "ERPNext company name is missing or invalid. Set a valid erpnext_company_name in API settings, or grant the API user Company read access so SolarDream can discover it.",
-    );
-  }
-
-  return companyName;
-}
-
-async function getDefaultLeadItemCode() {
-  const configuredItemCode = (
-    (await getSystemSetting("erpnext_default_item_code")) ||
-    process.env.ERPNEXT_DEFAULT_ITEM_CODE ||
-    ""
-  ).trim();
-  if (configuredItemCode) {
-    return configuredItemCode;
-  }
-
-  const itemCode = "SOLARDREAM-SOLAR-SYSTEM";
-  const fields = encodeURIComponent(JSON.stringify(["name", "item_code"]));
-  const filters = encodeURIComponent(JSON.stringify([["Item", "item_code", "=", itemCode]]));
-  const existing = await erpnextRequest(
-    "GET",
-    `/api/resource/Item?fields=${fields}&filters=${filters}&limit_page_length=1`,
-  );
-  const existingItem = getFirstResource(existing.data);
-  const existingItemCode = typeof existingItem?.item_code === "string"
-    ? existingItem.item_code
-    : extractErpnextResourceName(existing.data);
-  if (existingItemCode) {
-    return existingItemCode;
-  }
-
-  try {
-    const created = await erpnextRequest("POST", "/api/resource/Item", {
-      data: {
-        item_code: itemCode,
-        item_name: "SolarDream Custom Solar System",
-        item_group: process.env.ERPNEXT_DEFAULT_ITEM_GROUP || "Products",
-        stock_uom: process.env.ERPNEXT_DEFAULT_UOM || "Nos",
-        is_sales_item: 1,
-        is_stock_item: 0,
-        description: "Generic SolarDream quotation line for website lead configurations.",
-      },
-    });
-    const createdItem = getFirstResource(created.data);
-    const createdItemCode = typeof createdItem?.item_code === "string"
-      ? createdItem.item_code
-      : extractErpnextResourceName(created.data);
-
-    if (createdItemCode) {
-      return createdItemCode;
-    }
-  } catch (error) {
-    console.error("[ERPNext Item Setup] Failed to create default quotation item:", error);
-    throw new Error(
-      `ERPNext default quotation item is missing. Create Item ${itemCode}, or set erpnext_default_item_code to an existing ERPNext Item Code.`,
-    );
-  }
-
-  throw new Error(`ERPNext did not return the default Item Code ${itemCode}.`);
-}
-
 async function buildLeadFallbackSystemItem(input: {
   systemSizeKwp: number;
   panelCount: number;
   totalPrice: number;
 }) {
-  const itemCode = await getDefaultLeadItemCode();
+  const itemCode = await erpNextCommercialService.getDefaultQuotationItemCode();
   const systemSizeLabel = input.systemSizeKwp > 0 ? `${input.systemSizeKwp} kWp` : "custom";
   return {
     item_code: itemCode,
@@ -498,30 +179,13 @@ export async function createErpnextLeadForConsultation(consultationLeadId: strin
       },
     };
 
-    let erpLeadId = await findErpnextLeadByIdentity({
+    const leadResult = await erpNextCommercialService.createLeadIdempotently({
+      data: payload.data,
       email: consultationLead.email,
       phone: consultationLead.phone,
     });
-    let httpStatus = 200;
-
-    if (!erpLeadId) {
-      try {
-        const result = await erpnextRequest("POST", "/api/resource/Lead", payload);
-        erpLeadId = extractErpnextResourceName(result.data);
-        httpStatus = result.status;
-      } catch (error) {
-        if (!isDuplicateErpnextLeadError(error)) throw error;
-        erpLeadId = await findErpnextLeadByIdentity({
-          email: consultationLead.email,
-          phone: consultationLead.phone,
-        });
-        if (!erpLeadId) throw error;
-      }
-    }
-
-    if (!erpLeadId) {
-      throw new Error("ERPNext did not return a Lead ID.");
-    }
+    const erpLeadId = leadResult.providerId;
+    const httpStatus = leadResult.httpStatus;
 
     await db.update(consultationLeads)
       .set({
@@ -605,16 +269,9 @@ export async function verifyErpnextLead(erpLeadId: string): Promise<{
   }
 
   try {
-    await erpnextRequest(
-      "GET",
-      `/api/resource/Lead/${encodeURIComponent(normalizedLeadId)}`,
-    );
-    return { success: true, exists: true };
+    const lead = await erpNextCommercialService.getLead(normalizedLeadId);
+    return { success: true, exists: Boolean(lead) };
   } catch (error) {
-    if (error instanceof ErpnextRequestError && error.status === 404) {
-      return { success: true, exists: false };
-    }
-
     return {
       success: false,
       error: error instanceof Error ? error.message : "ERPNext lead verification failed.",
@@ -716,12 +373,8 @@ export async function getErpnextQuotationEquipment(
   if (!normalizedQuotationId) return [];
 
   try {
-    const response = await erpnextRequest(
-      "GET",
-      `/api/resource/Quotation/${encodeURIComponent(normalizedQuotationId)}`,
-    );
-    const quotation = getRecord(response.data);
-    const items = Array.isArray(quotation.items) ? quotation.items : [];
+    const quotation = await erpNextCommercialService.getQuotation(normalizedQuotationId);
+    const items = Array.isArray(quotation?.items) ? quotation.items : [];
 
     return items.map((item, index) => {
       const row = getRecord(item);
@@ -758,16 +411,9 @@ async function verifyErpnextQuotation(erpQuotationId: string): Promise<{
   }
 
   try {
-    await erpnextRequest(
-      "GET",
-      `/api/resource/Quotation/${encodeURIComponent(normalizedQuotationId)}`,
-    );
-    return { success: true, exists: true };
+    const quotation = await erpNextCommercialService.getQuotation(normalizedQuotationId);
+    return { success: true, exists: Boolean(quotation) };
   } catch (error) {
-    if (error instanceof ErpnextRequestError && error.status === 404) {
-      return { success: true, exists: false };
-    }
-
     return {
       success: false,
       error: error instanceof Error ? error.message : "ERPNext quotation verification failed.",
@@ -815,8 +461,9 @@ export async function createErpnextQuotationFromLead(leadId: string) {
       ? items
       : [await buildLeadFallbackSystemItem({ systemSizeKwp, panelCount, totalPrice })];
     let erpLeadId = getString(existingSync.erpLeadId ?? existingSync.erpnextLeadId);
+    let leadHttpStatus = 200;
     if (!erpLeadId) {
-      const createdLead = await erpnextRequest("POST", "/api/resource/Lead", {
+      const createdLead = await erpNextCommercialService.createLeadIdempotently({
         data: {
           lead_name: lead.name,
           first_name: lead.name,
@@ -826,11 +473,11 @@ export async function createErpnextQuotationFromLead(leadId: string) {
           source: "SolarDream CRM",
           notes: buildLeadRemarks(lead),
         },
+        email: lead.email,
+        phone: lead.phone,
       });
-      erpLeadId = extractErpnextResourceName(createdLead.data) || "";
-      if (!erpLeadId) {
-        throw new Error("ERPNext did not return a Lead ID.");
-      }
+      erpLeadId = createdLead.providerId;
+      leadHttpStatus = createdLead.httpStatus;
 
       await db.update(leads)
         .set({
@@ -841,7 +488,7 @@ export async function createErpnextQuotationFromLead(leadId: string) {
               status: "ERP_LEAD_CREATED",
               erpLeadId,
               erpnextLeadId: erpLeadId,
-              httpStatus: createdLead.status,
+              httpStatus: leadHttpStatus,
               updatedAt: new Date().toISOString(),
             },
           },
@@ -851,7 +498,7 @@ export async function createErpnextQuotationFromLead(leadId: string) {
     }
     const customerId = getString(existingSync.erpnextCustomerId ?? existingSync.erpCustomerId);
     const documentNo = getLeadDocumentNo(lead.id);
-    const companyName = await getCompanyName();
+    const companyName = await erpNextCommercialService.getCompanyName();
 
     const quotationPayload = {
       data: {
@@ -876,17 +523,11 @@ export async function createErpnextQuotationFromLead(leadId: string) {
 
     payload = quotationPayload;
 
-    const result = await erpnextRequest("POST", "/api/resource/Quotation", quotationPayload);
-    const quotationName = extractErpnextResourceName(result.data);
-
-    if (!quotationName) {
-      throw new Error("ERPNext did not return a quotation ID.");
-    }
+    const result = await erpNextCommercialService.createQuotation(quotationPayload.data);
+    const quotationName = result.providerId;
 
     try {
-      await erpnextRequest("PUT", `/api/resource/Lead/${encodeURIComponent(erpLeadId)}`, {
-        data: { status: "Quotation" },
-      });
+      await erpNextCommercialService.updateLead(erpLeadId, { status: "Quotation" });
     } catch (error) {
       console.warn(`[ERPNext Lead Quotation] quotation ${quotationName} created, but Lead ${erpLeadId} status was not updated:`, error);
     }
@@ -906,7 +547,7 @@ export async function createErpnextQuotationFromLead(leadId: string) {
         documentNo,
         payloadTitle: documentNo,
         customerAssignmentMode: customerId ? "EXPLICIT_BINDING" : "LEAD_PARTY",
-        httpStatus: result.status,
+        httpStatus: result.httpStatus,
         validationLoopAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -994,7 +635,7 @@ async function createErpnextQuotationCore(proposalId: string) {
       };
     }
     const documentNo = getQuotationDocumentNo(proposal.id);
-    const companyName = await getCompanyName();
+    const companyName = await erpNextCommercialService.getCompanyName();
 
     const config = ((proposal.configurationData as Record<string, unknown>) || {});
     const quotationPayload = {
@@ -1020,12 +661,8 @@ async function createErpnextQuotationCore(proposalId: string) {
 
     payload = quotationPayload;
 
-    const result = await erpnextRequest("POST", "/api/resource/Quotation", quotationPayload);
-    const quotationName = extractErpnextResourceName(result.data);
-
-    if (!quotationName) {
-      throw new Error("ERPNext did not return a quotation ID.");
-    }
+    const result = await erpNextCommercialService.createQuotation(quotationPayload.data);
+    const quotationName = result.providerId;
 
     const configurationData = {
       ...((proposal.configurationData as Record<string, unknown>) || {}),
@@ -1040,7 +677,7 @@ async function createErpnextQuotationCore(proposalId: string) {
         erpnextTitle: documentNo,
         documentNo,
         payloadTitle: documentNo,
-        httpStatus: result.status,
+        httpStatus: result.httpStatus,
         validationLoopAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -1050,7 +687,6 @@ async function createErpnextQuotationCore(proposalId: string) {
       .set({
         erpnextCustomerId: customerId || null,
         erpnextQuotationId: quotationName,
-        status: proposal.status === "DRAFT" ? "SENT" : proposal.status,
         configurationData,
       })
       .where(eq(proposals.id, proposalId));

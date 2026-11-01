@@ -3,6 +3,7 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { useTranslations } from "next-intl";
+import { SoliaGuide } from "@/components/brand/solia-scenes";
 
 type BudgetOption = Readonly<{
   label: string;
@@ -13,6 +14,7 @@ export default function ContactForm() {
   const t = useTranslations("ContactForm");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [details, setDetails] = useState("");
   const formRef = useRef<HTMLFormElement | null>(null);
   const successRef = useRef<HTMLDivElement | null>(null);
   const budgetOptions: readonly BudgetOption[] = [
@@ -31,6 +33,7 @@ export default function ContactForm() {
       setSubmitting(false);
       setSubmitted(true);
       event.currentTarget.reset();
+      setDetails("");
     }, 650);
   };
 
@@ -90,17 +93,37 @@ export default function ContactForm() {
     return (
       <div
         ref={successRef}
-        className="rounded-[28px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-8 shadow-sm sm:p-10"
+        className="rounded-[28px] border border-[rgba(60,86,122,0.18)] bg-[var(--accent)] p-8 shadow-sm sm:p-10"
       >
-        <p className="text-sm font-medium text-[var(--sd-navy-900)]">{t("success.eyebrow")}</p>
-        <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#1C1C1A]">{t("success.title")}</h2>
-        <p className="mt-5 max-w-md text-sm font-normal leading-6 text-[#4E4B44]">
+        <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(60,86,122,0.14)] bg-white/80 px-3.5 py-1 text-xs font-bold text-[var(--accent-foreground)] shadow-xs">
+          <span className="size-2 rounded-full bg-[#06C755] animate-pulse" />
+          {t("success.responseTimeBadge")}
+        </div>
+        <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-[var(--sd-ink)]">
+          {t("success.title")}
+        </h2>
+        <p className="mt-3 max-w-md text-sm font-medium leading-6 text-[var(--sd-text-secondary)]">
           {t("success.description")}
         </p>
+
+        <div className="mt-8 flex items-center gap-5 rounded-2xl border border-[rgba(60,86,122,0.14)] bg-white/90 p-4 shadow-xs">
+          <SoliaGuide
+            pose="pointing"
+            alt={t("success.soliaAlt")}
+            className="h-24 w-20 shrink-0"
+            imageSizes="80px"
+            message={t("success.soliaMessage")}
+            speechBubbleClassName="rounded-xl border border-[rgba(60,86,122,0.12)] bg-[var(--background)] p-3 text-xs font-semibold leading-5 text-[var(--sd-ink)]"
+          />
+        </div>
+
         <button
           type="button"
-          onClick={() => setSubmitted(false)}
-          className="solar-ui-primary mt-8 rounded-full px-6 py-3 text-sm font-medium active:scale-95"
+          onClick={() => {
+            setSubmitted(false);
+            setDetails("");
+          }}
+          className="solar-ui-primary mt-8 rounded-full px-6 py-3 text-sm font-bold active:scale-95"
         >
           {t("success.sendAnother")}
         </button>
@@ -117,7 +140,7 @@ export default function ContactForm() {
       className="space-y-6"
     >
       <div data-contact-field>
-        <label htmlFor="name" className="text-sm font-medium text-[#1C1C1A]">
+        <label htmlFor="name" className="text-sm font-semibold text-[var(--sd-ink)]">
           {t("fields.name")}
         </label>
         <input
@@ -126,13 +149,13 @@ export default function ContactForm() {
           type="text"
           required
           autoComplete="name"
-          className="mt-2 w-full rounded-t-xl rounded-b-none border-b-2 border-[#8E8B83] bg-[#F7F6F3] px-4 py-3 text-sm font-medium text-[#1C1C1A] outline-none transition placeholder:text-[#4E4B44]/50 focus:border-[#7CA8D0] focus:bg-[#F0EEE9] focus:ring-0"
+          className="mt-2 w-full rounded-2xl border border-[rgba(60,86,122,0.18)] bg-[var(--background)] px-4 py-3 text-sm font-medium text-[var(--sd-ink)] outline-none transition placeholder:text-[var(--sd-text-secondary)]/50 focus:border-[var(--primary-foreground)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]"
           placeholder={t("placeholders.name")}
         />
       </div>
 
       <div data-contact-field>
-        <label htmlFor="email" className="text-sm font-medium text-[#1C1C1A]">
+        <label htmlFor="email" className="text-sm font-semibold text-[var(--sd-ink)]">
           {t("fields.email")}
         </label>
         <input
@@ -141,13 +164,13 @@ export default function ContactForm() {
           type="email"
           required
           autoComplete="email"
-          className="mt-2 w-full rounded-t-xl rounded-b-none border-b-2 border-[#8E8B83] bg-[#F7F6F3] px-4 py-3 text-sm font-medium text-[#1C1C1A] outline-none transition placeholder:text-[#4E4B44]/50 focus:border-[#7CA8D0] focus:bg-[#F0EEE9] focus:ring-0"
+          className="mt-2 w-full rounded-2xl border border-[rgba(60,86,122,0.18)] bg-[var(--background)] px-4 py-3 text-sm font-medium text-[var(--sd-ink)] outline-none transition placeholder:text-[var(--sd-text-secondary)]/50 focus:border-[var(--primary-foreground)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]"
           placeholder="you@company.com"
         />
       </div>
 
       <div data-contact-field>
-        <label htmlFor="company" className="text-sm font-medium text-[#1C1C1A]">
+        <label htmlFor="company" className="text-sm font-semibold text-[var(--sd-ink)]">
           {t("fields.company")}
         </label>
         <input
@@ -155,13 +178,13 @@ export default function ContactForm() {
           name="company"
           type="text"
           autoComplete="organization"
-          className="mt-2 w-full rounded-t-xl rounded-b-none border-b-2 border-[#8E8B83] bg-[#F7F6F3] px-4 py-3 text-sm font-medium text-[#1C1C1A] outline-none transition placeholder:text-[#4E4B44]/50 focus:border-[#7CA8D0] focus:bg-[#F0EEE9] focus:ring-0"
+          className="mt-2 w-full rounded-2xl border border-[rgba(60,86,122,0.18)] bg-[var(--background)] px-4 py-3 text-sm font-medium text-[var(--sd-ink)] outline-none transition placeholder:text-[var(--sd-text-secondary)]/50 focus:border-[var(--primary-foreground)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]"
           placeholder={t("placeholders.company")}
         />
       </div>
 
       <div data-contact-field>
-        <label htmlFor="budget" className="text-sm font-medium text-[#1C1C1A]">
+        <label htmlFor="budget" className="text-sm font-semibold text-[var(--sd-ink)]">
           {t("fields.budget")}
         </label>
         <select
@@ -169,10 +192,10 @@ export default function ContactForm() {
           name="budget"
           required
           defaultValue=""
-          className="mt-2 w-full rounded-t-xl rounded-b-none border-b-2 border-[#8E8B83] bg-[#F7F6F3] px-4 py-3 text-sm font-medium text-[#1C1C1A] outline-none transition focus:border-[#7CA8D0] focus:bg-[#F0EEE9] focus:ring-0"
+          className="mt-2 w-full rounded-2xl border border-[rgba(60,86,122,0.18)] bg-[var(--background)] px-4 py-3 text-sm font-medium text-[var(--sd-ink)] outline-none transition focus:border-[var(--primary-foreground)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]"
         >
           {budgetOptions.map((option) => (
-            <option key={option.value || "empty"} value={option.value} className="bg-[#F0EEE9] text-[#1C1C1A]">
+            <option key={option.value || "empty"} value={option.value} className="bg-white text-[var(--sd-ink)]">
               {option.label}
             </option>
           ))}
@@ -180,15 +203,23 @@ export default function ContactForm() {
       </div>
 
       <div data-contact-field>
-        <label htmlFor="details" className="text-sm font-medium text-[#1C1C1A]">
-          {t("fields.details")}
-        </label>
+        <div className="flex items-center justify-between">
+          <label htmlFor="details" className="text-sm font-semibold text-[var(--sd-ink)]">
+            {t("fields.details")}
+          </label>
+          <span className="text-xs font-semibold text-[var(--sd-text-secondary)]">
+            {details.length}/500
+          </span>
+        </div>
         <textarea
           id="details"
           name="details"
           required
+          maxLength={500}
           rows={5}
-          className="mt-2 w-full resize-none rounded-t-xl rounded-b-none border-b-2 border-[#8E8B83] bg-[#F7F6F3] px-4 py-3 text-sm font-medium text-[#1C1C1A] outline-none transition placeholder:text-[#4E4B44]/50 focus:border-[#7CA8D0] focus:bg-[#F0EEE9] focus:ring-0"
+          value={details}
+          onChange={(e) => setDetails(e.target.value)}
+          className="mt-2 w-full resize-none rounded-2xl border border-[rgba(60,86,122,0.18)] bg-[var(--background)] px-4 py-3 text-sm font-medium text-[var(--sd-ink)] outline-none transition placeholder:text-[var(--sd-text-secondary)]/50 focus:border-[var(--primary-foreground)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]"
           placeholder={t("placeholders.details")}
         />
       </div>
@@ -197,7 +228,7 @@ export default function ContactForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="solar-ui-primary min-h-12 rounded-full px-8 text-sm font-medium active:scale-95 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+          className="solar-ui-primary min-h-12 rounded-full px-8 text-sm font-bold shadow-xs active:scale-95 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
         >
           {submitting ? t("sending") : t("send")}
         </button>

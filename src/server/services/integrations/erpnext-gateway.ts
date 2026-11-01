@@ -1,6 +1,13 @@
 import "server-only";
 
-import { frappeRequest, type ErpnextDocument } from "@/lib/erpnext";
+import {
+  erpNextTransport,
+  ERPNextTransportError,
+  type ERPNextTransport,
+  type ERPNextTransportMethod,
+} from "@/server/services/integrations/erpnext-transport";
+
+type ErpnextDocument = Record<string, unknown>;
 
 export type ERPNextErrorCategory = "CONFIGURATION" | "NETWORK" | "PROVIDER" | "CONFLICT" | "VALIDATION";
 
@@ -30,7 +37,7 @@ export type ERPNextTaskProjection = {
   reused: boolean;
 };
 
-type GatewayMethod = "GET" | "POST" | "PUT";
+type GatewayMethod = ERPNextTransportMethod;
 
 export type ERPNextPaymentStatus =
   | "UNPAID" | "REQUESTED" | "PENDING" | "PARTIALLY_PAID"
@@ -40,6 +47,10 @@ export type ERPNextNormalizedDocument = {
   providerId: string;
   status: string | null;
   raw: ErpnextDocument;
+};
+
+export type ERPNextDocumentWriteResult = ERPNextNormalizedDocument & {
+  httpStatus: number;
 };
 
 function asRecord(value: unknown): ErpnextDocument {
@@ -86,6 +97,9 @@ function toErpnextDateTime(value: Date) {
 
 function classifyError(error: unknown): ERPNextGatewayError {
   if (error instanceof ERPNextGatewayError) return error;
+  if (error instanceof ERPNextTransportError) {
+    return new ERPNextGatewayError(error.category, error.message, error.providerStatus);
+  }
   const message = error instanceof Error ? error.message : "ERPNext request failed.";
   const normalized = message.toLowerCase();
   if (normalized.includes("configuration is missing")) {
@@ -104,6 +118,8 @@ function classifyError(error: unknown): ERPNextGatewayError {
 }
 
 export class ERPNextGateway {
+  constructor(private readonly transport: ERPNextTransport = erpNextTransport) {}
+
   isConfigured() {
     return Boolean(
       (process.env.ERPNEXT_URL || process.env.ERPNEXT_BASE_URL)?.trim()
@@ -112,9 +128,13 @@ export class ERPNextGateway {
     );
   }
 
+  async isConfiguredAsync() {
+    return this.transport.isConfigured();
+  }
+
   private async request(method: GatewayMethod, endpoint: string, body?: unknown) {
     try {
-      return await frappeRequest(method, endpoint, body);
+      return await this.transport.request(method, endpoint, body);
     } catch (error: unknown) {
       throw classifyError(error);
     }
@@ -122,6 +142,7 @@ export class ERPNextGateway {
 
   /** Compatibility escape hatch for legacy adapters. New code should use normalized operations. */
   async compatibilityRequest(method: GatewayMethod, endpoint: string, body?: unknown) {
+    const { frappeRequest } = await import("@/lib/erpnext");
     return frappeRequest(method, endpoint, body);
   }
 
@@ -160,6 +181,66 @@ export class ERPNextGateway {
 
   async getQuotation(providerId: string) {
     return this.normalized(await this.getDocument("Quotation", getText(providerId)));
+  }
+
+  async getQuotationHistory(providerId: string) {
+    const quotationId = getText(providerId);
+    if (!quotationId) throw new ERPNextGatewayError("VALIDATION", "An ERPNext Quotation identifier is required.");
+    return this.listResource(
+      "Version",
+      ["name", "creation", "owner", "data", "docname", "ref_doctype"],
+      [["Version", "ref_doctype", "=", "Quotation"], ["Version", "docname", "=", quotationId]],
+      200,
+    );
+  }
+
+  private async writeDocument(doctype: string, method: "POST" | "PUT", data: ErpnextDocument, providerId?: string): Promise<ERPNextDocumentWriteResult> {
+    const normalizedDoctype = getText(doctype);
+    if (!normalizedDoctype || Object.keys(data).length === 0) throw new ERPNextGatewayError("VALIDATION", "ERPNext document write data is incomplete.");
+    const endpoint = "/api/resource/" + encodeURIComponent(normalizedDoctype) + (providerId ? "/" + encodeURIComponent(getText(providerId)) : "");
+    const result = await this.request(method, endpoint, { data });
+    const document = this.normalized(result.data);
+    if (!document) throw new ERPNextGatewayError("PROVIDER", `ERPNext did not return a ${normalizedDoctype} identifier.`);
+    return { ...document, httpStatus: result.status };
+  }
+
+  async createLead(data: ErpnextDocument) { return this.writeDocument("Lead", "POST", data); }
+  async getLead(providerId: string) { return this.normalized(await this.getDocument("Lead", getText(providerId))); }
+  async updateLead(providerId: string, data: ErpnextDocument) { return this.writeDocument("Lead", "PUT", data, providerId); }
+
+  async findLeadByIdentity(input: { email?: string | null; phone?: string | null }) {
+    const identities = [["email_id", getText(input.email).toLowerCase()], ["mobile_no", getText(input.phone)]] as const;
+    for (const [field, value] of identities) {
+      if (!value) continue;
+      const rows = await this.listResource("Lead", ["name", "email_id", "mobile_no", "status"], [["Lead", field, "=", value]], 2);
+      if (rows.length > 1) throw new ERPNextGatewayError("CONFLICT", "ERPNext returned duplicate Lead records for the same identity.");
+      if (rows[0]) return rows[0];
+    }
+    return null;
+  }
+
+  async createCustomer(data: ErpnextDocument) { return this.writeDocument("Customer", "POST", data); }
+  async createAddress(data: ErpnextDocument) { return this.writeDocument("Address", "POST", data); }
+  async createItem(data: ErpnextDocument) { return this.writeDocument("Item", "POST", data); }
+  async findCompanies() { return this.listResource("Company", ["name"], [["Company", "is_group", "=", 0]], 2); }
+  async createQuotation(data: ErpnextDocument) { return this.writeDocument("Quotation", "POST", data); }
+  async updateQuotation(providerId: string, data: ErpnextDocument) { return this.writeDocument("Quotation", "PUT", data, providerId); }
+  async cancelQuotation(providerId: string) { return this.updateQuotation(providerId, { docstatus: 2 }); }
+  async approveQuotation(providerId: string) { return this.updateQuotation(providerId, { status: "Approved", workflow_state: "Approved" }); }
+  async createSalesOrder(data: ErpnextDocument) { return this.writeDocument("Sales Order", "POST", data); }
+  async findSalesOrderByAcceptanceKey(acceptanceKey: string) {
+    const key = getText(acceptanceKey);
+    if (!key) throw new ERPNextGatewayError("VALIDATION", "A Sales Order acceptance key is required.");
+    const rows = await this.listResource("Sales Order", ["name", "docstatus", "status", "custom_solardream_acceptance_key"], [["Sales Order", "custom_solardream_acceptance_key", "=", key]], 2);
+    if (rows.length > 1) throw new ERPNextGatewayError("CONFLICT", "ERPNext returned duplicate Sales Orders for the acceptance key.");
+    return rows[0] || null;
+  }
+  async submitDocument(doctype: string, providerId: string) {
+    const normalizedDoctype = getText(doctype);
+    const normalizedProviderId = getText(providerId);
+    if (!normalizedDoctype || !normalizedProviderId) throw new ERPNextGatewayError("VALIDATION", "ERPNext document submission is incomplete.");
+    const result = await this.request("POST", "/api/method/frappe.client.submit", { doc: JSON.stringify({ doctype: normalizedDoctype, name: normalizedProviderId }) });
+    return this.normalized(result.data)?.raw || {};
   }
 
   quotationPdfPath(providerId: string, format?: string) {

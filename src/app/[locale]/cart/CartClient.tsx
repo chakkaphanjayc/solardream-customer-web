@@ -140,7 +140,7 @@ export default function CartPage() {
   // Before hydration, render a premium loading container matching the layout
   if (!hasHydrated) {
     return (
-      <PageShell className="flex min-h-[70dvh] w-full items-center justify-center bg-[#F0EEE9] px-4">
+      <PageShell className="flex min-h-[70dvh] w-full items-center justify-center bg-[var(--background)] px-4">
         <SolarStatePanel
           kind="loading"
           title={t("header.title")}
@@ -152,17 +152,17 @@ export default function CartPage() {
   }
 
   return (
-    <PageShell className="w-full bg-[#F0EEE9] px-4 py-8 text-[#1C1C1A] md:py-14">
+    <PageShell className="w-full bg-[var(--background)] px-4 py-8 text-[var(--sd-ink)] md:py-14">
       <div className="mx-auto max-w-7xl">
         {/* Header Breadcrumbs / Title */}
         <div className="mb-8 space-y-4">
           <SmartBackButton
             fallbackHref={getLocalizedPath("/catalog")}
             label={t("footer.backToCatalog")}
-            className="rounded-full bg-[#DCE8F5] px-4 py-2 text-xs font-medium text-[#2E2C27] hover:bg-[#DCE8F5]"
+            className="rounded-full bg-[var(--primary)]/25 px-4 py-2 text-xs font-medium text-[var(--accent-foreground)] hover:bg-[var(--primary)]/40"
           />
 
-          <div className="flex flex-col justify-between gap-4 border-b border-[#8E8B83]/15 pb-6 md:flex-row md:items-end">
+          <div className="flex flex-col justify-between gap-4 border-b border-[var(--border)] pb-6 md:flex-row md:items-end">
             <div>
               <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-[#315e82]">
                 {t("header.title")}

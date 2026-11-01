@@ -26,13 +26,15 @@ import type {
   ClientPaymentRequest,
   ClientProposal,
   ClientInstallationSnapshot,
+  ProposalAcceptanceDto,
+  ProposalNegotiationEventDto,
+  ProposalQuotationReadModelDto,
   ProposalPortalSnapshotResponseDto,
 } from "@/types/proposals";
 import { ProjectTaskStepper } from "@/components/proposals/detail/ProjectTaskStepper";
 import { PortalRevisionAndBilling } from "@/components/proposals/PortalRevisionAndBilling";
 import { SoliaGuide } from "@/components/brand/solia-scenes";
 import { deriveQuotationTrackingReference } from "@/lib/trackingReference";
-import { getQuotationDeliveryDocumentVersion } from "@/lib/quotationDeliveryDocuments";
 import { trackProductEvent } from "@/lib/productAnalytics";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,10 +46,14 @@ import { ProposalSignatureModal } from "@/components/proposals/detail/ProposalSi
 import { ProposalFinancialsCard } from "@/components/proposals/detail/ProposalFinancialsCard";
 import { ProposalEmbeddedPdfViewer } from "@/components/proposals/detail/ProposalEmbeddedPdfViewer";
 import { ProposalRevisionRequestCard } from "@/components/proposals/detail/ProposalRevisionRequestCard";
+import { StructuredQuotationCard } from "@/components/proposals/detail/StructuredQuotationCard";
+import { NegotiationHistoryCard } from "@/components/proposals/detail/NegotiationHistoryCard";
+import { AcceptanceHandoffCard } from "@/components/proposals/detail/AcceptanceHandoffCard";
 import {
   getEffectiveQuotationStatus,
   isQuotationAvailableForSignature,
 } from "@/lib/quotationSigningEligibility";
+import { hasPublishedCustomerQuotation } from "@/lib/proposalPortalExposure";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -78,6 +84,9 @@ export default function GuestProposalSignView({
   initialDocumentRequests = [],
   initialDeliveryDocuments = [],
   initialPaymentRequests = [],
+  quotationReadModel: initialQuotationReadModel = null,
+  initialNegotiationEvents = [],
+  acceptance: initialAcceptance = null,
   paymentInstructions,
   presentation = "fullscreen",
   showAccountCta = false,
@@ -87,6 +96,9 @@ export default function GuestProposalSignView({
   initialDocumentRequests?: ClientDocumentRequest[];
   initialDeliveryDocuments?: ClientDeliveryDocument[];
   initialPaymentRequests?: ClientPaymentRequest[];
+  quotationReadModel?: ProposalQuotationReadModelDto | null;
+  initialNegotiationEvents?: ProposalNegotiationEventDto[];
+  acceptance?: ProposalAcceptanceDto | null;
   paymentInstructions?: ClientPaymentInstructions;
   presentation?: "fullscreen" | "embedded";
   showAccountCta?: boolean;
@@ -97,6 +109,9 @@ export default function GuestProposalSignView({
   const [documentRequests, setDocumentRequests] = useState(initialDocumentRequests);
   const [deliveryDocuments, setDeliveryDocuments] = useState(initialDeliveryDocuments);
   const [paymentRequests, setPaymentRequests] = useState(initialPaymentRequests);
+  const [quotationReadModel, setQuotationReadModel] = useState(initialQuotationReadModel);
+  const [negotiationEvents, setNegotiationEvents] = useState(initialNegotiationEvents);
+  const [acceptance, setAcceptance] = useState(initialAcceptance);
   const [installation, setInstallation] = useState<ClientInstallationSnapshot>(null);
   const [isSignModalOpen, setIsSignModalOpen] = useState(false);
   const [hasReviewedQuotation, setHasReviewedQuotation] = useState(false);
@@ -158,6 +173,9 @@ export default function GuestProposalSignView({
       setDocumentRequests(snapshot.documentRequests);
       setDeliveryDocuments(snapshot.deliveryDocuments);
       setPaymentRequests(snapshot.paymentRequests);
+      setQuotationReadModel(snapshot.quotationReadModel);
+      setNegotiationEvents(snapshot.negotiationEvents);
+      setAcceptance(snapshot.acceptance);
       setInstallation(snapshot.installation);
     } finally {
       snapshotRequestInFlight.current = false;
@@ -213,7 +231,7 @@ export default function GuestProposalSignView({
     "APPROVED_BY_CUSTOMER",
     "CUSTOMER_APPROVED",
   ].includes(effectiveStatus);
-  const revisionRequested = effectiveStatus === "REVISION_REQUESTED";
+  const revisionRequested = ["REVISION_REQUESTED", "REVISION_REQUIRED"].includes(effectiveStatus);
   const isSignableStatus = isQuotationAvailableForSignature({
     status: currentProposal.status,
     dispatchStatus: currentProposal.dispatchStatus,
@@ -270,16 +288,20 @@ export default function GuestProposalSignView({
       document.status === "READY" &&
       Boolean(document.storageFileId || document.fileUrl),
   );
-  const hasFinalQuotation = Boolean(finalQuotationDocument);
-  const quotationVersion = getQuotationDeliveryDocumentVersion(
-    finalQuotationDocument,
-    currentProposal.revisionNumber,
-  );
+  const hasPublishedQuotation = hasPublishedCustomerQuotation({
+    status: currentProposal.status,
+    dispatchStatus: currentProposal.dispatchStatus,
+    hasPublishedReadModel: Boolean(quotationReadModel),
+    hasAcceptance: Boolean(acceptance),
+  });
+  const hasFinalQuotation = hasPublishedQuotation && Boolean(finalQuotationDocument);
+  const quotationVersion = Math.max(1, currentProposal.revisionNumber);
   const hasQuotationPdf = Boolean(
-    currentProposal.signedDocumentDriveUrl ||
-      hasFinalQuotation ||
-      currentProposal.revisedPdfUrl ||
-      currentProposal.pdfUrl,
+    hasPublishedQuotation &&
+      (currentProposal.signedDocumentDriveUrl ||
+        hasFinalQuotation ||
+        currentProposal.revisedPdfUrl ||
+        currentProposal.pdfUrl),
   );
   const nativePdfUrl = hasQuotationPdf
     ? `/api/proposals/${encodeURIComponent(proposal.id)}/native-pdf`
@@ -334,6 +356,7 @@ export default function GuestProposalSignView({
               customerName={customerName}
               trackRequestNumber={trackRequestNumber}
               isSigned={isSigned}
+              hasPublishedQuotation={hasPublishedQuotation}
             />
           </div>
 
@@ -440,6 +463,16 @@ export default function GuestProposalSignView({
               )}
 
               <div className="space-y-6 lg:col-span-2">
+                {quotationReadModel ? (
+                  <StructuredQuotationCard
+                    quotation={quotationReadModel}
+                    locale={locale}
+                  />
+                ) : null}
+                {negotiationEvents.length > 0 ? (
+                  <NegotiationHistoryCard events={negotiationEvents} locale={locale} />
+                ) : null}
+                {acceptance ? <AcceptanceHandoffCard acceptance={acceptance} locale={locale} /> : null}
                 <ProposalEmbeddedPdfViewer
                   pdfUrl={nativePdfUrl}
                   version={quotationVersion}
@@ -459,27 +492,34 @@ export default function GuestProposalSignView({
               </div>
 
               <aside className="space-y-6 lg:col-span-1 lg:sticky lg:top-24 lg:self-start">
-                <ProposalFinancialsCard proposal={currentProposal} />
+                {hasPublishedQuotation ? (
+                  <ProposalFinancialsCard
+                    proposal={currentProposal}
+                    quotation={quotationReadModel}
+                  />
+                ) : null}
 
-                <ProposalRevisionRequestCard
-                  proposalId={proposal.id}
-                  magicTokenSlug={magicTokenSlug}
-                  paymentHasStarted={paymentHasStarted}
-                  onRevisionRequested={({
-                    status,
-                    dispatchStatus,
-                    updatedAt,
-                  }) => {
-                    setCurrentProposal((current) => ({
-                      ...current,
+                {hasPublishedQuotation ? (
+                  <ProposalRevisionRequestCard
+                    proposalId={proposal.id}
+                    magicTokenSlug={magicTokenSlug}
+                    paymentHasStarted={paymentHasStarted}
+                    onRevisionRequested={({
                       status,
-                      dispatchStatus: dispatchStatus || current.dispatchStatus,
-                      signedDocumentDriveUrl: null,
-                      updatedAt: updatedAt || new Date().toISOString(),
-                    }));
-                    void refreshSnapshot();
-                  }}
-                />
+                      dispatchStatus,
+                      updatedAt,
+                    }) => {
+                      setCurrentProposal((current) => ({
+                        ...current,
+                        status,
+                        dispatchStatus: dispatchStatus || current.dispatchStatus,
+                        signedDocumentDriveUrl: null,
+                        updatedAt: updatedAt || new Date().toISOString(),
+                      }));
+                      void refreshSnapshot();
+                    }}
+                  />
+                ) : null}
               </aside>
             </>
           </TabsContent>

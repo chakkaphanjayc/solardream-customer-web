@@ -52,6 +52,8 @@ export type RoofStateUpdate =
 export interface WizardSlice {
   wizardAnswers: WizardAnswerMap;
   updateDynamicState: (key: string, value: WizardAnswerValue) => void;
+  setWizardAnswers: (answers: WizardAnswerMap) => void;
+  resetWizardState: () => void;
   applyWizardToVisualizer: () => void;
 }
 

@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { consultationLeads, proposals } from "@/db/schema";
+import { consultationLeads, proposalRevisions, proposals } from "@/db/schema";
 import { requireStaff } from "@/lib/auth-guard";
 import { issuePortalDispatchLink } from "@/lib/portalTokens";
 import { enqueueIntegrationEvent } from "@/lib/integrationOutbox";
@@ -110,6 +110,28 @@ export async function dispatchQuotationForSigning(
 
     if (!proposal) return { success: false, error: "Quotation was not found." };
     if (cleanWizardLeadId && !wizardLead) return { success: false, error: "Linked consultation lead was not found." };
+
+    const latestRevision = await db.query.proposalRevisions.findFirst({
+      where: eq(proposalRevisions.proposalId, proposal.id),
+      orderBy: [desc(proposalRevisions.revisionNumber)],
+      columns: {
+        status: true,
+        documentHash: true,
+        pdfDocumentReference: true,
+      },
+    });
+    if (
+      !latestRevision
+      || (latestRevision.status !== "SENT" && latestRevision.status !== "VIEWED")
+      || !latestRevision.documentHash
+      || !/^[0-9a-f]{64}$/.test(latestRevision.documentHash)
+      || !latestRevision.pdfDocumentReference
+    ) {
+      return {
+        success: false,
+        error: "Upload the final quotation PDF before sending the customer signing link.",
+      };
+    }
 
     const existingConfig = asRecord(proposal.configurationData);
     const dispatchedAt = new Date().toISOString();

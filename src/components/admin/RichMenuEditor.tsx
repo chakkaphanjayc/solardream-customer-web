@@ -1092,7 +1092,7 @@ export default function RichMenuEditor({
                     {!hasPreviewImage && (
                       <>
                         <span className={`mb-0.5 rounded px-1.5 py-0.5 text-[7px] font-black ${
-                          isActive ? "bg-[#B7D1EA] text-white" : "bg-slate-900/70 text-slate-300"
+                          isActive ? "bg-[#B7D1EA] text-[#0B051D] font-bold" : "bg-slate-900/70 text-slate-300"
                         }`}>{id}</span>
                         {cell.showLabel ? (
                           <span className={`block max-w-full truncate px-1 text-center text-[8px] font-black leading-tight ${
@@ -1451,7 +1451,7 @@ export default function RichMenuEditor({
                         }`}
                       >
                         <span className={`text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-lg flex-shrink-0 ${
-                          isActive ? "bg-[#B7D1EA] text-white" : "bg-[#1E293B] text-gray-400"
+                          isActive ? "bg-[#B7D1EA] text-[#0B051D] font-bold" : "bg-[#1E293B] text-gray-400"
                         }`}>{id}</span>
                         <span className="text-[10px] font-bold text-gray-300 truncate flex-1">{c.label || `ช่อง ${id}`}</span>
                         {!c.showLabel && <EyeOff className="w-3 h-3 text-gray-500 flex-shrink-0" />}

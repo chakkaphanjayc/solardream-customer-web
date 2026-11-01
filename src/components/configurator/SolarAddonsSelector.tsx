@@ -125,7 +125,7 @@ export default function SolarAddonsSelector({
                 <span className="flex items-start justify-between gap-3">
                   <span className={cn(
                     "flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] transition-colors",
-                    isSelected ? "bg-[#B7D1EA] text-white" : "bg-[#E6E3DC] text-[#2E2C27] group-hover:bg-[#DCE8F5]",
+                    isSelected ? "bg-[#B7D1EA] text-[#0B051D]" : "bg-[#E6E3DC] text-[#2E2C27] group-hover:bg-[#DCE8F5]",
                   )}>
                     <AddonIcon addon={addon} />
                   </span>
@@ -134,8 +134,8 @@ export default function SolarAddonsSelector({
                       {price > 0 ? `+ ${formatPrice(price)}` : (isThai ? "รวมในแพ็กเกจ" : "Included")}
                     </span>
                     {isSelected ? (
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#B7D1EA] text-white" aria-label={isThai ? "เลือกแล้ว" : "Selected"}>
-                        <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#B7D1EA] text-[#0B051D]" aria-label={isThai ? "เลือกแล้ว" : "Selected"}>
+                        <Check className="h-3.5 w-3.5 stroke-[3]" aria-hidden="true" />
                       </span>
                     ) : null}
                   </span>
@@ -166,9 +166,9 @@ export default function SolarAddonsSelector({
                         aria-pressed={optionSelected}
                         onClick={() => onSelectedIdsChange(selectSolarAddonOption(selectedIds, addon, option.id))}
                         className={cn(
-                          "min-h-9 flex-1 rounded-full px-3 py-1.5 text-[11px] font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B7D1EA]",
+                          "min-h-11 flex-1 rounded-full px-3.5 py-2 text-[11px] font-bold transition-all touch-manipulation active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5089bf]",
                           optionSelected
-                            ? "bg-[#B7D1EA] text-white shadow-sm"
+                            ? "bg-[#B7D1EA] text-[#0B051D] shadow-sm font-bold"
                             : "text-[#4E4B44] hover:bg-[#DCE8F5] hover:text-[#2E2C27]",
                         )}
                       >

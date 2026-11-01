@@ -116,11 +116,11 @@ export default function ProjectProgressionCanvas({
               >
                 <div className="flex items-center gap-4 text-left">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
                       status === "completed"
                         ? "bg-emerald-500 text-white"
                         : status === "in-progress"
-                          ? "bg-[#B7D1EA] text-white"
+                          ? "bg-[#B7D1EA] text-[#0B051D] font-bold shadow-xs"
                           : "bg-[#F7F6F3] text-[#4E4B44]"
                     }`}
                   >

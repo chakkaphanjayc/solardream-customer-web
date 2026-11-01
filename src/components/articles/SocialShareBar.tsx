@@ -67,10 +67,10 @@ export default function SocialShareBar({ title, locale }: SocialShareBarProps) {
         <button
           type="button"
           onClick={shareToLine}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#06C755]/10 border border-[#06C755]/30 text-[#06C755] hover:bg-[#06C755]/20 text-xs font-bold transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#06C755]/10 border border-[#06C755]/30 text-[#111827] hover:bg-[#06C755]/20 text-xs font-bold transition-all cursor-pointer"
           title={t("shareTo", { network: "LINE" })}
         >
-          <MessageCircle className="w-3.5 h-3.5" />
+          <MessageCircle className="w-3.5 h-3.5 text-[#06C755]" aria-hidden="true" />
           <span>LINE</span>
         </button>
 

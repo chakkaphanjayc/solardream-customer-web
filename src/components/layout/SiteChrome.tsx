@@ -82,7 +82,7 @@ export default function SiteChrome({
       {routePolicy.showNavigation && (
         <div
           data-site-header
-          className="layer-chrome pointer-events-none fixed inset-x-0 top-0 z-[var(--layer-chrome)]"
+          className="layer-chrome pointer-events-none relative z-[var(--layer-chrome)]"
         >
           <div className="pointer-events-auto">
             <Navbar forumUrl={forumUrl} navigationItems={navigationItems} />

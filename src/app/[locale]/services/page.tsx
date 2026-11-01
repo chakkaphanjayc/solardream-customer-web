@@ -12,8 +12,9 @@ import ServicesHubClient from "./ServicesHubClient";
 import FeatureGuard from "@/components/features/FeatureGuard";
 import { PageShell } from "@/components/ui/page-shell";
 import { SolarStatePanel } from "@/components/ui/solar-system";
-
-
+import ServicesHero from "@/components/services/ServicesHero";
+import ServicesProcessTimeline from "@/components/services/ServicesProcessTimeline";
+import ServicesTierShowcase from "@/components/services/ServicesTierShowcase";
 
 export default async function ServicesPage({
   params,
@@ -60,13 +61,18 @@ export default async function ServicesPage({
 
   return (
     <FeatureGuard featureKey="services_module" featureName="Solar Services">
-      <ServicesHubClient
-        locale={locale}
-        offerings={catalogResult.offerings}
-        options={config.options}
-        assets={assets}
-        isMember={Boolean(user?.isActive)}
-      />
+      <div className="flex flex-col bg-[var(--background)]">
+        <ServicesHero locale={locale} />
+        <ServicesProcessTimeline locale={locale} />
+        <ServicesTierShowcase locale={locale} offerings={catalogResult.offerings} />
+        <ServicesHubClient
+          locale={locale}
+          offerings={catalogResult.offerings}
+          options={config.options}
+          assets={assets}
+          isMember={Boolean(user?.isActive)}
+        />
+      </div>
     </FeatureGuard>
   );
 }

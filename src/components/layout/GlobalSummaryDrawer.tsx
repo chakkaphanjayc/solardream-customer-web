@@ -157,7 +157,7 @@ export default function GlobalSummaryDrawer() {
                       <button
                         type="button"
                         onClick={() => removeComponent(categoryName)}
-                        className="solar-summary-drawer-remove inline-flex size-9 items-center justify-center rounded-full border border-[#CBC7BE] bg-[#F0EEE9] text-[#8E8B83] transition-all duration-150 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 active:scale-95"
+                        className="solar-summary-drawer-remove inline-flex size-11 items-center justify-center rounded-full border border-[#CBC7BE] bg-[#F0EEE9] text-[#8E8B83] transition-all duration-150 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 active:scale-95"
                       >
                         <Trash2 className="size-4" />
                       </button>

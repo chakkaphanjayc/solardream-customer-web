@@ -107,6 +107,7 @@ export default function GeneralInfo({ user }: { user: GeneralInfoUser }) {
               defaultValue={user.name || ""}
               placeholder={t("namePlaceholder")}
               autoComplete="name"
+              className="bg-[#FFFFFF] text-[var(--foreground)] border border-[var(--border)] focus-visible:ring-2 focus-visible:ring-[#5089bf] focus-visible:border-[#5089bf] transition-all"
             />
           </div>
           <div className="space-y-2">
@@ -117,6 +118,7 @@ export default function GeneralInfo({ user }: { user: GeneralInfoUser }) {
               type="tel"
               defaultValue={user.phoneNumber || ""}
               autoComplete="tel"
+              className="bg-[#FFFFFF] text-[var(--foreground)] border border-[var(--border)] focus-visible:ring-2 focus-visible:ring-[#5089bf] focus-visible:border-[#5089bf] transition-all"
             />
           </div>
         </div>
@@ -129,7 +131,7 @@ export default function GeneralInfo({ user }: { user: GeneralInfoUser }) {
             value={user.email || ""}
             readOnly
             aria-readonly="true"
-            className="cursor-not-allowed bg-muted text-muted-foreground"
+            className="cursor-not-allowed bg-[var(--muted)] border border-[#8E8B83]/25 text-[var(--muted-foreground)] font-medium select-none shadow-none"
           />
         </div>
 
@@ -139,7 +141,7 @@ export default function GeneralInfo({ user }: { user: GeneralInfoUser }) {
             id="preferredLanguage"
             name="preferredLanguage"
             defaultValue={user.preferredLanguage === "en" ? "en" : "th"}
-            className="min-h-11 w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none transition-[border-color,box-shadow] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/35"
+            className="min-h-11 w-full rounded-lg border border-[var(--border)] bg-[#FFFFFF] px-3.5 py-2.5 text-sm text-[var(--foreground)] outline-none transition-[border-color,box-shadow] focus-visible:border-[#5089bf] focus-visible:ring-2 focus-visible:ring-[#5089bf]"
           >
             <option value="th">{t("languageThai")}</option>
             <option value="en">{t("languageEnglish")}</option>

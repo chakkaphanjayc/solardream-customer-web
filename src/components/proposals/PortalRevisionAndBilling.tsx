@@ -290,7 +290,7 @@ export function PortalRevisionAndBilling({
                     <button
                       type="button"
                       onClick={() => setInvoiceModalPr(request)}
-                      className="inline-flex min-h-10 items-center gap-1.5 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-4 py-2 text-xs font-bold text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)] transition hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-4 py-2 text-xs font-bold text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)] transition hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2"
                     >
                       <FileText className="h-3.5 w-3.5 text-[var(--sd-blue-600)]" />
                       <span>{t("billing.invoice")}</span>
@@ -300,7 +300,7 @@ export function PortalRevisionAndBilling({
                       <button
                         type="button"
                         onClick={() => setReceiptModalPr(request)}
-                        className="inline-flex min-h-10 items-center gap-1.5 rounded-[var(--sd-radius-md)] bg-emerald-100 px-4 py-2 text-xs font-bold text-emerald-900 shadow-[var(--sd-shadow-1)] transition hover:bg-emerald-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-[var(--sd-radius-md)] bg-emerald-100 px-4 py-2 text-xs font-bold text-emerald-900 shadow-[var(--sd-shadow-1)] transition hover:bg-emerald-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                       >
                         <FileText className="h-3.5 w-3.5 text-emerald-700" />
                         <span>{t("billing.receipt")}</span>
@@ -321,7 +321,7 @@ export function PortalRevisionAndBilling({
                         href={request.slipUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex min-h-10 items-center gap-1.5 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-4 py-2 text-xs font-bold text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)] transition hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2"
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-4 py-2 text-xs font-bold text-[var(--sd-ink)] shadow-[var(--sd-shadow-1)] transition hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2"
                       >
                         {t("billing.openProof")}
                         <ExternalLink className="h-3.5 w-3.5" />

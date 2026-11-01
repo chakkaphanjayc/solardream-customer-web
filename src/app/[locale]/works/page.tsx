@@ -2,12 +2,12 @@ import WorksGalleryClient from "./WorksGalleryClient";
 import { getPortfolioProjects } from "@/lib/portfolioShowcase";
 import { toPortfolioProjectListItem } from "@/types/portfolio";
 import { PageShell } from "@/components/ui/page-shell";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
-  title: "Solar Installation Showcase | SolarDream",
-  description: "Explore real residential solar installation projects by SolarDream across Chiang Mai, Bangkok, and Phuket.",
+  title: "Solar Project Showcase | SolarDream",
+  description: "Explore SolarDream's published residential solar projects, with installation photos and system details when available.",
 };
-
 
 type WorksPageProps = Readonly<{
   params: Promise<{ locale: string }>;
@@ -15,9 +15,9 @@ type WorksPageProps = Readonly<{
 
 export default async function WorksPage({ params }: WorksPageProps) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "WorksPage" });
   const projects = await getPortfolioProjects();
   const projectListItems = projects.map(toPortfolioProjectListItem);
-  const isTh = locale === "th";
 
   return (
     <PageShell
@@ -35,36 +35,34 @@ export default async function WorksPage({ params }: WorksPageProps) {
             />
             <div className="relative flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.14em]">
               <span className="solar-works-eyebrow inline-flex items-center rounded-full px-2.5 py-1">
-                {isTh ? "ผลงานติดตั้งจริง" : "Real installed proof"}
+                {t("eyebrow")}
               </span>
-              <span className="solar-works-hero-note">{isTh ? "จากบ้านจริงทั่วประเทศ" : "Homes across Thailand"}</span>
+              <span className="solar-works-hero-note">{t("heroNote")}</span>
             </div>
-              <h1
+            <h1
               id="works-page-title"
-               className="relative mt-5 max-w-4xl text-balance text-[clamp(3rem,8vw,6.5rem)] font-black leading-[0.92] tracking-[-0.04em] text-[var(--sd-ink)]"
+              className="relative mt-5 max-w-4xl text-balance text-[clamp(3rem,8vw,6.5rem)] font-black leading-[0.92] tracking-[-0.04em] text-[var(--sd-ink)]"
             >
-              {isTh ? "แสงอาทิตย์ที่ติดตั้งแล้ว ในบ้านจริง" : "Solar, already at home."}
+              {t("heroTitle")}
             </h1>
             <p className="relative mt-5 max-w-2xl text-pretty text-sm font-semibold leading-6 text-[var(--sd-text)] sm:text-base">
-              {isTh
-                ? "ดูภาพงานติดตั้งจริงจากบ้าน พูลวิลล่า และอาคารที่เลือกใช้พลังงานแสงอาทิตย์ในทุกวัน"
-                : "Browse real rooftops, real homes, and the systems that now make their everyday energy cleaner."}
+              {t("heroDescription")}
             </p>
           </div>
 
           <aside
-            aria-label={isTh ? "บันทึกภาคสนาม" : "Field notes"}
+            aria-label={t("fieldNotes")}
             className="solar-works-field-notes p-4 text-[var(--sd-ink)]"
           >
             <p className="text-[10px] font-black uppercase tracking-[0.12em]">
-              {isTh ? "บันทึกภาคสนาม" : "Field notes"}
+              {t("fieldNotes")}
             </p>
             <p className="mt-3 text-4xl font-black leading-none">{projects.length}</p>
             <p className="mt-2 text-sm font-black">
-              {isTh ? "บ้านที่ติดตั้งและตรวจสอบแล้ว" : "installed homes in the gallery"}
+              {t("installedHomes")}
             </p>
             <div className="solar-works-field-notes-divider mt-4 border-t pt-3 text-xs font-bold leading-5">
-              {isTh ? "เชียงใหม่ · กรุงเทพฯ · ภูเก็ต" : "Chiang Mai · Bangkok · Phuket"}
+              {t("locations")}
             </div>
           </aside>
         </div>

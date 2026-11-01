@@ -1,23 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { proposalDispatchStatusEnum, proposals } from "@/db/schema";
-import { requireStaff } from "@/lib/auth-guard";
+import { proposalRevisions, proposals } from "@/db/schema";
+import { requireStaffJson } from "@/lib/auth-guard";
+import {
+  executeQuotationCommand,
+  QuotationCommandError,
+} from "@/server/services/sales/quotation-command-service";
 
-
-const UpdateQuotationStatusSchema = z.object({
-  status: z.string().min(1).optional(),
-  dispatchStatus: z.enum(proposalDispatchStatusEnum.enumValues).optional(),
-}).refine((value) => value.status !== undefined || value.dispatchStatus !== undefined, {
-  message: "At least one status field is required.",
-});
+const sha256DocumentHash = z.string().regex(/^[0-9a-fA-F]{64}$/, "A SHA-256 document hash is required.");
+const QuotationCommandSchema = z.discriminatedUnion("command", [
+  z.object({
+    command: z.literal("SEND_REVISION"),
+    revisionId: z.string().uuid(),
+    documentHash: sha256DocumentHash,
+    pdfDocumentReference: z.string().trim().min(1).max(2048).optional(),
+  }).strict(),
+  z.object({
+    command: z.literal("MARK_REVISION_VIEWED"),
+    revisionId: z.string().uuid(),
+  }).strict(),
+  z.object({
+    command: z.literal("SUPERSEDE_REVISION"),
+    revisionId: z.string().uuid(),
+  }).strict(),
+  z.object({
+    command: z.literal("VOID_REVISION"),
+    revisionId: z.string().uuid(),
+  }).strict(),
+]);
 
 function safeIsoDate(value: unknown): string {
   if (!value) return new Date().toISOString();
   const date = value instanceof Date ? value : new Date(String(value));
   return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+}
+
+function nullableIsoDate(value: unknown): string | null {
+  return value ? safeIsoDate(value) : null;
 }
 
 function serializeQuotation(row: NonNullable<Awaited<ReturnType<typeof getQuotationRow>>>) {
@@ -28,6 +50,19 @@ function serializeQuotation(row: NonNullable<Awaited<ReturnType<typeof getQuotat
     magicTokenSlug: row.magicTokenSlug,
     erpnextQuotationId: row.erpnextQuotationId,
     updatedAt: safeIsoDate(row.updatedAt),
+    canonicalRevision: row.canonicalRevision
+      ? {
+          id: row.canonicalRevision.id,
+          revisionNumber: row.canonicalRevision.revisionNumber,
+          status: row.canonicalRevision.status,
+          documentHash: row.canonicalRevision.documentHash,
+          pdfDocumentReference: row.canonicalRevision.pdfDocumentReference,
+          sentAt: nullableIsoDate(row.canonicalRevision.sentAt),
+          viewedAt: nullableIsoDate(row.canonicalRevision.viewedAt),
+          acceptedAt: nullableIsoDate(row.canonicalRevision.acceptedAt),
+          createdAt: safeIsoDate(row.canonicalRevision.createdAt),
+        }
+      : null,
     documentRequests: row.documentRequests.map((request) => ({
       id: request.id,
       quotationId: request.quotationId,
@@ -81,30 +116,39 @@ async function getQuotationRow(id: string) {
     },
   } as const;
   try {
-    return await db.query.proposals.findFirst({
+    const quotation = await db.query.proposals.findFirst({
       ...query,
       with: {
         documentRequests: {
           with: { attachments: true },
         },
       },
-    },
-    );
+    });
+    if (!quotation) return undefined;
+    const canonicalRevision = await db.query.proposalRevisions.findFirst({
+      where: eq(proposalRevisions.proposalId, quotation.id),
+      orderBy: [desc(proposalRevisions.revisionNumber)],
+    });
+    return { ...quotation, canonicalRevision };
   } catch (error) {
     if (!isMissingAttachmentTableError(error)) throw error;
     const legacyQuotation = await db.query.proposals.findFirst({
       ...query,
       with: { documentRequests: true },
     });
-    return legacyQuotation
-      ? {
-          ...legacyQuotation,
-          documentRequests: legacyQuotation.documentRequests.map((request) => ({
-            ...request,
-            attachments: [],
-          })),
-        }
-      : undefined;
+    if (!legacyQuotation) return undefined;
+    const canonicalRevision = await db.query.proposalRevisions.findFirst({
+      where: eq(proposalRevisions.proposalId, legacyQuotation.id),
+      orderBy: [desc(proposalRevisions.revisionNumber)],
+    });
+    return {
+      ...legacyQuotation,
+      canonicalRevision,
+      documentRequests: legacyQuotation.documentRequests.map((request) => ({
+        ...request,
+        attachments: [],
+      })),
+    };
   }
 }
 
@@ -113,7 +157,8 @@ type RouteContext = {
 };
 
 export async function GET(_request: NextRequest, context: RouteContext) {
-  await requireStaff();
+  const auth = await requireStaffJson();
+  if (!auth.ok) return auth.response;
   const { id } = await context.params;
   const quotation = await getQuotationRow(id);
 
@@ -125,36 +170,50 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 }
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
-  await requireStaff();
+  const auth = await requireStaffJson();
+  if (!auth.ok) return auth.response;
   const { id } = await context.params;
   const json = await request.json().catch(() => null);
-  const parsed = UpdateQuotationStatusSchema.safeParse(json);
+  const parsed = QuotationCommandSchema.safeParse(json);
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: parsed.error.issues[0]?.message || "Invalid quotation status payload." },
+      {
+        error:
+          parsed.error.issues[0]?.message ||
+          "A valid quotation command and canonical revision ID are required.",
+      },
       { status: 400 },
     );
   }
 
-  const [updated] = await db
-    .update(proposals)
-    .set({
-      ...(parsed.data.status ? { status: parsed.data.status } : {}),
-      ...(parsed.data.dispatchStatus ? { dispatchStatus: parsed.data.dispatchStatus } : {}),
-    })
-    .where(eq(proposals.id, id))
-    .returning({ id: proposals.id });
+  try {
+    const result = await executeQuotationCommand({
+      proposalId: id,
+      ...parsed.data,
+    });
 
-  if (!updated) {
-    return NextResponse.json({ error: "Quotation was not found." }, { status: 404 });
+    const quotation = await getQuotationRow(result.proposal.id);
+
+    if (!quotation) {
+      return NextResponse.json(
+        { error: "Quotation was not found after command execution." },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ success: true, quotation: serializeQuotation(quotation) });
+  } catch (error) {
+    if (error instanceof QuotationCommandError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.httpStatus },
+      );
+    }
+    console.error("[PATCH /api/quotations/:id] command failed", error);
+    return NextResponse.json(
+      { error: "Unable to execute the quotation command." },
+      { status: 500 },
+    );
   }
-
-  const quotation = await getQuotationRow(updated.id);
-
-  if (!quotation) {
-    return NextResponse.json({ error: "Quotation was not found after update." }, { status: 404 });
-  }
-
-  return NextResponse.json({ success: true, quotation: serializeQuotation(quotation) });
 }

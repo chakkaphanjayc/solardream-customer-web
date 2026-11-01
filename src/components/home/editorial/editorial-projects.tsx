@@ -157,7 +157,7 @@ export default function EditorialProjects({ locale, projects, labels }: Editoria
                     <small>{labels.systemSize}</small>
                     <strong>{project.solarSizeKw} kW</strong>
                   </span>
-                  {project.showFinancials ? (
+                  {project.showFinancials && project.monthlySavingsThb > 0 ? (
                     <span>
                       <small>{labels.monthlySavings}</small>
                       <strong>฿{formatMoney(project.monthlySavingsThb)}</strong>
