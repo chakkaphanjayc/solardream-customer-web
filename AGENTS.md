@@ -52,7 +52,7 @@ When a new feature request is initiated, the agents must collaborate in this str
 
 # 3. Output Directives & Communication
 - Every agent must provide clean, production-ready, complete functional blocks.
-- Agents must wait for my user confirmation (`y`/approve) at the end of each phase before the next agent takes over the workflow.
+- In autonomous runs, complete the phases in sequence without requesting confirmation between them. Record material risks for post-execution review.
 
 ## UI Component Base (BagUI)
 - **Primary UI Base**: All UI components, sections, and blocks MUST use [BagUI](https://github.com/anelkabag/bag-ui) (`https://bagui.pro`) as the foundational base library and pattern reference.
@@ -65,9 +65,9 @@ When a new feature request is initiated, the agents must collaborate in this str
 
 # 4. Design Context (Impeccable & BagUI)
 All agents MUST read and follow the visual style guide, branding, and strategic principles defined in:
-- [PRODUCT.md](file:///Users/chakkaphanchaiwong/Project/SolarDream/PRODUCT.md) — Strategic rules, register, users, and voice.
-- [DESIGN.md](file:///Users/chakkaphanchaiwong/Project/SolarDream/DESIGN.md) — Color tokens (Linen Ground, Nantucket Breeze), typography scales, and component guidelines.
-- [.agents/skills/bag-ui/SKILL.md](file:///Users/jayc/Project/SolarDream/.agents/skills/bag-ui/SKILL.md) — BagUI component registry mapping and implementation standards.
+- [PRODUCT.md](../SolarDream/PRODUCT.md) — Strategic rules, register, users, and voice.
+- [DESIGN.md](../SolarDream/DESIGN.md) — Color tokens (Linen Ground, Nantucket Breeze), typography scales, and component guidelines.
+- [BagUI SKILL.md](../SolarDream/.agents/skills/bag-ui/SKILL.md) — BagUI component registry mapping and implementation standards.
 
 
 <!-- BEGIN:nextjs-agent-rules -->
@@ -79,3 +79,27 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Autonomous Loop Standard
+
+- Do not ask the user to approve routine implementation phases, verification, or local commits. Use reasonable engineering judgment and report material risks afterward.
+- Run the repository verification commands after each queued task. The canonical commands are `npm run typecheck`, `npm run lint`, and `npm run test`.
+- If verification fails, fix the task-owned changes and retry up to three times. If they still fail, revert only the task-owned files or hunks, record the failure in `REVIEW_INBOX.md`, and continue with the next independent task. Never run a broad `git checkout -- .` in a dirty worktree.
+- Commit only task-owned changes. Leave pre-existing staged, unstaged, and untracked work untouched.
+- Routine UI polish and refactoring are routine review items. Changes to auth/security, schema/migrations, payment/billing, public contracts, or core architecture must still be implemented and verified, then recorded in `REVIEW_INBOX.md` for human diff review.
+
+## Customer UX Engineering Loop
+
+- Treat `STATE.md` as the route-level UX backlog. Cover home, catalog/product detail, the solar wizard, proposals, profile, warranty/portal, works/gallery, financing, sign-in, and customer support.
+- At the start of each run, read `PRODUCT.md`, `DESIGN.md`, the BagUI skill, and the applicable Next.js guide from `node_modules/next/dist/docs/`. Keep the Solar Atelier visual language and preserve route, data, API, and customer journey behavior.
+- Complete one independent UI task per run. If the backlog is empty, audit one not-yet-covered route family, record concrete source evidence, and queue only actionable fixes. Do not make visual changes without a user-facing issue.
+- Use semantic HTML, keyboard access, visible focus, clear error and empty states, reduced-motion support, and mobile-first layouts. Check the applicable WCAG 2.2 criteria and use 390px, 768px, and 1280px viewports for changed routes when runtime browsing is available.
+- Keep Server Components as the default and interactive state at client leaves. Use the BagUI patterns and existing SolarDream tokens; do not add a parallel design system.
+- After each task, run `npm run typecheck`, `npm run lint`, and `npm run test`; run route-level runtime checks for UI changes when the app can be started. Record checks actually performed.
+
+## PR, Review, and Deployment Loop
+
+- Work on an isolated feature branch. Review the diff, commit only task-owned files, push the branch, and create or update its pull request when repository authentication is available.
+- Run the repository CI and inspect its result before reporting the task complete. Request an independent reviewer on the pull request when available; a self-review is not an approval.
+- Never approve your own pull request, bypass required checks/reviews, or merge a feature branch to production. If GitHub authentication or reviewer access blocks a step, leave the change pushed when possible and record the blocker without broadening credential scopes.
+- Pull request builds use Cloudflare Workers Builds for preview validation. Production deployment follows the configured Workers Builds production branch after an authorized merge; do not run `wrangler deploy` from a feature branch. Verify the resulting deployment status after the production merge.

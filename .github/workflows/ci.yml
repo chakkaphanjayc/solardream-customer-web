@@ -54,15 +54,19 @@ jobs:
       - name: Verify legacy technician compatibility bridge
         run: npm run test:tech-compatibility
 
+      - name: Generate ephemeral Server Actions build key
+        run: |
+          key="$(openssl rand -base64 32)"
+          echo "::add-mask::$key"
+          printf 'NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=%s\n' "$key" >> "$GITHUB_ENV"
+
       - name: Build standalone server
         env:
-          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
           NEXT_DEPLOYMENT_ID: ${{ github.sha }}
         run: npm run build
 
       - name: Build production image
         env:
-          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
           NEXT_DEPLOYMENT_ID: ${{ github.sha }}
         run: |
           docker build \

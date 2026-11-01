@@ -11,6 +11,8 @@ interface SocialShareBarProps {
   locale: string;
 }
 
+const shareButtonClassName = "inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1C1C1A] focus-visible:ring-offset-2";
+
 export default function SocialShareBar({ title, locale }: SocialShareBarProps) {
   const t = useTranslations("SocialShareBar");
   const [copied, setCopied] = useState(false);
@@ -67,10 +69,10 @@ export default function SocialShareBar({ title, locale }: SocialShareBarProps) {
         <button
           type="button"
           onClick={shareToLine}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#06C755]/10 border border-[#06C755]/30 text-[#06C755] hover:bg-[#06C755]/20 text-xs font-bold transition-all cursor-pointer"
-          title={t("shareTo", { network: "LINE" })}
+          className={`${shareButtonClassName} border border-[#06C755]/30 bg-[#06C755]/10 text-[#111827] hover:bg-[#06C755]/20`}
+          aria-label={t("shareTo", { network: "LINE" })}
         >
-          <MessageCircle className="w-3.5 h-3.5" />
+          <MessageCircle className="w-3.5 h-3.5 text-[#06C755]" aria-hidden="true" />
           <span>LINE</span>
         </button>
 
@@ -78,10 +80,10 @@ export default function SocialShareBar({ title, locale }: SocialShareBarProps) {
         <button
           type="button"
           onClick={shareToFacebook}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1877F2]/10 border border-[#1877F2]/30 text-[#1877F2] hover:bg-[#1877F2]/20 text-xs font-bold transition-all cursor-pointer"
-          title={t("shareTo", { network: "Facebook" })}
+          className={`${shareButtonClassName} border border-[#1877F2]/30 bg-[#1877F2]/10 text-[#111827] hover:bg-[#1877F2]/20`}
+          aria-label={t("shareTo", { network: "Facebook" })}
         >
-          <ExternalLink className="w-3.5 h-3.5" />
+          <ExternalLink className="w-3.5 h-3.5 text-[#1877F2]" aria-hidden="true" />
           <span>Facebook</span>
         </button>
 
@@ -89,10 +91,10 @@ export default function SocialShareBar({ title, locale }: SocialShareBarProps) {
         <button
           type="button"
           onClick={shareToTwitter}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/10 border border-slate-900/20 text-slate-900 hover:bg-slate-900/20 text-xs font-bold transition-all cursor-pointer"
-          title={t("shareTo", { network: "X" })}
+          className={`${shareButtonClassName} border border-slate-900/20 bg-slate-900/10 text-slate-900 hover:bg-slate-900/20`}
+          aria-label={t("shareTo", { network: "X" })}
         >
-          <span className="font-black text-xs">𝕏</span>
+          <span className="font-black text-xs" aria-hidden="true">𝕏</span>
           <span>Twitter</span>
         </button>
 
@@ -100,10 +102,10 @@ export default function SocialShareBar({ title, locale }: SocialShareBarProps) {
         <button
           type="button"
           onClick={shareToLinkedIn}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0A66C2]/10 border border-[#0A66C2]/30 text-[#0A66C2] hover:bg-[#0A66C2]/20 text-xs font-bold transition-all cursor-pointer"
-          title={t("shareTo", { network: "LinkedIn" })}
+          className={`${shareButtonClassName} border border-[#0A66C2]/30 bg-[#0A66C2]/10 text-[#111827] hover:bg-[#0A66C2]/20`}
+          aria-label={t("shareTo", { network: "LinkedIn" })}
         >
-          <ExternalLink className="w-3.5 h-3.5" />
+          <ExternalLink className="w-3.5 h-3.5 text-[#0A66C2]" aria-hidden="true" />
           <span>LinkedIn</span>
         </button>
 
@@ -111,8 +113,8 @@ export default function SocialShareBar({ title, locale }: SocialShareBarProps) {
         <button
           type="button"
           onClick={handleCopyLink}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-800 text-xs font-bold transition-all cursor-pointer"
-          title={t("copyLink")}
+          className={`${shareButtonClassName} bg-slate-200/80 text-slate-800 hover:bg-slate-300`}
+          aria-label={t("copyLink")}
         >
           {copied ? (
             <>

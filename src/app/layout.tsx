@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import "./[locale]/globals.css";
+import "./[locale]/solar-atelier.css";
 
 export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",

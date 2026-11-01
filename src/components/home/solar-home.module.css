@@ -4088,3 +4088,360 @@
     transition: none;
   }
 }
+
+/* Solar Atelier header: compact on smaller laptops and comfortable on touch. */
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .nav {
+  position: relative !important;
+  top: 0.65rem !important;
+  right: 0 !important;
+  left: 0 !important;
+  width: min(calc(100% - 1.5rem), 82rem) !important;
+  margin-inline: auto !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 999px !important;
+  background: rgb(245 242 235 / 0.96) !important;
+  box-shadow: 0 8px 22px rgb(15 23 42 / 0.08) !important;
+  color: #0f172a !important;
+  isolation: isolate !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .nav.navScrolled {
+  border-color: #d8e3ef !important;
+  background: rgb(245 242 235 / 0.98) !important;
+  box-shadow: 0 10px 24px rgb(15 23 42 / 0.1) !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .nav.navOpen {
+  border-radius: 20px !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navInner {
+  min-height: 4.25rem !important;
+  width: 100% !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.7rem !important;
+  padding: 0.45rem 0.85rem 0.45rem 1.15rem !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .wordmark {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.65rem !important;
+  color: #0f172a !important;
+  text-decoration: none !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .wordmarkMark {
+  width: 2.35rem !important;
+  height: 2.35rem !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 999px !important;
+  background: #b7d1ea !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .wordmarkTextImage {
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .wordmarkText {
+  display: grid !important;
+  width: auto !important;
+  aspect-ratio: auto !important;
+  gap: 0.1rem !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .wordmarkName {
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1 !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .wordmarkDescriptor {
+  font-size: 0.6rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1.2 !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navLinks {
+  display: flex !important;
+  min-width: 0;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.35rem !important;
+  white-space: nowrap;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) :is(.navLink, .navMenuTrigger, .navMenuLink) {
+  display: inline-flex !important;
+  min-height: 2.75rem !important;
+  align-items: center !important;
+  padding-inline: 0.75rem !important;
+  border-radius: 999px !important;
+  color: #475569 !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navActions {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .languageSwitcher {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.15rem !important;
+  padding: 0.2rem !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 999px !important;
+  background: #f5f2eb !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .languageSwitcherBtn {
+  display: inline-flex !important;
+  min-height: 2rem !important;
+  align-items: center !important;
+  padding: 0.2rem 0.55rem !important;
+  border-radius: 999px !important;
+  color: #475569 !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .languageSwitcherBtnActive {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.08) !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .wordmarkName,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navSubmenuItem,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileNavLink,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileNavGroupTrigger {
+  color: #0f172a !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .wordmarkDescriptor,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navSubmenuEyebrow,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileNavChild {
+  color: #475569 !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navLink,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navMenuTrigger,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navMenuLink,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .languageSwitcherBtn {
+  min-height: 2.75rem !important;
+  color: #475569 !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navLinkActive,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navMenuOpen > :is(.navMenuTrigger, .navMenuTriggerRow),
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navSubmenuItem:hover,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navSubmenuItem:focus-visible,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileNavTrackLink,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileNavGroupTriggerOpen {
+  background: #dce8f5 !important;
+  color: #0f172a !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navCta {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  min-height: 2.75rem !important;
+  padding-inline: 1rem !important;
+  border-radius: 999px !important;
+  background: #b7d1ea !important;
+  color: #0f172a !important;
+  box-shadow: none !important;
+  font-size: 0.84rem !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navTrackButton,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navUtilityButton,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navAuthButton,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .languageSwitcher {
+  border-color: #e2e8f0 !important;
+  background: #f5f2eb !important;
+  color: #0f172a !important;
+  box-shadow: none !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navTrackButton {
+  display: inline-flex !important;
+  min-height: 2.75rem !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  padding-inline: 0.85rem !important;
+  border-radius: 999px !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .navAuthButton {
+  min-height: 2.75rem !important;
+  border-radius: 999px !important;
+  font-size: 0.78rem !important;
+  white-space: nowrap !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileMenuButton {
+  width: 2.75rem !important;
+  height: 2.75rem !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #f3f1ea !important;
+  color: #0f172a !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileMenu {
+  border-top-color: #e2e8f0 !important;
+  border-radius: 20px !important;
+  background: #f5f2eb !important;
+  box-shadow: 0 8px 22px rgb(15 23 42 / 0.08) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileNavGroupTrigger:hover,
+:global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileNavGroupTrigger:focus-visible {
+  background: #dce8f5 !important;
+}
+
+@media (max-width: 75rem) {
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navLinks {
+    display: none !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileMenuButton {
+    display: inline-flex !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navActions {
+    gap: 0.35rem !important;
+    margin-left: auto !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navTrackButton {
+    display: none !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navAuthButton {
+    width: 2.75rem !important;
+    justify-content: center !important;
+    padding-inline: 0 !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navAuthButton :global(.authSignInLabel) {
+    display: none !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileMenu {
+    display: grid !important;
+    gap: 0.45rem !important;
+    margin-top: 0.65rem !important;
+    padding: 1rem !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 20px !important;
+    background: #f5f2eb !important;
+    box-shadow: 0 8px 22px rgb(15 23 42 / 0.08) !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileNavLink,
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileNavGroupTrigger {
+    min-height: 44px !important;
+    border-radius: 12px !important;
+  }
+}
+
+@media (max-width: 44rem) {
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .nav {
+    top: 0.5rem !important;
+    width: calc(100% - 1rem) !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navInner {
+    min-height: 3.75rem !important;
+    padding-inline: 0.65rem !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .wordmark {
+    gap: 0 !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .wordmarkText {
+    display: none !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navActions {
+    flex: 0 0 auto !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navCta {
+    display: none !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navCta {
+    min-height: 2.5rem !important;
+    padding-inline: 0.75rem !important;
+    font-size: 0.72rem !important;
+  }
+}
+
+@media (min-width: 75.01rem) {
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .mobileMenuButton {
+    display: none !important;
+  }
+}
+
+@media (max-width: 90rem) and (min-width: 75.01rem) {
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navLinks {
+    gap: 0.15rem !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) :is(.navLink, .navMenuTrigger, .navMenuLink) {
+    padding-inline: 0.4rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navActions {
+    gap: 0.3rem !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navTrackButton {
+    width: 2.75rem !important;
+    padding-inline: 0 !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navTrackButton span,
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navAuthButton :global(.authSignInLabel) {
+    display: none !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navAuthButton {
+    width: 2.75rem !important;
+    justify-content: center !important;
+    padding-inline: 0 !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navCta {
+    padding-inline: 0.8rem !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+  }
+}
