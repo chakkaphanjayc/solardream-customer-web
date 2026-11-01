@@ -1,5 +1,13 @@
 # Review Inbox
 
+### 🔔 [SDUX-011] Keyboard-accessible proposal signing
+- **Why you need to see this**: Adds a typed-name PNG as an alternative signature method accepted by the official proposal-signing path.
+- **Files Changed**: `src/components/CustomerPortal/SignaturePad.tsx`, `src/components/proposals/detail/ProposalSignatureModal.tsx`, `src/lib/signaturePadData.ts`, `messages/en.json`, `messages/th.json` (`3945e4e`)
+- **Verification**: Passed (`npm run typecheck`, `npm run lint` with existing warnings, `npm run test` with 30/30 passing, `npm run i18n:check`, `git diff --check`)
+- **Key Decision / Risk**:
+  - Typed names are rendered as PNG and use the existing `POST /api/quotations/sign` request and payload.
+  - Legal owners should confirm typed-name signatures meet the intended consent requirements; runtime dialog behavior was not observed in this session.
+
 ### 🔔 [SDUX-006] Cookie consent API contract alignment
 - **Why you need to see this**: The cookie banner now submits preference records using the strict privacy consent API schema and guest session identity contract.
 - **Files Changed**: `src/components/layout/CookieBanner.tsx`, `src/lib/privacyConsentClient.ts`, `src/lib/privacyConsentClient.test.ts` (9a6d36c49db8c2ea8a7566e10e9769f6f719618e)

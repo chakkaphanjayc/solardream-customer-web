@@ -2,7 +2,6 @@
 
 ## 📋 Backlog (Auto-Queue)
 
-- SDUX-011 (P1, important): Make proposal signing keyboard-accessible and preserve the drawn signature across resize/orientation changes with clear recovery feedback. Evidence: `src/components/CustomerPortal/SignaturePad.tsx`, `src/components/proposals/detail/ProposalSignatureModal.tsx`.
 - SDUX-012 (P1, important): Make both payment-slip upload controls keyboard-operable without changing the payment API or settlement flow. Evidence: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx`.
 - SDUX-013 (P1, routine): Give tracking gallery tiles button semantics and the image viewer proper dialog focus/close behavior. Evidence: `src/app/[locale]/my-proposal/[id]/tracking/TrackingGallery.tsx`.
 - SDUX-014 (P2, routine): Associate quote-checkout labels with fields and show field-specific missing-input feedback in maintenance booking. Evidence: `src/app/[locale]/checkout/quote/QuoteCheckoutClient.tsx`, `src/app/[locale]/support/maintenance/PreventiveMaintenanceBooking.tsx`.
@@ -12,6 +11,7 @@
 ## ✅ Auto-Completed & Committed
 
 - SDUX-010 QA follow-up: Narrowed solar-panel catalog matching, removed guessed specs and price, queried panel categories alongside the general catalog, and aligned empty-state geometry and share metadata with DESIGN.md. Commit `013e9a9`; `npm run typecheck`, `npm run lint` (existing warnings only), `npm run test` (28/28), `npm run i18n:check`, and `git diff --check` passed. Runtime recheck was not available because this session lacks the Next.js MCP tools required by the local Next Dev Loop skill.
+- SDUX-011: Added keyboard-operated typed-name signing, preserved drawn strokes across canvas resizes using normalized coordinates, and announced empty, ready, submitting, resize-recovery, validation, and retry states in English and Thai. Commit `3945e4e`; `npm run typecheck`, `npm run lint` (existing warnings only), `npm run test` (30/30), `npm run i18n:check`, and `git diff --check` passed. Runtime dialog verification was unavailable because this session lacks the Next.js MCP tools required by the local Next Dev Loop skill.
 - UXLOOP-001: Added route-family audit, one-task-per-run, CI, PR, review, and production-deployment rules to `AGENTS.md` and Cursor; registered the enabled weekday 09:00 Asia/Bangkok Orca automation on this PR worktree.
 - SDUX-009: Scoped Solar Atelier primary actions to the DESIGN.md Nantucket fill with dark foreground, including hover and focus states. Runtime checks confirm the login primary action is 46px tall and powder blue with Abyss text; a representative Nantucket action measured 11.33:1 at rest and 9.67:1 on hover. `npm run typecheck`, `npm run lint`, and `npm run test` passed after implementation; wizard runtime checked at 390px, 768px, and 1280px with no horizontal overflow and axe reported 0 violations (1 contrast check incomplete due layered decoration).
 - SDUX-010: Rebuilt the rooftop visualizer around a responsive canvas and settings flow, accessible keyboard controls, truthful empty-catalog behavior, and localized metadata. Fixed the catalog limit/filter order, nested button key handling, mobile target sizing, nested main landmark, and configured-planner heading. Commits `69554be`, `27b38f2`; `npm run typecheck`, `npm run lint` (existing warnings), `npm run test` (25/25), `npm run i18n:check`, and `git diff --check` passed. Runtime checked at 375px, 390px, 768px, and 1280px with no horizontal overflow.
@@ -35,4 +35,5 @@
 - Catalog: Runtime route shows its connection fallback because local database and Supabase configuration are unavailable.
 - Profile and proposals: Source reviewed; signed-in and signature routes need runtime credentials/fixtures.
 - Visualizer: English and Thai empty-catalog states rendered at 375px, 390px, 768px, and 1280px; one main landmark and no horizontal overflow. Configured canvas keyboard movement and deletion were also checked with a local-only product fixture.
+- Proposal signature: keyboard typed-name option, stroke-coordinate scaling, and submission recovery covered by source review and unit tests; live dialog interaction could not be rechecked because Next.js MCP tooling is unavailable in this session.
 - Checkout/payment, tracking, warranty/portal, and maintenance: Source-level QA backlog recorded; runtime checks need representative local data/session.
