@@ -2249,6 +2249,7 @@
     "includedTitle": "อุปกรณ์ที่รวมในชุด",
     "specialPrice": "ราคาพิเศษชุดเซ็ต",
     "askAboutBundle": "สอบถามเกี่ยวกับชุดสินค้านี้",
+    "addBundleToCart": "เพิ่มชุด {name} ลงในตะกร้า",
     "addToCart": "เพิ่มลงตะกร้า"
   },
   "DiscordTestButton": {

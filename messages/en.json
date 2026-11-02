@@ -2249,6 +2249,7 @@
     "includedTitle": "Components Included",
     "specialPrice": "Bundle Special Price",
     "askAboutBundle": "Ask about this bundle",
+    "addBundleToCart": "Add {name} bundle to cart",
     "addToCart": "Add to cart"
   },
   "DiscordTestButton": {

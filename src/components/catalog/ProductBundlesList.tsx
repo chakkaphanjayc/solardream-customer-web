@@ -211,6 +211,7 @@ export default function ProductBundlesList({ bundles }: ProductBundlesListProps)
                     onClick={() => handleAddBundleToCart(bundle)}
                     variant="secondary"
                     size="sm"
+                    aria-label={t("addBundleToCart", { name: bundle.name })}
                     className="rounded-xl bg-[var(--sd-technical)] px-5 text-[10px] font-black uppercase tracking-widest text-[var(--sd-white)] hover:bg-[var(--sd-navy-900)]"
                   >
                     <ShoppingBag className="w-3.5 h-3.5" />
