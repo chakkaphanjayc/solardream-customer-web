@@ -2,6 +2,8 @@
 
 ## 📋 Backlog (Auto-Queue)
 
+- SDUX-022: Reposition or compact the shared cookie preference panel so it does not cover the featured blog card on mobile and desktop; verify the consent actions and responsive layout.
+
 
 ## ✅ Auto-Completed & Committed
 
@@ -27,6 +29,7 @@
 - SDUX-018: Changed the legacy support maintenance route to deep-link to the services booking section so customers do not need to scroll from the top of the services page. Canonical checks passed; runtime followed `/th/support/maintenance` to `/th/services#booking-engine`. The local services module is disabled, so the booking form was unavailable for interaction. Commit `114c4ba`.
 - SDUX-019: Localized default support FAQs and tutorial search links without replacing admin-edited content, clarified YouTube search results and new-tab behavior, and tightened cookie preferences plus short-screen search layout. Commit `a1f328d`. Verification: `npm run typecheck`, `npm run lint` (existing warnings), `npm run test` (56/56), `npm run i18n:check` (5,415 keys), scoped ESLint, and `git diff --check` passed. Browser checks covered Thai/English content, search/no-results, cookie preference open/Escape/focus restore, responsive widths, 375×520/480/440 short-height spacing, and an axe scan with zero violations and one incomplete contrast node. Final independent read-only review found no findings.
 - SDUX-020: Localized product detail and quote action names by product, bundle add-to-cart labels by bundle while retaining the visible CTA wording in the accessible name, and product-detail dialog copy by the correct catalog namespace. Commits `fff94ef`, `8312a87`, `43e92ea`. Verification: `npm run typecheck`, `npm run lint` (existing warnings), `npm run test` (56/56), `npm run i18n:check` (5,418 keys), and `git diff --check` passed. English and Thai product and bundle actions were distinct in the accessibility tree; the Thai product-detail dialog rendered translated labels at 390px, 768px, and 1280px without horizontal overflow. Axe reported zero violations and two incomplete categories (color contrast over layered surfaces and background focusability while a modal is open); keyboard Tab stayed in the dialog and Escape closed it. Independent Orca review found no issues with bundle labels.
+- SDUX-021: Removed the duplicate featured story from the article grid, hid the featured hero when it falls outside the selected category, announced the selected category and correct count in English and Thai, and replaced four remote cover URLs with local SolarDream photos. Verification: `npm run typecheck`, `npm run lint` (existing unrelated warnings), `npm run test` (59/59), `npm run i18n:check` (5,418 keys), scoped ESLint, `git diff --check`, and Next runtime/compiler checks passed. English and Thai blog listings were checked at 390px; English was also checked at 768px and 1280px, with no horizontal overflow. The four seeded cover images loaded, and equal-count News/Case Studies filters produced distinct live announcements in both locales. Axe reported zero violations and two incomplete checks in the shared header. Orca review found and verified the live-announcement fix. Commit `1ed3608`.
 - Customer verification before stacking: `npm run typecheck`, `npm run lint` (existing warnings), `npm run test` (35/35), `npm run i18n:check` (5,346 keys), and `npm run build:cloudflare` passed.
 - Staff verification: `npm run typecheck`, `npm run test` (14/14), `npm run i18n:check` (4,325 keys), targeted ESLint on changed auth TSX files, and `npm run build:cloudflare` passed. Full-tree `npm run lint` exceeded Node heap at 4GB, 6GB, and 8GB; targeted lint passed.
 
@@ -41,9 +44,10 @@
 - Checkout/payment, tracking, warranty/portal, and maintenance: `/th/track` rendered without runtime errors and passed the responsive-width check; payment and warranty routes compiled cleanly. Signed-in payment and warranty behavior still needs representative local data/session.
 - Support/maintenance: The legacy route now redirects to `/[locale]/services#booking-engine`; the local services module is disabled, so booking form interaction could not be checked.
 - Support/knowledge: Thai and English shipped defaults, search/clear/no-results states, localized privacy link, cookie preferences, short-height overlap, keyboard focus, and responsive widths were browser-checked. The short-screen cookie/search spacing was measured at 375×520, 375×480, and 375×440; no horizontal overflow or browser errors were observed.
+- Blog/editorial: English and Thai filters show unique article links and announce category/count changes; all four seeded covers load locally. English was checked at 390px, 768px, and 1280px and Thai at 390px without horizontal overflow. Axe reported zero violations; two shared-header checks remain incomplete. The cookie preference panel obscures part of the featured card at mobile and desktop widths and is queued as SDUX-022.
 
 ## 🚧 External Release Gates
 
-- GitHub CLI is not authenticated; browser GitHub access is available for creating/updating PRs. A pull request author cannot approve their own PR, so a separate reviewer is required for approval.
+- GitHub CLI is not authenticated, so PR review/check status could not be read. The existing customer PR #2 branch was pushed to `1ed3608`; the PR author cannot approve it, and production deployment follows an authorized merge.
 - Customer migrations 0111 and 0114–0119 have not been applied to a database; validate them in staging before production deployment.
 - Staff full-tree lint needs chunked execution or a repository-level memory fix; changed auth files pass targeted ESLint.
