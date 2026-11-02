@@ -79,3 +79,11 @@
 - **Key Decision / Risk**:
   - Changed TSX files pass ESLint directly and the production build succeeds.
   - Full repository lint needs chunked execution or a repository memory fix.
+
+### 🔔 [SDUX-022] Cookie consent layout and hydration
+- **Why you need to see this**: Changes how privacy consent visibility is reconciled between the request cookie, browser storage, and an in-flight remote consent read.
+- **Files Changed**: `src/app/[locale]/layout.tsx`, `src/components/layout/SiteChrome.tsx`, `src/components/layout/CookieBanner.tsx`, `src/app/[locale]/solar-atelier.css` (`7e3a91a`)
+- **Verification**: Passed (`npm run typecheck`, `npm run lint` with existing warnings, `npm run test` (59/59), `npm run i18n:check` (5,418 keys), scoped ESLint, browser responsive checks, axe with zero violations)
+- **Key Decision / Risk**:
+  - The consent cookie controls first-paint banner visibility; local preferences still prefill the settings dialog.
+  - A new customer choice wins over an older pending consent GET; the consent POST contract is unchanged.
