@@ -2209,6 +2209,8 @@
       },
       "saving": "Saving preference…",
       "saved": "Preference saved.",
+      "loading": "Loading your saved preferences…",
+      "retry": "Try again",
       "loadError": "Unable to load communication preferences.",
       "saveError": "Unable to save this preference. Your previous setting was restored."
     }
