@@ -1,5 +1,21 @@
 # Review Inbox
 
+### 🔔 [SDUX-026] Show proposal invoices and refresh errors
+- **Why you need to see this**: This changes customer billing presentation and filters invoice PDF links to the configured ERP origin.
+- **Files Changed**: `src/app/[locale]/proposals/[id]/GuestProposalSignView.tsx`, `src/app/[locale]/proposals/[id]/page.tsx`, `src/components/proposals/PortalRevisionAndBilling.tsx`, `src/components/proposals/detail/ProposalDetailView.tsx`, `src/lib/trustedInvoiceUrl.ts`, `src/lib/__tests__/trustedInvoiceUrl.test.ts`, `messages/en.json`, `messages/th.json` (`8195c28`)
+- **Verification**: Passed (`npm run typecheck`, `npm run lint` with existing warnings, `npm run test` (64/64), `npm run i18n:check` (5,440 keys), scoped ESLint, and `git diff --check`)
+- **Key Decision / Risk**:
+  - Invoice rows come from the proposal’s existing authorized server context; invoice URLs must match the configured secure ERP origin.
+  - Signed-in proposal runtime could not be exercised without a local authenticated session.
+
+### 🔔 [SDUX-024] Preserve customer task through sign-in
+- **Why you need to see this**: This changes where customers land after authentication when they open their profile or proposal workspace.
+- **Files Changed**: `src/app/[locale]/profile/page.tsx`, `src/app/[locale]/proposals/page.tsx`, `src/lib/authNavigation.ts`, `src/lib/__tests__/authNavigation.test.ts` (`ae5533f`)
+- **Verification**: Passed (`npm run typecheck`, `npm run lint` with existing warnings, `npm run test` (62/62), `npm run i18n:check`, signed-out browser redirects for Thai profile and English proposals)
+- **Key Decision / Risk**:
+  - The destination is constructed from a validated locale and fixed internal route, then validated by the existing `getSafeInternalPath` flow.
+  - The signed-in destination pages were not exercised in this browser session.
+
 ### 🔔 [SDUX-017] Keep payment confirmation stable and clarify pending warranty coverage
 - **Why you need to see this**: This changes the success and next-step UI in the customer payment flow, so a separate reviewer should confirm the longer-lived confirmation state.
 - **Files Changed**: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx`, `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`, `src/components/ui/StatusPipeline.tsx`, `messages/en.json`, `messages/th.json` (`a66abd5`)
