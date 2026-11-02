@@ -1,5 +1,13 @@
 # Review Inbox
 
+### 🔔 [SDUX-015] Announce payment and warranty states
+- **Why you need to see this**: This changes assistive-technology feedback in the payment and warranty experiences, which are customer financial and coverage flows.
+- **Files Changed**: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx`, `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`, `messages/en.json`, `messages/th.json` (`9691753`)
+- **Verification**: Passed (`npm run typecheck`, `npm run lint` with existing warnings, `npm run test` (51/51), `npm run i18n:check`)
+- **Key Decision / Risk**:
+  - Payment progress and error announcements follow existing states and responses; no payment decision, API, or signature payload changed.
+  - Warranty loading, loaded, and error states now expose concise localized live announcements.
+
 ### 🔔 [SDUX-012] Keyboard-operable payment uploads
 - **Why you need to see this**: This improves keyboard access to payment and contract upload controls while preserving the existing payment and signing flows.
 - **Files Changed**: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx` (`aa1910f`)
