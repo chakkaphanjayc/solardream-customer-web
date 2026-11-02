@@ -8,6 +8,7 @@ import ProfileLayout from "@/components/profile/ProfileLayout";
 import type { ProfileUser } from "@/types/profile";
 import { PageShell } from "@/components/ui/page-shell";
 import { getSystemSetting } from "@/app/actions/systemSettings";
+import { getLoginRedirect } from "@/lib/authNavigation";
 
 
 export default async function ProfilePage({
@@ -19,7 +20,7 @@ export default async function ProfilePage({
   const supabaseUser = await getUser();
 
   if (!supabaseUser) {
-    redirect(`/${locale}`);
+    redirect(getLoginRedirect(locale, "profile"));
   }
 
   await ensureUserExists(supabaseUser);
