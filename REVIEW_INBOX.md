@@ -1,5 +1,14 @@
 # Review Inbox
 
+### 🔔 [SDUX-012] Keyboard-accessible payment-slip uploads
+- **Why you need to see this**: All three payment-slip picker variants are now reachable by keyboard and expose visible focus on the upload surface. Payment validation, APIs, and settlement behavior are unchanged.
+- **Files Changed**: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx` (`5fb0b50`)
+- **Verification**: Passed (`npm run typecheck`, `npm run lint` with zero errors and existing warnings, `npm run test` with 30/30 passing, `git diff --check`, Next MCP route compilation with no issues).
+- **Key Decision / Risk**:
+  - The native file inputs remain associated with their existing labels and are visually hidden with `sr-only`; label focus rings make keyboard focus visible. Drag-and-drop, validation, and payment submission paths are unchanged.
+  - The app starts, but the payment route renders a temporary error because this worktree lacks `DATABASE_URL` and `NEXT_PUBLIC_SUPABASE_URL`. Runtime interaction and the requested 390px, 768px, and 1280px checks remain unverified.
+  - PR #1 is open, but no reviewer is requested, `.github` contains only the CI workflow, and `gh` has no authenticated session; a GitHub reviewer request is unavailable in this session.
+
 ### 🔔 [SDUX-011] Keyboard-accessible proposal signing
 - **Why you need to see this**: Adds a typed-name PNG as an alternative signature method accepted by the official proposal-signing path.
 - **Files Changed**: `src/components/CustomerPortal/SignaturePad.tsx`, `src/components/proposals/detail/ProposalSignatureModal.tsx`, `src/lib/signaturePadData.ts`, `messages/en.json`, `messages/th.json` (`3945e4e`)

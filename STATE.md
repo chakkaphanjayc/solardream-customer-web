@@ -2,7 +2,6 @@
 
 ## 📋 Backlog (Auto-Queue)
 
-- SDUX-012 (P1, important): Make both payment-slip upload controls keyboard-operable without changing the payment API or settlement flow. Evidence: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx`.
 - SDUX-013 (P1, routine): Give tracking gallery tiles button semantics and the image viewer proper dialog focus/close behavior. Evidence: `src/app/[locale]/my-proposal/[id]/tracking/TrackingGallery.tsx`.
 - SDUX-014 (P2, routine): Associate quote-checkout labels with fields and show field-specific missing-input feedback in maintenance booking. Evidence: `src/app/[locale]/checkout/quote/QuoteCheckoutClient.tsx`, `src/app/[locale]/support/maintenance/PreventiveMaintenanceBooking.tsx`.
 - SDUX-015 (P2, important): Announce payment and warranty loading, success, and error state changes to assistive technology without changing payment decisions. Evidence: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx`, `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`.
@@ -10,6 +9,7 @@
 
 ## ✅ Auto-Completed & Committed
 
+- SDUX-012: Made all three payment-slip picker variants keyboard-operable with visible focus rings by keeping their native file inputs in the tab order. Drag-and-drop, validation, payment APIs, and settlement behavior remain unchanged. Commit `5fb0b50`; `npm run typecheck`, `npm run lint` (zero errors; existing warnings), `npm run test` (30/30), `git diff --check`, and Next MCP route compilation passed. Runtime viewport checks were blocked because this worktree lacks `DATABASE_URL` and `NEXT_PUBLIC_SUPABASE_URL`, so the route rendered the temporary-error page.
 - SDUX-010 QA follow-up: Narrowed solar-panel catalog matching, removed guessed specs and price, queried panel categories alongside the general catalog, and aligned empty-state geometry and share metadata with DESIGN.md. Commit `013e9a9`; `npm run typecheck`, `npm run lint` (existing warnings only), `npm run test` (28/28), `npm run i18n:check`, and `git diff --check` passed. Runtime recheck was not available because this session lacks the Next.js MCP tools required by the local Next Dev Loop skill.
 - SDUX-011: Added keyboard-operated typed-name signing, preserved drawn strokes across canvas resizes using normalized coordinates, and announced empty, ready, submitting, resize-recovery, validation, and retry states in English and Thai. Commit `3945e4e`; `npm run typecheck`, `npm run lint` (existing warnings only), `npm run test` (30/30), `npm run i18n:check`, and `git diff --check` passed. Runtime dialog verification was unavailable because this session lacks the Next.js MCP tools required by the local Next Dev Loop skill.
 - UXLOOP-001: Added route-family audit, one-task-per-run, CI, PR, review, and production-deployment rules to `AGENTS.md` and Cursor; registered the enabled weekday 09:00 Asia/Bangkok Orca automation on this PR worktree.
@@ -36,4 +36,4 @@
 - Profile and proposals: Source reviewed; signed-in and signature routes need runtime credentials/fixtures.
 - Visualizer: English and Thai empty-catalog states rendered at 375px, 390px, 768px, and 1280px; one main landmark and no horizontal overflow. Configured canvas keyboard movement and deletion were also checked with a local-only product fixture.
 - Proposal signature: keyboard typed-name option, stroke-coordinate scaling, and submission recovery covered by source review and unit tests; live dialog interaction could not be rechecked because Next.js MCP tooling is unavailable in this session.
-- Checkout/payment, tracking, warranty/portal, and maintenance: Source-level QA backlog recorded; runtime checks need representative local data/session.
+- Checkout/payment: SDUX-012 picker behavior is source-reviewed and compiles, but route rendering and the 390px, 768px, and 1280px checks remain outstanding until this worktree has database and Supabase configuration. Tracking, warranty/portal, and maintenance: Source-level QA backlog recorded; runtime checks need representative local data/session.
