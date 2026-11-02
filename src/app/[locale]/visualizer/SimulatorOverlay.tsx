@@ -2,16 +2,15 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import SunCalc from "suncalc";
-import { RoofSection, getAggregateAnalytics } from "@/store/useConfiguratorStore";
+import { RoofSection } from "@/store/useConfiguratorStore";
 import { calculateIrradiancePercentage } from "@/lib/thailandSolar";
 import { type VisualizerPanelProduct } from "@/lib/visualizerProducts";
-import { Sun, Compass, Zap, TrendingUp, Wand2, Trash2, Flame, Plus, ZoomIn, ZoomOut, Lock, Unlock, MousePointer2, ChevronUp, ChevronDown } from "@/components/ui/icons";
+import { Sun, Wand2, Trash2, Flame, Plus, ZoomIn, ZoomOut, Lock, Unlock, MousePointer2 } from "@/components/ui/icons";
 import { TransformWrapper, TransformComponent, type ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { GsapPulse } from "@/components/ui/GsapMotion";
-import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { Map, useMap } from "@/components/ui/map";
 import { SATELLITE_MAP_STYLE } from "@/lib/map-styles";
 import { PatternLines } from "@visx/pattern";
@@ -49,39 +48,22 @@ function isPointInPolygon(point: { x: number; y: number }, polygon: { x: number;
 
 interface SimulatorOverlayProps {
   activeRoof: RoofSection;
-  allRoofs: RoofSection[];           // All roof sections for aggregate HUD
   selectedProduct: VisualizerPanelProduct;
   shadingMonth: number;
   shadingTimeHour: number;
   onPanelUpdate: (newPanels: { id: string; x: number; y: number; rotation: number }[]) => void;
-  daytimeUsagePercent?: number;
-  electricityRate?: number;
-  financialInputsReady?: boolean;
   setbackMargin?: number;
 }
 
 export default function SimulatorOverlay({
   activeRoof,
-  allRoofs,
   selectedProduct,
   shadingMonth,
   shadingTimeHour,
   onPanelUpdate,
-  daytimeUsagePercent = 70,
-  electricityRate = 4.5,
-  financialInputsReady = false,
   setbackMargin = 0.5
 }: SimulatorOverlayProps) {
   const t = useTranslations("SimulatorOverlay");
-  const locale = useLocale();
-  const currencyFormatter = new Intl.NumberFormat(
-    locale === "en" ? "en-US" : "th-TH",
-    {
-      style: "currency",
-      currency: "THB",
-      maximumFractionDigits: 0,
-    },
-  );
   const mapRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const workspaceRef = useRef<HTMLDivElement>(null);
@@ -93,7 +75,6 @@ export default function SimulatorOverlay({
   const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
   const [isViewportLocked, setIsViewportLocked] = useState(false);
   const [manualScale, setManualScale] = useState(1);
-  const [isHudExpanded, setIsHudExpanded] = useState(true);
   const [dragState, setDragState] = useState<{
     id: string;
     offsetX: number;
@@ -235,51 +216,13 @@ export default function SimulatorOverlay({
   const normalY = Math.cos(pitchRad);
   const normalZ = Math.sin(pitchRad) * Math.cos(orientationRad);
 
-  // Dot product (clamped between -1 and 1)
+  // Dot product between sun and roof normal vectors.
   const dotProduct = sunX * normalX + sunY * normalY + sunZ * normalZ;
-  const clampedCosTheta = Math.max(-1, Math.min(1, dotProduct));
-  
-  // Incidence angle in degrees
-  const incidenceAngleDeg = (Math.acos(clampedCosTheta) * 180) / Math.PI;
 
   // If sun is below horizon or behind roof pitch, irradiance is 0%
   const irradiancePercentage = calculateIrradiancePercentage(dotProduct, sunAltitude);
-  
-  // Dynamic efficiency corresponds to the active irradiance percentage
-  const efficiency = irradiancePercentage;
 
-  // ── Multi-Roof Aggregate Analytics ───────────────────────────────────────────
-  const aggregate = getAggregateAnalytics(
-    allRoofs,
-    selectedProduct.power,
-    daytimeUsagePercent,
-    electricityRate,
-  );
-
-  // Payback period estimate: assume ~25,000 THB/kWp installed cost
-  const INSTALLED_COST_PER_KWP = 25000;
-  const totalInstallCost = aggregate.totalKwp * INSTALLED_COST_PER_KWP;
-  const paybackYears = aggregate.estMonthlySavings > 0
-    ? totalInstallCost / (aggregate.estMonthlySavings * 12)
-    : 0;
-
-  // Per-active-roof local metrics (legacy: used only for active roof display)
   const panels = activeRoof.panels || [];
-  const formatPrice = (price: number) => {
-    return currencyFormatter.format(Math.round(price));
-  };
-
-  const getEfficiencyColor = (eff: number) => {
-    if (eff >= 70) return "text-[var(--sd-success)]";
-    if (eff >= 40) return "text-amber-700";
-    return "text-rose-700";
-  };
-
-  const getEfficiencyBadge = (eff: number) => {
-    if (eff >= 70) return { label: t("efficiency.excellent"), cls: "bg-emerald-50 text-emerald-700 border-emerald-200" };
-    if (eff >= 40) return { label: t("efficiency.fair"), cls: "bg-amber-50 text-amber-700 border-amber-200" };
-    return { label: t("efficiency.low"), cls: "bg-rose-50 text-rose-700 border-rose-200" };
-  };
 
   const handleCanvasClick = (e: React.MouseEvent<SVGSVGElement>) => {
     if (toolMode !== "add-panel") {
@@ -615,7 +558,7 @@ export default function SimulatorOverlay({
         y1={bottomEdge.p1.y}
         x2={bottomEdge.p2.x}
         y2={bottomEdge.p2.y}
-        stroke="#1CBBBB"
+        stroke="#315B7C"
         strokeWidth="6"
         strokeLinecap="round"
         vectorEffect="non-scaling-stroke"
@@ -668,12 +611,12 @@ export default function SimulatorOverlay({
 
       {/* Dimension indicators */}
       <g pointerEvents="none">
-        <line x1={0} y1={-0.45} x2={physicalWidth} y2={-0.45} stroke="#0f766e" strokeWidth="0.025" strokeDasharray="0.08 0.08" />
-        <text x={physicalWidth / 2} y={-0.58} textAnchor="middle" fontSize="0.24" fill="#0f766e" fontWeight="700">
+        <line x1={0} y1={-0.45} x2={physicalWidth} y2={-0.45} stroke="#315B7C" strokeWidth="0.025" strokeDasharray="0.08 0.08" />
+        <text x={physicalWidth / 2} y={-0.58} textAnchor="middle" fontSize="0.24" fill="#315B7C" fontWeight="700">
           {physicalWidth.toFixed(1)} m
         </text>
-        <line x1={-0.45} y1={0} x2={-0.45} y2={physicalHeight} stroke="#0f766e" strokeWidth="0.025" strokeDasharray="0.08 0.08" />
-        <text x={-0.6} y={physicalHeight / 2} textAnchor="middle" fontSize="0.24" fill="#0f766e" fontWeight="700" transform={`rotate(-90 -0.6 ${physicalHeight / 2})`}>
+        <line x1={-0.45} y1={0} x2={-0.45} y2={physicalHeight} stroke="#315B7C" strokeWidth="0.025" strokeDasharray="0.08 0.08" />
+        <text x={-0.6} y={physicalHeight / 2} textAnchor="middle" fontSize="0.24" fill="#315B7C" fontWeight="700" transform={`rotate(-90 -0.6 ${physicalHeight / 2})`}>
           {physicalHeight.toFixed(1)} m
         </text>
       </g>
@@ -712,7 +655,7 @@ export default function SimulatorOverlay({
               const getPanelHeatmapStyle = (pct: number) => {
                 if (!showHeatmap) {
                   return {
-                    borderClass: "border-slate-650/80",
+                    borderClass: "border-slate-600/80",
                     shadowStyle: "none",
                     overlayBg: "transparent",
                     percentageColor: "text-slate-400",
@@ -777,6 +720,45 @@ export default function SimulatorOverlay({
               return (
                 <div
                   key={panel.id}
+                  role="group"
+                  tabIndex={0}
+                  aria-label={t("panel.label", { count: index + 1, watts: selectedProduct.power })}
+                  onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      if (toolMode === "delete-panel") {
+                        removePanel(panel.id);
+                      } else {
+                        setSelectedPanelId(panel.id);
+                      }
+                      return;
+                    }
+                    if (event.key === "Delete" || event.key === "Backspace") {
+                      event.preventDefault();
+                      removePanel(panel.id);
+                      return;
+                    }
+
+                    const movementByKey: Partial<Record<"ArrowLeft" | "ArrowRight" | "ArrowUp" | "ArrowDown", readonly [number, number]>> = {
+                      ArrowLeft: [-1, 0],
+                      ArrowRight: [1, 0],
+                      ArrowUp: [0, -1],
+                      ArrowDown: [0, 1],
+                    };
+                    const movement = movementByKey[event.key as keyof typeof movementByKey];
+                    if (!movement || toolMode !== "select") return;
+                    event.preventDefault();
+                    setSelectedPanelId(panel.id);
+                    const step = event.shiftKey ? 0.5 : 0.1;
+                    onPanelUpdate(panels.map((item) => item.id === panel.id
+                      ? {
+                        ...item,
+                        x: snapPanelCoordinate(Math.max(0, Math.min(physicalWidth - selectedProduct.width, item.x + movement[0] * step))),
+                        y: snapPanelCoordinate(Math.max(0, Math.min(physicalHeight - selectedProduct.height, item.y + movement[1] * step))),
+                      }
+                      : item));
+                  }}
                   onPointerDown={(e) => startPanelDrag(panel, e)}
                   onPointerMove={(e) => updatePanelPositionFromPointer(e.clientX, e.clientY)}
                   onPointerUp={endPanelDrag}
@@ -790,11 +772,7 @@ export default function SimulatorOverlay({
                     if (toolMode !== "select") return;
                     setSelectedPanelId(panel.id);
                   }}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    removePanel(panel.id);
-                  }}
-                  className={`absolute ${toolMode === "delete-panel" ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"} border-2 ${isSelected ? "border-teal-300 ring-4 ring-teal-300/50" : heatmap.borderClass} ${!isInside ? "outline outline-2 outline-rose-500/80" : ""} bg-gradient-to-br from-slate-800 to-slate-900 rounded flex flex-col items-center justify-center pointer-events-auto transition-all duration-300`}
+                  className={`absolute ${toolMode === "delete-panel" ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"} border-2 ${isSelected ? "border-[#B7D1EA] ring-4 ring-[#B7D1EA]/50" : heatmap.borderClass} ${!isInside ? "outline outline-2 outline-rose-500/80" : ""} bg-gradient-to-br from-slate-800 to-slate-900 rounded flex flex-col items-center justify-center pointer-events-auto transition-all duration-300`}
                   style={{
                     left: `${leftPx}px`,
                     top: `${topPx}px`,
@@ -857,15 +835,17 @@ export default function SimulatorOverlay({
                     >
                       <button
                         type="button"
-                        title="Add panel"
+                        title={t("tools.add")}
+                        aria-label={t("tools.add")}
                         onClick={() => addPanelNear(panel)}
-                        className="flex h-11 w-11 items-center justify-center rounded-lg border border-teal-100 bg-teal-50 text-teal-700"
+                        className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#A9C4DF] bg-[#EAF2F9] text-[#0F172A]"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
-                        title="Delete panel"
+                        title={t("tools.delete")}
+                        aria-label={t("tools.delete")}
                         onClick={() => removePanel(panel.id)}
                         className="flex h-11 w-11 items-center justify-center rounded-lg border border-rose-100 bg-rose-50 text-rose-700"
                       >
@@ -883,13 +863,13 @@ export default function SimulatorOverlay({
       {/* Slope Direction Indicator (drawn on top of panels) */}
       <g transform={`translate(${roofCenterX}, ${roofCenterY})`} pointerEvents="none">
         {/* Semi-transparent background circle so it's readable */}
-        <circle r="0.4" fill="rgba(255, 255, 255, 0.9)" stroke="#1CBBBB" strokeWidth="0.03" />
+        <circle r="0.4" fill="rgba(255, 255, 255, 0.9)" stroke="#315B7C" strokeWidth="0.03" />
         {/* Arrow pointing in the azimuth direction */}
         <g transform={`rotate(${orientationDeg})`}>
           {/* Line */}
-          <line x1="0" y1="0.2" x2="0" y2="-0.2" stroke="#1CBBBB" strokeWidth="0.05" strokeLinecap="round" />
+          <line x1="0" y1="0.2" x2="0" y2="-0.2" stroke="#315B7C" strokeWidth="0.05" strokeLinecap="round" />
           {/* Arrowhead pointing up (representing direction arrow) */}
-          <path d="M -0.1 -0.08 L 0 -0.23 L 0.1 -0.08" fill="none" stroke="#1CBBBB" strokeWidth="0.05" strokeLinejoin="round" strokeLinecap="round" />
+          <path d="M -0.1 -0.08 L 0 -0.23 L 0.1 -0.08" fill="none" stroke="#315B7C" strokeWidth="0.05" strokeLinejoin="round" strokeLinecap="round" />
         </g>
       </g>
     </svg>
@@ -951,14 +931,14 @@ export default function SimulatorOverlay({
                   </div>
                 </div>
               </TransformComponent>
-              <div className="absolute top-4 right-4 z-50 flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-brand-surface/90 p-1.5 shadow-lg backdrop-blur pointer-events-auto">
-                <button type="button" onClick={() => zoomOut(0.25)} aria-label={locale === "th" ? "ลดการซูมแคนวาส" : "Zoom out canvas"} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-[#1CBBBB] hover:text-[#1CBBBB]">
+              <div className="absolute bottom-20 right-3 z-50 flex items-center gap-1 rounded-2xl border border-slate-200 bg-brand-surface/95 p-1 shadow-lg backdrop-blur pointer-events-auto sm:right-4 sm:gap-1.5 sm:p-1.5">
+                <button type="button" onClick={() => zoomOut(0.25)} aria-label={t("viewport.zoomOut")} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-[#315B7C] hover:text-[#315B7C]">
                   <ZoomOut className="w-4 h-4" aria-hidden="true" />
                 </button>
-                <button type="button" onClick={() => resetTransform()} aria-label={locale === "th" ? "รีเซ็ตการซูมแคนวาส" : "Reset canvas zoom"} className="h-11 min-w-16 rounded-xl border border-slate-200 px-2 font-mono text-[10px] font-black text-slate-700">
+                <button type="button" onClick={() => resetTransform()} aria-label={t("viewport.resetZoom")} className="h-11 min-w-16 rounded-xl border border-slate-200 px-2 font-mono text-[10px] font-black text-slate-700">
                   {(manualScale * 100).toFixed(0)}%
                 </button>
-                <button type="button" onClick={() => zoomIn(0.25)} aria-label={locale === "th" ? "เพิ่มการซูมแคนวาส" : "Zoom in canvas"} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-[#1CBBBB] hover:text-[#1CBBBB]">
+                <button type="button" onClick={() => zoomIn(0.25)} aria-label={t("viewport.zoomIn")} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-[#315B7C] hover:text-[#315B7C]">
                   <ZoomIn className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button
@@ -968,12 +948,10 @@ export default function SimulatorOverlay({
                     "flex h-11 w-11 items-center justify-center rounded-xl border",
                     isViewportLocked
                       ? "border-amber-200 bg-amber-50 text-amber-700"
-                      : "border-slate-200 text-slate-600 hover:text-[#1CBBBB] hover:border-[#1CBBBB]",
+                      : "border-slate-200 text-slate-600 hover:text-[#315B7C] hover:border-[#315B7C]",
                   )}
-                  title="Lock viewport"
-                  aria-label={isViewportLocked
-                    ? (locale === "th" ? "ปลดล็อกมุมมองแคนวาส" : "Unlock canvas viewport")
-                    : (locale === "th" ? "ล็อกมุมมองแคนวาส" : "Lock canvas viewport")}
+                  title={isViewportLocked ? t("viewport.unlock") : t("viewport.lock")}
+                  aria-label={isViewportLocked ? t("viewport.unlock") : t("viewport.lock")}
                 >
                   {isViewportLocked ? <Lock className="w-4 h-4" aria-hidden="true" /> : <Unlock className="w-4 h-4" aria-hidden="true" />}
                 </button>
@@ -983,11 +961,11 @@ export default function SimulatorOverlay({
         </TransformWrapper>
       )}
 
-      <div className="absolute top-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1.5 rounded-2xl border border-slate-200 bg-brand-surface/90 p-1.5 shadow-lg backdrop-blur pointer-events-auto">
+      <div role="group" aria-label={t("actions.actionsLabel")} className="absolute top-[4.25rem] left-1/2 z-50 flex w-max max-w-[calc(100%-1.5rem)] -translate-x-1/2 flex-nowrap items-center gap-1 overflow-x-auto whitespace-nowrap rounded-2xl border border-slate-200 bg-brand-surface/95 p-1 shadow-lg backdrop-blur pointer-events-auto sm:gap-1.5 sm:p-1.5">
         {([
-          { key: "select", label: "Select", icon: MousePointer2 },
-          { key: "add-panel", label: "Add", icon: Plus },
-          { key: "delete-panel", label: "Delete", icon: Trash2 },
+          { key: "select", label: t("tools.select"), icon: MousePointer2 },
+          { key: "add-panel", label: t("tools.add"), icon: Plus },
+          { key: "delete-panel", label: t("tools.delete"), icon: Trash2 },
         ] as { key: CanvasToolMode; label: string; icon: typeof MousePointer2 }[]).map((tool) => {
           const Icon = tool.icon;
           const isActive = toolMode === tool.key;
@@ -997,17 +975,19 @@ export default function SimulatorOverlay({
               key={tool.key}
               type="button"
               onClick={() => setToolMode(tool.key)}
+              aria-pressed={isActive}
+              aria-label={tool.label}
               title={tool.label}
               className={cn(
-                "flex h-11 items-center gap-1.5 rounded-xl border px-3 text-[10px] font-black uppercase tracking-wider transition-colors",
+                "flex min-h-11 shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-xl border px-2 text-[9px] font-black tracking-wide transition-colors sm:gap-1.5 sm:px-3 sm:text-[10px]",
                 isActive
                   ? tool.key === "delete-panel"
                     ? "border-rose-200 bg-rose-50 text-rose-700"
-                    : "border-[#1CBBBB]/30 bg-[#1CBBBB]/10 text-[#0f766e]"
-                  : "border-slate-200 bg-brand-surface text-slate-500 hover:border-[#1CBBBB]/30 hover:text-[#0f766e]",
+                    : "border-[#315B7C]/30 bg-[#315B7C]/10 text-[#315B7C]"
+                  : "border-slate-200 bg-brand-surface text-slate-500 hover:border-[#315B7C]/30 hover:text-[#315B7C]",
               )}
             >
-              <Icon className="h-3.5 w-3.5" />
+              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>{tool.label}</span>
             </button>
           );
@@ -1016,7 +996,7 @@ export default function SimulatorOverlay({
 
       {/* Sun Overlay Layer (pointer-events-none z-50) */}
       {isDaytime && (
-        <div className="absolute inset-0 pointer-events-none z-50">
+        <div className="absolute inset-0 pointer-events-none z-50" aria-hidden="true">
           {/* Glowing Sun Circle */}
           <div
             className="absolute w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center shadow-[0_0_20px_#f59e0b] border border-amber-300 transition-all duration-300"
@@ -1033,178 +1013,47 @@ export default function SimulatorOverlay({
         </div>
       )}
 
-      {/* ── Aggregate Multi-Roof Telemetry HUD ─────────────────────────── */}
-      <div className="absolute bottom-4 left-4 z-50 hidden w-72 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-[#F0EEE9]/80 shadow-xl backdrop-blur-md transition-all duration-300 pointer-events-auto [@media(min-height:520px)]:flex">
+      {panels.length === 0 && (
+        <p role="status" className="absolute left-1/2 top-1/2 z-40 w-max max-w-[calc(100%-1.5rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-slate-200 bg-white/95 px-3 py-2 text-center text-xs font-semibold text-slate-700 shadow-md">
+          {t("empty.noPanels")}
+        </p>
+      )}
 
-        {/* HUD Header */}
-        <div 
-          onClick={() => setIsHudExpanded(!isHudExpanded)}
-          className="px-4 py-2.5 bg-[#B7D1EA]/10 border-b border-slate-200/40 flex items-center justify-between cursor-pointer select-none"
+      <div role="group" aria-label={t("actions.actionsLabel")} className="absolute bottom-3 left-3 right-3 z-50 flex flex-wrap items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-lg backdrop-blur pointer-events-auto sm:bottom-4 sm:left-4 sm:right-auto sm:justify-start sm:gap-2">
+        <button
+          type="button"
+          onClick={handleAutoFill}
+          aria-label={t("actions.autoFill")}
+          className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-2.5 text-xs font-bold text-slate-800 transition-colors hover:border-slate-500 hover:bg-slate-50 sm:px-3"
         >
-          <div className="flex items-center gap-1.5">
-            <Compass className="w-3.5 h-3.5 text-slate-700" size={14} />
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-750">
-              {t("hud.liveHud", { count: aggregate.perRoof.length })}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <GsapPulse className="h-1.5 w-1.5 rounded-full bg-[#B7D1EA]" scale={1.25}>
-              <span />
-            </GsapPulse>
-            {isHudExpanded ? (
-              <ChevronDown className="w-4 h-4 text-slate-500" />
-            ) : (
-              <ChevronUp className="w-4 h-4 text-slate-500" />
-            )}
-          </div>
-        </div>
-
-        {isHudExpanded && (
-          <>
-            {/* HUD Quick Actions */}
-            <div className="px-4 py-2 bg-slate-50/50 border-b border-slate-200/30 flex items-center justify-between gap-2">
-              <span className="text-[9px] font-black uppercase text-slate-500">{t("hud.quickActions")}</span>
-              <div className="flex items-center gap-1.5">
-                {/* Auto-Fill */}
-                <button
-                  type="button"
-                  onClick={handleAutoFill}
-                  title={t("actions.autoFill")}
-                  className="p-1.5 rounded-lg bg-brand-surface border border-slate-200 text-slate-600 hover:text-[#B7D1EA] hover:border-[#B7D1EA] hover:bg-[#B7D1EA]/5 transition-all shadow-sm cursor-pointer flex items-center justify-center animate-none"
-                >
-                  <Wand2 className="w-3.5 h-3.5" />
-                </button>
-                
-                {/* Toggle Heatmap */}
-                <button
-                  type="button"
-                  onClick={() => setShowHeatmap(!showHeatmap)}
-                  title={showHeatmap ? t("actions.hideHeatmap") : t("actions.showHeatmap")}
-                  className={cn(
-                    "p-1.5 rounded-lg border transition-all shadow-sm cursor-pointer flex items-center justify-center",
-                    showHeatmap 
-                      ? "bg-amber-50 border-amber-200 text-amber-500 hover:bg-amber-100/50" 
-                      : "bg-brand-surface border-slate-200 text-slate-400 hover:text-amber-500 hover:border-amber-200"
-                  )}
-                >
-                  <Flame className="w-3.5 h-3.5" />
-                </button>
-
-                {/* Clear All */}
-                <button
-                  type="button"
-                  onClick={handleClearAll}
-                  title={t("actions.clearAll")}
-                  className="p-1.5 rounded-lg bg-brand-surface border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-all shadow-sm cursor-pointer flex items-center justify-center animate-none"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Global Aggregate Metrics */}
-            <div className="px-4 pt-3 pb-2 grid grid-cols-3 gap-2 border-b border-slate-200/30">
-              <div className="col-span-1">
-                <div className="text-[7px] font-black uppercase text-slate-700 leading-none mb-1">{t("metrics.totalPanels")}</div>
-                <div className="text-lg font-black font-mono text-slate-900 leading-none">
-	                  <AnimatedNumber value={aggregate.totalPanels} />
-                  <span className="text-[9px] text-slate-500 font-bold ml-0.5">{t("units.panels")}</span>
-                </div>
-              </div>
-              <div className="col-span-1">
-                <div className="text-[7px] font-black uppercase text-slate-700 leading-none mb-1">System kWp</div>
-                <div className="text-lg font-black font-mono text-[var(--sd-navy-900)] leading-none">
-	                  <AnimatedNumber value={aggregate.totalKwp} decimals={2} />
-                  <span className="text-[9px] text-slate-500 font-bold ml-0.5">kWp</span>
-                </div>
-              </div>
-              <div className="col-span-1">
-                <div className="text-[7px] font-black uppercase text-slate-700 leading-none mb-1">{t("metrics.activeRoof")}</div>
-                <div className="text-[9px] font-black font-mono text-slate-700 leading-none">
-	                  <AnimatedNumber value={incidenceAngleDeg} decimals={1} suffix="°" />
-                </div>
-                <div className={`text-[8px] font-bold ${getEfficiencyColor(efficiency)}`}>
-	                  <AnimatedNumber value={efficiency} suffix="% eff" />
-                </div>
-              </div>
-            </div>
-
-            {/* Financial Summary */}
-            <div className="px-4 py-3 flex items-center gap-3 border-b border-slate-200/30">
-              <div className="flex-1">
-                <div className="text-[7px] font-black uppercase text-slate-700 leading-none mb-1 flex items-center gap-1">
-                  <Zap className="w-2.5 h-2.5 text-amber-500" />
-                  {t("metrics.monthlySavings")}
-                </div>
-                <div className="text-base font-black font-mono text-[var(--sd-navy-900)] leading-none">
-	                  {financialInputsReady ? (
-	                    <AnimatedNumber
-	                      value={aggregate.estMonthlySavings}
-	                      formatter={(amount) => formatPrice(Math.round(amount))}
-	                    />
-	                  ) : "LOCKED"}
-                </div>
-              </div>
-              <div className="flex-1">
-                <div className="text-[7px] font-black uppercase text-slate-700 leading-none mb-1 flex items-center gap-1">
-                  <TrendingUp className="w-2.5 h-2.5 text-emerald-500" />
-                  {t("metrics.payback")}
-                </div>
-                <div className="text-base font-black font-mono text-[var(--sd-success)] leading-none">
-	                  {financialInputsReady && paybackYears > 0 ? (
-	                    <AnimatedNumber value={paybackYears} decimals={1} suffix=" yrs" />
-	                  ) : "N/A"}
-                </div>
-              </div>
-            </div>
-
-            {/* Per-Roof Breakdown */}
-            <div className="px-4 py-2.5 flex flex-col gap-1.5">
-              <div className="text-[8px] font-black uppercase tracking-wider text-slate-700 mb-0.5">
-                {t("hud.roofBreakdown")}
-              </div>
-              {aggregate.perRoof.map((r) => {
-                const badge = getEfficiencyBadge(r.efficiency);
-                const isActive = r.id === activeRoof.id;
-                return (
-                  <div
-                    key={r.id}
-                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all ${
-                      isActive
-                        ? "bg-[#B7D1EA]/8 border-[#B7D1EA]/25"
-                        : "bg-slate-50/50 border-slate-200/20"
-                    }`}
-                  >
-                    {/* Active indicator dot */}
-                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? "bg-[#B7D1EA]" : "bg-slate-300"}`} />
-
-                    {/* Roof name */}
-                    <div className="flex-1 min-w-0">
-                      <div className={`text-[9px] font-black truncate ${isActive ? "text-slate-800" : "text-slate-700"}`}>
-                        {r.name.length > 14 ? r.name.slice(0, 14) + "…" : r.name}
-                      </div>
-                      <div className="text-[8px] text-slate-600 font-semibold font-mono">
-                        {t("metrics.roofPanelSummary", { count: r.panelCount, kwp: r.kwp.toFixed(2) })}
-                      </div>
-                    </div>
-
-                    {/* Efficiency badge */}
-                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${badge.cls}`}>
-                      {r.efficiency.toFixed(0)}% {badge.label}
-                    </span>
-                  </div>
-                );
-              })}
-              {aggregate.perRoof.length === 0 && (
-                <div className="text-[9px] text-slate-600 font-semibold text-center py-2">
-                  {t("empty.noPanels")}
-                </div>
-              )}
-            </div>
-          </>
-        )}
+          <Wand2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span className="max-[360px]:hidden">{t("actions.autoFillShort")}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowHeatmap((value) => !value)}
+          aria-pressed={showHeatmap}
+          aria-label={showHeatmap ? t("actions.hideHeatmap") : t("actions.showHeatmap")}
+          className={cn(
+            "flex min-h-11 items-center justify-center gap-1.5 rounded-xl border px-2.5 text-xs font-bold transition-colors sm:px-3",
+            showHeatmap
+              ? "border-amber-300 bg-amber-50 text-amber-900"
+              : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
+          )}
+        >
+          <Flame className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span className="max-[360px]:hidden">{t("actions.heatmapShort")}</span>
+        </button>
+        <button
+          type="button"
+          onClick={handleClearAll}
+          aria-label={t("actions.clearAll")}
+          className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-white px-2.5 text-xs font-bold text-rose-800 transition-colors hover:bg-rose-50 sm:px-3"
+        >
+          <Trash2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span className="max-[360px]:hidden">{t("actions.clearAllShort")}</span>
+        </button>
       </div>
-
     </div>
   );
 }

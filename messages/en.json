@@ -541,9 +541,28 @@
     },
     "actions": {
       "autoFill": "Auto-Fill Grid",
+      "autoFillShort": "Auto-fill",
       "hideHeatmap": "Hide Heatmap",
       "showHeatmap": "Show Heatmap",
-      "clearAll": "Clear All"
+      "heatmapShort": "Shading",
+      "clearAll": "Clear All",
+      "clearAllShort": "Clear panels",
+      "actionsLabel": "Roof tools"
+    },
+    "tools": {
+      "select": "Select",
+      "add": "Add panel",
+      "delete": "Delete"
+    },
+    "panel": {
+      "label": "Solar panel {count}, {watts} watts. Use arrow keys to move, Enter to select, and Delete to remove."
+    },
+    "viewport": {
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "resetZoom": "Reset zoom",
+      "lock": "Lock canvas movement",
+      "unlock": "Unlock canvas movement"
     },
     "metrics": {
       "totalPanels": "Total Panels",
@@ -557,7 +576,7 @@
       "panels": "panels"
     },
     "empty": {
-      "noPanels": "No solar panels yet - click on a roof to add one"
+      "noPanels": "Use Add panel to place your first panel, or use Auto-fill to start."
     }
   },
   "AdminCatalogSettings": {
@@ -960,7 +979,8 @@
     "toast": {
       "aiComplete": "AI analysis complete. Area: {area} m², pitch: {pitch}°.",
       "aiFailed": "AI analysis failed. Please try again.",
-      "networkError": "A network error occurred during AI analysis."
+      "networkError": "A network error occurred during AI analysis.",
+                    "addressRequired": "Enter your roof address before starting the analysis."
     },
     "orientation": {
       "south": "{deg}°: South (best fit ★★★)",
@@ -973,9 +993,10 @@
       "defaultName": "Roof {count}"
     },
     "header": {
-      "title": "Clean Tech Planner",
+      "title": "Solar roof planner",
       "version": "v2D CAD",
-      "subtitle": "2D layout system & roof analysis",
+      "subtitle": "Plan a layout for your home",
+      "navigationLabel": "Visualizer navigation",
       "editing": "Editing:",
       "area": "Area:"
     },
@@ -990,10 +1011,13 @@
       "search": "Search",
       "confirmTariff": "Confirm tariff inputs",
       "ready": "Ready",
+      "addPanel": "Add one panel",
+      "removePanel": "Remove one panel",
       "hideSettings": "Hide settings panel",
       "showSettings": "Show settings panel"
     },
     "tabs": {
+      "label": "Planner settings",
       "roof": "System & Roof",
       "shading": "Shading Simulation",
       "electrical": "Electrical Circuits"
@@ -1107,12 +1131,14 @@
       "thailandPsh": "Thailand PSH",
       "qualityFactor": "Quality factor",
       "annualYield": "Annual yield",
+      "moreDetails": "Technical estimate details",
       "panelMaterialEstimate": "Panel material estimate",
       "materialEstimateNote": "Excludes inverter and installation."
     },
     "canvas": {
       "multiRoofPlanner": "Multi-Roof Planner",
       "satellitePlanner": "Satellite Planner",
+      "dragPanels": "Drag panels to arrange your roof",
       "traceRoofBoundary": "Trace the roof boundary to process area.",
       "freeformPlacement": "Freeform drag-and-drop solar panel placement",
       "liveRenderer": "Live renderer",
@@ -1128,6 +1154,12 @@
     "orientationLock": {
       "title": "Rotate your screen to landscape",
       "description": "For the best 2D solar design experience, rotate your device to landscape mode."
+    },
+    "empty": {
+      "catalogTitle": "Panel options are temporarily unavailable",
+      "catalogDescription": "A current panel list is not available, so planning is paused until accurate product details are ready.",
+      "catalogStatus": "You can still start with a home assessment and return to the planner when the catalog is ready.",
+      "startSizing": "Start a home assessment"
     }
   },
   "WizardSummary": {
@@ -6095,9 +6127,31 @@
   },
   "SignaturePad": {
     "drawingArea": "Signature drawing area",
+    "methodLabel": "Signature method",
+    "drawMethod": "Draw signature",
+    "typeMethod": "Type your name",
+    "drawingInstructions": "Draw with touch or a mouse. To sign with a keyboard, choose “Type your name” above.",
+    "typingInstructions": "Review the preview, then confirm when it matches the signer name above.",
+    "typedPrompt": "Your typed signature preview will appear here.",
+    "typedPreview": "Typed signature preview for {name}",
+    "applyTypedName": "Use signer name as signature",
     "clear": "Clear",
     "signing": "Signing…",
-    "confirm": "Confirm signature"
+    "confirm": "Confirm signature",
+    "status": {
+      "empty": "Add a drawn or typed signature to enable confirmation.",
+      "ready": "Signature is ready to confirm.",
+      "submitting": "Submitting signature. Please wait.",
+      "submitFailed": "Signature was not submitted. Your signature is still available; review the message and try again.",
+      "preserved": "Your drawn signature was preserved after the canvas resized.",
+      "resizeFailed": "We could not restore your signature after the canvas resized. Please draw it again.",
+      "signatureCreated": "Typed signature preview is ready.",
+      "signatureCleared": "Signature cleared.",
+      "methodChanged": "Signature cleared. Add a new signature using this method.",
+      "nameRequired": "Enter the signer name above before creating a typed signature.",
+      "nameChanged": "The typed signature was cleared because the signer name changed.",
+      "typedUnavailable": "A typed signature could not be created. Please try again."
+    }
   },
   "AdminNavigation": {
     "workspace": {

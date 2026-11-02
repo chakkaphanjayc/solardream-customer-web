@@ -20,5 +20,9 @@ export interface ProposalDetailViewProps {
 
 /** Canonical proposal detail surface shared by portal links and authenticated history. */
 export default function ProposalDetailView(props: ProposalDetailViewProps) {
-  return <GuestProposalSignView {...props} />;
+  return (
+    <div data-solar-workspace="proposal-detail">
+      <GuestProposalSignView {...props} />
+    </div>
+  );
 }

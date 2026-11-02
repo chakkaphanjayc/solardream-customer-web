@@ -764,7 +764,7 @@ export default function OrderPaymentClient({
                           : "border-slate-300 hover:border-[#B7D1EA] bg-white hover:bg-slate-50/50"
                       }`}
                     >
-                      <label className="flex flex-col items-center justify-center w-full h-full text-center px-4 cursor-pointer">
+                      <label className="flex flex-col items-center justify-center w-full h-full text-center px-4 cursor-pointer focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0F172A] focus-within:ring-offset-2">
                         <Upload className={`w-10 h-10 mb-3 transition-colors ${dragActive ? "text-[#2C486A]" : "text-slate-400"}`} />
                         <p className="text-xs font-black text-slate-800 uppercase tracking-wider">
                           ลากไฟล์สลิปมาวาง หรือ คลิกเพื่ออัปโหลด
@@ -776,7 +776,7 @@ export default function OrderPaymentClient({
                           type="file"
                           accept="image/jpeg, image/png, image/webp"
                           onChange={handleFileChange}
-                          className="hidden"
+                          className="sr-only"
                         />
                       </label>
                     </div>
@@ -908,7 +908,7 @@ export default function OrderPaymentClient({
                           : "border-slate-300 hover:border-[#B7D1EA] bg-white hover:bg-slate-50/50"
                       }`}
                     >
-                      <label className="flex flex-col items-center justify-center w-full h-full text-center px-4 cursor-pointer">
+                      <label className="flex flex-col items-center justify-center w-full h-full text-center px-4 cursor-pointer focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0F172A] focus-within:ring-offset-2">
                         <Upload className={`w-10 h-10 mb-3 transition-colors ${dragActive ? "text-[#2C486A]" : "text-slate-400"}`} />
                         <p className="text-xs font-black text-slate-800 uppercase tracking-wider">
                           ลากไฟล์สลิปมาวาง หรือ คลิกเพื่ออัปโหลด
@@ -920,7 +920,7 @@ export default function OrderPaymentClient({
                           type="file"
                           accept="image/jpeg, image/png, image/webp"
                           onChange={handleFileChange}
-                          className="hidden"
+                          className="sr-only"
                         />
                       </label>
                     </div>
@@ -1432,7 +1432,7 @@ export default function OrderPaymentClient({
                                       : "border-slate-300 hover:border-[#B7D1EA] bg-white hover:bg-slate-50/50"
                                   }`}
                                 >
-                                  <label className="flex flex-col items-center justify-center w-full h-full text-center px-4 cursor-pointer">
+                                  <label className="flex flex-col items-center justify-center w-full h-full text-center px-4 cursor-pointer focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0F172A] focus-within:ring-offset-2">
                                     <Upload className={`w-10 h-10 mb-3 transition-colors ${dragActive ? "text-[#2C486A]" : "text-slate-400"}`} />
                                     <p className="text-xs font-black text-slate-800 uppercase tracking-wider">
                                       ลากไฟล์สลิปมาวาง หรือ คลิกเพื่ออัปโหลด
@@ -1444,7 +1444,7 @@ export default function OrderPaymentClient({
                                       type="file"
                                       accept="image/jpeg, image/png, image/webp"
                                       onChange={handleFileChange}
-                                      className="hidden"
+                                      className="sr-only"
                                     />
                                   </label>
                                 </div>
