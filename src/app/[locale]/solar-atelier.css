@@ -418,29 +418,34 @@ html body[data-solar-ui="customer"]
   background: #f5f2eb !important;
 }
 
-/* Proposal workspace: soften the list/detail split while retaining every
-   existing tab, payment action, signature control, and document workflow. */
+/* Proposal workspace follows the same quiet card and action hierarchy as the
+   customer shell while keeping the active quote and next action easy to find. */
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page {
   min-height: auto;
-  color: #0f172a;
+  color: var(--sd-ink);
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .solar-ui-panel {
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid var(--sd-line) !important;
   border-radius: 16px !important;
-  background: #f5f2eb !important;
-  box-shadow: 0 1px 3px rgb(15 23 42 / 0.06) !important;
+  background: var(--sd-raised) !important;
+  box-shadow: var(--sd-customer-shadow-soft) !important;
 }
 
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page aside {
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [data-solar-part="proposal-header"] h1 {
+  color: var(--sd-ink);
+  text-wrap: balance;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [data-solar-part="proposal-list"] {
   top: 1.25rem;
   padding: clamp(1rem, 2vw, 1.5rem);
 }
 
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [role="tablist"] {
-  border: 1px solid #e2e8f0 !important;
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [data-solar-part="proposal-tabs"] {
+  border: 1px solid var(--sd-line) !important;
   border-radius: 12px !important;
-  background: #f3f1ea !important;
+  background: var(--sd-page) !important;
   box-shadow: none !important;
 }
 
@@ -450,7 +455,7 @@ html body[data-solar-ui="customer"]
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [role="tab"][aria-selected="true"] {
-  background: #b7d1ea !important;
+  background: var(--sd-selected) !important;
   color: #0f172a !important;
 }
 
@@ -459,38 +464,70 @@ html body[data-solar-ui="customer"]
   outline-color: #7eaed4;
 }
 
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page button[class*="border-[3px]"],
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page button[class*="border-[4px]"],
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page button[class*="shadow-[4px_4px_0"] {
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 12px !important;
-  background: #ffffff !important;
-  box-shadow: 0 1px 3px rgb(15 23 42 / 0.06) !important;
-  color: #0f172a !important;
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page :is([class*="border-[3px]"], [class*="border-[4px]"]) {
+  border-width: 1px !important;
+  border-color: var(--sd-line) !important;
 }
 
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page button[class*="border-[3px]"]:hover,
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page button[class*="border-[4px]"]:hover {
-  border-color: #7eaed4 !important;
-  background: #f3f1ea !important;
-  transform: translateY(-1px);
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [class*="shadow-["] {
+  box-shadow: none !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .proposal-list-card {
+  border: 1px solid var(--sd-line) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  color: var(--sd-ink) !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .proposal-list-card--idle {
+  background: var(--sd-raised) !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .proposal-list-card--idle:hover {
+  border-color: var(--solar-route-accent-strong) !important;
+  background: var(--sd-page) !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .proposal-list-card--active {
+  border-color: var(--solar-route-accent-strong) !important;
+  background: var(--sd-selected) !important;
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .solar-route-primary,
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .solar-ui-primary {
   min-height: 44px;
   border-radius: 999px !important;
-  background: #b7d1ea !important;
+  background: var(--sd-selected) !important;
   color: #0f172a !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .solar-route-secondary {
+  min-height: 44px;
+  border: 1px solid var(--sd-line) !important;
+  border-radius: 999px !important;
+  background: var(--sd-raised) !important;
+  color: var(--sd-ink) !important;
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] [data-solar-workspace="proposal-detail"] {
   min-width: 0;
-  color: #0f172a;
+  color: var(--sd-ink);
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] [data-solar-workspace="proposal-detail"] > div {
-  border-color: #e2e8f0;
+  border-color: var(--sd-line);
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [data-solar-part="proposal-summary"] {
+  border-color: var(--sd-line);
+  background: var(--sd-raised);
+  box-shadow: var(--sd-customer-shadow-soft);
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page :is(a, button):focus-visible {
+  outline: 2px solid var(--solar-route-accent-strong);
+  outline-offset: 3px;
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-site-footer {

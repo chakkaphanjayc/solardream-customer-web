@@ -1528,6 +1528,9 @@
       },
       "emptyTitle": "ไม่มีใบเสนอราคา",
       "emptyDescription": "ไม่พบประวัติคำขอใบเสนอราคา",
+      "archivedEmptyTitle": "ยังไม่มีใบเสนอราคาในคลัง",
+      "archivedEmptyDescription": "ใบเสนอราคาที่เสร็จสิ้นหรือยกเลิกแล้วจะแสดงที่นี่เพื่อใช้อ้างอิง",
+      "emptyImageAlt": "โซเลียพร้อมช่วยคุณวางแผนโซลาร์",
       "systemSummary": "{kwp} kWp ({count} แผง)",
       "uploadedVersion": "v{version} อัปโหลดแล้ว"
     },
@@ -1571,13 +1574,18 @@
       "eyebrow": "ศูนย์จัดการโครงการ SolarDream",
       "title": "ใบเสนอราคาและความคืบหน้างานติดตั้งของคุณ",
       "buildSystem": "ออกแบบระบบใหม่",
-      "startWizard": "เริ่มตัวช่วยออกแบบโซลาร์"
+      "startWizard": "เริ่มตัวช่วยออกแบบโซลาร์",
+      "description": "ตรวจสอบใบเสนอราคา ลายเซ็น การชำระเงิน และความคืบหน้างานติดตั้งได้ในที่เดียว"
     },
     "labels": {
       "serviceProposal": "ข้อเสนอราคางานบริการ",
       "installationProposal": "ข้อเสนอราคางานติดตั้ง",
       "service": "บริการ",
       "solar": "โซลาร์",
+      "requestNumber": "คำขอ",
+      "proposalNumber": "ใบเสนอราคา",
+      "pendingEngineeringReview": "ทีมวิศวกรกำลังตรวจสอบระบบ",
+      "awaitingSignature": "รอลายเซ็นจากคุณ",
       "system": "ระบบ {size} kWp",
       "totalInvestment": "มูลค่าลงทุนรวม",
       "pricePending": "รอยืนยันราคา",
@@ -1625,7 +1633,8 @@
     },
     "emptySelection": {
       "title": "ยังไม่ได้เลือกใบเสนอราคา",
-      "description": "เลือกใบเสนอราคาจากแผงด้านซ้ายเพื่อตรวจสอบสเปคและไฟล์อัปโหลด"
+      "description": "เลือกใบเสนอราคาจากรายการเพื่อดูรายละเอียดและเอกสาร",
+      "imageAlt": "เลือกใบเสนอราคาเพื่อดูรายละเอียด"
     },
     "signature": {
       "title": "อนุมัติและลงนามสัญญา",

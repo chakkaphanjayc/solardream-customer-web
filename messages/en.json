@@ -1528,6 +1528,9 @@
       },
       "emptyTitle": "No Proposals",
       "emptyDescription": "No historic quote requests found.",
+      "archivedEmptyTitle": "No archived proposals",
+      "archivedEmptyDescription": "Completed or cancelled proposals will appear here for reference.",
+      "emptyImageAlt": "Solia is ready to help with your solar proposal",
       "systemSummary": "{kwp} kWp ({count} panels)",
       "uploadedVersion": "v{version} Uploaded"
     },
@@ -1571,13 +1574,18 @@
       "eyebrow": "SolarDream Project Hub",
       "title": "My proposals and installation progress",
       "buildSystem": "Build new system",
-      "startWizard": "Start solar wizard"
+      "startWizard": "Start solar wizard",
+      "description": "Review your quote, signature, payment, and installation milestones in one place."
     },
     "labels": {
       "serviceProposal": "Service proposal",
       "installationProposal": "Installation proposal",
       "service": "Service",
       "solar": "Solar",
+      "requestNumber": "Request",
+      "proposalNumber": "Proposal",
+      "pendingEngineeringReview": "Our engineering team is reviewing the system",
+      "awaitingSignature": "Awaiting your signature",
       "system": "{size} kWp system",
       "totalInvestment": "Total investment",
       "pricePending": "Price pending",
@@ -1625,7 +1633,8 @@
     },
     "emptySelection": {
       "title": "No Proposal Selected",
-      "description": "Please select a quote iteration from the left panel to review configuration specs and uploads."
+      "description": "Please select a proposal from the list to review its details and documents.",
+      "imageAlt": "Choose a proposal to see its details"
     },
     "signature": {
       "title": "Approve & Sign Contract",
