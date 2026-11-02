@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { gsap } from "gsap";
 import { ShieldCheck } from "@/components/ui/icons";
 import { usePathname } from "next/navigation";
 import CookiePreferencesModal from "./CookiePreferencesModal";
@@ -11,6 +10,7 @@ import { trackProductEvent } from "@/lib/productAnalytics";
 import { buildCookieConsentPayload, buildPrivacySessionHeaders } from "@/lib/privacyConsentClient";
 
 interface CookieBannerProps {
+  initialConsentSnapshot: string;
   cookieTitle: string;
   cookieBannerText: string;
   cookieBannerEnabled: boolean;
@@ -52,15 +52,17 @@ const defaultPreferences: CookiePreferences = {
 
 function parsePreferences(snapshot: string): CookiePreferences | null {
   if (!snapshot || snapshot === "server") return null;
-  if (!snapshot.startsWith("{")) {
-    return {
-      ...defaultPreferences,
-      analytics: snapshot === "all",
-      marketing: snapshot === "all",
-    };
-  }
   try {
-    const value = JSON.parse(snapshot) as Partial<CookiePreferences>;
+    const normalizedSnapshot = snapshot.startsWith("%7B") ? decodeURIComponent(snapshot) : snapshot;
+    if (!normalizedSnapshot.startsWith("{")) {
+      return {
+        ...defaultPreferences,
+        analytics: normalizedSnapshot === "all",
+        marketing: normalizedSnapshot === "all",
+      };
+    }
+
+    const value = JSON.parse(normalizedSnapshot) as Partial<CookiePreferences>;
     if (typeof value.analytics !== "boolean" || typeof value.marketing !== "boolean") return null;
     return {
       essential: true,
@@ -85,15 +87,16 @@ function getPrivacySessionId() {
 function persistPreferences(preferences: CookiePreferences) {
   const newStr = JSON.stringify(preferences);
   const existingStr = localStorage.getItem("solardream_consent_preferences");
-  if (existingStr === newStr) {
-    return;
+  const existingCookieSnapshot = readConsentCookieSnapshot();
+  if (existingStr !== newStr) {
+    localStorage.setItem("solardream_consent_preferences", newStr);
+    localStorage.setItem("solardream_consent", preferences.analytics && preferences.marketing ? "all" : "essential");
+    localStorage.setItem("cookie_consent", preferences.analytics && preferences.marketing ? "all" : "essential");
   }
-  localStorage.setItem("solardream_consent_preferences", newStr);
-  localStorage.setItem("solardream_consent", preferences.analytics && preferences.marketing ? "all" : "essential");
-  localStorage.setItem("cookie_consent", preferences.analytics && preferences.marketing ? "all" : "essential");
   const expires = new Date(Date.now() + 365 * 864e5).toUTCString();
   const secure = window.location.protocol === "https:" ? "; Secure" : "";
   document.cookie = `solardream_consent=${encodeURIComponent(newStr)}; expires=${expires}; path=/; SameSite=Lax${secure}`;
+  if (existingStr === newStr && existingCookieSnapshot === newStr) return;
   window.dispatchEvent(new Event("solardream_consent_updated"));
 }
 
@@ -110,13 +113,33 @@ function preferencesFromRecord(value: unknown, policyVersion: string): CookiePre
   };
 }
 
+function readConsentCookieSnapshot() {
+  if (typeof window === "undefined") return "server";
+  const consentCookie = document.cookie
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith("solardream_consent="))
+    ?.slice("solardream_consent=".length);
+
+  let cookieSnapshot = consentCookie || "";
+  if (cookieSnapshot.startsWith("%7B")) {
+    try {
+      cookieSnapshot = decodeURIComponent(cookieSnapshot);
+    } catch {
+      cookieSnapshot = "";
+    }
+  }
+
+  return cookieSnapshot;
+}
+
 function readConsentSnapshot() {
   if (typeof window === "undefined") return "server";
   return (
     localStorage.getItem("solardream_consent_preferences") ||
     localStorage.getItem("cookie_consent") ||
     localStorage.getItem("solardream_consent") ||
-    ""
+    readConsentCookieSnapshot()
   );
 }
 
@@ -134,6 +157,7 @@ const getMountedSnapshot = () => true;
 const getMountedServerSnapshot = () => false;
 
 export default function CookieBanner({
+  initialConsentSnapshot,
   cookieTitle = "Cookie Preferences",
   cookieBannerText = "We use cookies to improve your experience and analyze site traffic.",
   cookieBannerEnabled = true,
@@ -145,17 +169,21 @@ export default function CookieBanner({
 }: CookieBannerProps) {
   const mounted = useSyncExternalStore(subscribeMounted, getMountedSnapshot, getMountedServerSnapshot);
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [policyVersion, setPolicyVersion] = useState("");
   const [forceReconsent, setForceReconsent] = useState(false);
   const hasSyncedRef = useRef(false);
-  const bannerRef = useRef<HTMLDivElement | null>(null);
+  const hasUserSavedConsentRef = useRef(false);
   const pathname = usePathname();
   const consentSnapshot = useSyncExternalStore(
     subscribeConsentStore,
     readConsentSnapshot,
-    () => "server",
+    () => initialConsentSnapshot || "server",
+  );
+  const cookieConsentSnapshot = useSyncExternalStore(
+    subscribeConsentStore,
+    readConsentCookieSnapshot,
+    () => initialConsentSnapshot || "server",
   );
 
   const preferences = useMemo(() => {
@@ -163,9 +191,9 @@ export default function CookieBanner({
   }, [consentSnapshot]);
 
   const hasExplicitConsent = Boolean(
-    consentSnapshot &&
-    consentSnapshot !== "server" &&
-    parsePreferences(consentSnapshot) !== null
+    cookieConsentSnapshot &&
+    cookieConsentSnapshot !== "server" &&
+    parsePreferences(cookieConsentSnapshot) !== null
   );
 
   useEffect(() => {
@@ -181,7 +209,7 @@ export default function CookieBanner({
           headers: buildPrivacySessionHeaders(sessionId),
         });
         const payload = await readJsonResponse<ConsentApiResponse>(response);
-        if (!isMounted || !response.ok || !payload?.success) return;
+        if (!isMounted || hasUserSavedConsentRef.current || !response.ok || !payload?.success) return;
 
         const serverVersion = payload.policyVersion || "";
         if (serverVersion) {
@@ -204,8 +232,6 @@ export default function CookieBanner({
         }
       } catch {
         // Fail-open for client-side storage
-      } finally {
-        if (isMounted) setIsSyncing(false);
       }
     }
 
@@ -216,26 +242,15 @@ export default function CookieBanner({
   }, [mounted]);
 
   const isOpen =
-    mounted &&
     cookieBannerEnabled &&
-    !isSyncing &&
     (!hasExplicitConsent || forceReconsent) &&
     !pathname.includes("/admin");
-
-  useEffect(() => {
-    if (!isOpen || !bannerRef.current) return;
-    const bannerEl = bannerRef.current;
-    gsap.fromTo(
-      bannerEl,
-      { y: 32, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }
-    );
-  }, [isOpen]);
 
   const saveConsent = async (
     prefs: { essential: boolean; analytics: boolean; marketing: boolean },
     source: "banner" | "settings"
   ) => {
+    hasUserSavedConsentRef.current = true;
     setIsSaving(true);
     const sessionId = getPrivacySessionId();
     let savedVersion = policyVersion;
@@ -294,46 +309,48 @@ export default function CookieBanner({
     <>
       {isOpen && (
         <div
-          ref={bannerRef}
           role="region"
           aria-label={cookieTitle}
           data-bagui="cookie-banner"
           data-solar-surface="atelier"
-          className="solar-cookie-banner sd-safe-bottom-3-add layer-floating fixed inset-x-3 max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-[24px] p-5 sm:inset-x-6 sm:p-6 md:bottom-6 md:left-auto md:right-6 md:max-w-md lg:max-w-lg"
+          className="solar-cookie-banner layer-content relative"
         >
-          <div className="flex items-start gap-3.5">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[#CBC7BE] bg-[#DCE8F5] text-[#4F7FA8]">
-              <ShieldCheck className="size-5 text-[#4F7FA8]" />
-            </div>
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="solar-cookie-banner__heading-row flex min-w-0 items-center justify-between gap-2">
-                <h2 className="min-w-0 font-sans text-sm font-bold text-[#2E2C27]">
-                  {cookieTitle}
-                </h2>
-                <div className="solar-cookie-banner__secondary-actions flex shrink-0 items-center gap-1">
-                  <Link
-                    href={privacyPolicyHref}
-                    className="inline-flex min-h-11 shrink-0 items-center truncate px-1 font-sans text-[11px] text-[#4E4B44] underline underline-offset-4 transition-colors hover:text-[#3E6685]"
-                  >
-                    {privacyPolicyText}
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => setIsPreferencesOpen(true)}
-                    className="solar-cookie-manage inline-flex min-h-11 shrink-0 cursor-pointer items-center whitespace-nowrap border-none bg-transparent px-1 py-0 text-[11px] font-sans underline underline-offset-4 transition-colors"
-                  >
-                    {managePreferencesText}
-                  </button>
-                </div>
+          <div className="grid gap-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6">
+            <div className="flex min-w-0 items-start gap-3.5">
+              <div
+                aria-hidden="true"
+                className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[#CBC7BE] bg-[#DCE8F5] text-[#4F7FA8]"
+              >
+                <ShieldCheck className="size-5 text-[#4F7FA8]" />
               </div>
-              <p className="font-sans text-xs font-normal leading-relaxed text-[#4E4B44]">
-                {cookieBannerText}
-              </p>
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="solar-cookie-banner__heading-row flex min-w-0 items-center justify-between gap-2">
+                  <h2 className="min-w-0 font-sans text-sm font-bold text-[#2E2C27]">
+                    {cookieTitle}
+                  </h2>
+                  <div className="solar-cookie-banner__secondary-actions flex shrink-0 items-center gap-1">
+                    <Link
+                      href={privacyPolicyHref}
+                      className="inline-flex min-h-11 shrink-0 items-center truncate px-1 font-sans text-[11px] text-[#4E4B44] underline underline-offset-4 transition-colors hover:text-[#3E6685]"
+                    >
+                      {privacyPolicyText}
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setIsPreferencesOpen(true)}
+                      className="solar-cookie-manage inline-flex min-h-11 shrink-0 cursor-pointer items-center whitespace-nowrap border-none bg-transparent px-1 py-0 text-[11px] font-sans underline underline-offset-4 transition-colors"
+                    >
+                      {managePreferencesText}
+                    </button>
+                  </div>
+                </div>
+                <p className="font-sans text-xs font-normal leading-relaxed text-[#4E4B44]">
+                  {cookieBannerText}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="mt-4 flex flex-col gap-3.5 border-t border-[#F7F6F3] pt-3.5">
-            <div className="solar-cookie-banner__choices flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <div className="solar-cookie-banner__choices flex flex-col gap-2 border-t border-[#F7F6F3] pt-3 sm:flex-row sm:items-center sm:justify-end sm:border-t-0 sm:pt-0">
               <button
                 type="button"
                 onClick={handleDeclineAll}

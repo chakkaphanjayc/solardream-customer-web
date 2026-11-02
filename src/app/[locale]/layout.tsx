@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { Suspense } from "react";
 // Keep the customer-facing type system intentionally simple: Roboto carries
@@ -80,6 +81,17 @@ const ibmPlexSansThai = IBM_Plex_Sans_Thai({
   display: "swap",
 });
 
+function getInitialConsentSnapshot(value: string | undefined) {
+  if (!value) return "";
+  if (!value.startsWith("%7B")) return value;
+
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return "";
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -145,15 +157,21 @@ async function LocaleRuntimeLayout({ activeLocale, children }: LocaleRuntimeLayo
   // request headers while the shared locale layout is streaming.
   setRequestLocale(activeLocale);
 
-  const [allMessages, activeBanner, compliance, analyticsConfig, websiteSettings, localizationConfig, navigationItems] = await Promise.all([
-    getMessages({ locale: activeLocale }),
-    getCachedGlobalBanner(),
-    getCachedComplianceSettings(),
-    getCachedAnalyticsConfig(),
-    getCachedWebsiteSettings(),
-    getCachedLocalizationConfig(),
-    getCachedNavigationItems(activeLocale),
+  const [cookieStore, [allMessages, activeBanner, compliance, analyticsConfig, websiteSettings, localizationConfig, navigationItems]] = await Promise.all([
+    cookies(),
+    Promise.all([
+      getMessages({ locale: activeLocale }),
+      getCachedGlobalBanner(),
+      getCachedComplianceSettings(),
+      getCachedAnalyticsConfig(),
+      getCachedWebsiteSettings(),
+      getCachedLocalizationConfig(),
+      getCachedNavigationItems(activeLocale),
+    ]),
   ]);
+  const initialConsentSnapshot = getInitialConsentSnapshot(
+    cookieStore.get("solardream_consent")?.value,
+  );
   const forumUrl = getOptionalDiscourseSsoStartUrl()?.toString() ?? "";
 
   // Client islands across the public site and operations console use their own
@@ -170,6 +188,7 @@ async function LocaleRuntimeLayout({ activeLocale, children }: LocaleRuntimeLayo
               <SourceTrackingProvider />
               <SiteChrome
                 initialGlobalBanner={activeBanner}
+                initialConsentSnapshot={initialConsentSnapshot}
                 complianceSettings={compliance ?? null}
                 forumUrl={forumUrl}
                 websiteSettings={getLocalizedWebsiteSettings(websiteSettings, activeLocale)}

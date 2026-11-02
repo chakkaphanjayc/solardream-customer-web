@@ -505,39 +505,29 @@ html body[data-solar-ui="customer"]
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner {
-  right: 1rem !important;
-  bottom: 1rem !important;
-  left: auto !important;
-  width: min(27rem, calc(100vw - 2rem));
-  max-height: min(48dvh, 25rem) !important;
+  position: relative !important;
+  inset: auto !important;
+  width: min(74rem, calc(100% - 2rem)) !important;
+  max-width: 74rem !important;
+  max-height: none !important;
+  margin: 0.75rem auto 0 !important;
+  overflow: visible !important;
   padding: 1rem !important;
   border: 1px solid #e2e8f0 !important;
   border-radius: 16px !important;
   background: #f5f2eb !important;
-  box-shadow: 0 12px 28px rgb(15 23 42 / 0.14) !important;
+  box-shadow: 0 6px 8px rgb(15 23 42 / 0.08) !important;
   color: #0f172a !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-}
-
-/* The inline filter control remains available while consent is open. Hide the
-   duplicate fixed shortcut so it cannot cover the consent actions or focus. */
-body:has(.solar-cookie-banner) .catalog-mobile-filter-dock {
-  display: none !important;
-}
-
-body:has(.solar-cookie-banner) .catalog-comparison-dock {
-  display: none !important;
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner :is(h2, p, a) {
   color: #0f172a !important;
 }
 
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:last-child {
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner__choices {
   gap: 0.75rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner__heading-row {
@@ -661,23 +651,20 @@ body:has(.solar-cookie-banner) .catalog-comparison-dock {
   }
 
   .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner {
-    right: 0.75rem !important;
-    bottom: 0.75rem !important;
-    left: 0.75rem !important;
-    width: auto;
-    max-height: min(44dvh, 22rem) !important;
-    padding: 0.375rem 0.5rem !important;
-  }
-
-  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:first-child {
-    gap: 0 !important;
+    width: calc(100% - 1.5rem) !important;
+    margin-top: 0.75rem !important;
+    padding: 0.75rem !important;
   }
 
   .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:first-child > div:first-child {
+    gap: 0 !important;
+  }
+
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:first-child > div:first-child > div:first-child {
     display: none !important;
   }
 
-  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:first-child > div:last-child {
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:first-child > div:first-child > div:last-child {
     flex: 1 1 auto;
     min-width: 0;
   }
@@ -692,10 +679,8 @@ body:has(.solar-cookie-banner) .catalog-comparison-dock {
     margin-top: 0.125rem;
   }
 
-  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:last-child {
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner__choices {
     gap: 0.25rem;
-    margin-top: 0.25rem;
-    padding-top: 0.25rem;
   }
 
   .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner__secondary-actions > :is(a, button) {

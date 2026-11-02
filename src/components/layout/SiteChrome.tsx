@@ -27,6 +27,7 @@ const GlobalSummaryDrawer = dynamic(() => import("./GlobalSummaryDrawer"), {
 
 type SiteChromeProps = {
   initialGlobalBanner: GlobalBannerData | null;
+  initialConsentSnapshot: string;
   forumUrl: string;
   complianceSettings: {
     cookieBannerText: string;
@@ -43,6 +44,7 @@ type SiteChromeProps = {
 
 export default function SiteChrome({
   initialGlobalBanner,
+  initialConsentSnapshot,
   forumUrl,
   complianceSettings,
   websiteSettings,
@@ -105,6 +107,23 @@ export default function SiteChrome({
           </div>
         </div>
       )}
+      {routePolicy.showCookieBanner && (
+        <CookieBanner
+          initialConsentSnapshot={initialConsentSnapshot}
+          cookieTitle={cookieBannerCopy.cookieTitle}
+          cookieBannerText={
+            cookieBannerCopy.cookieMessage ||
+            complianceSettings?.cookieBannerText ||
+            "เราใช้คุกกี้เพื่อพัฒนาประสิทธิภาพ และประสบการณ์ที่ดีในการใช้เว็บไซต์ของคุณ ทั้งนี้ ท่านสามารถศึกษารายละเอียดการใช้คุกกี้ได้ที่ นโยบายความเป็นส่วนตัว"
+          }
+          cookieBannerEnabled={complianceSettings?.cookieBannerEnabled ?? true}
+          essentialButtonText={cookieBannerCopy.essentialButtonText}
+          acceptAllButtonText={cookieBannerCopy.acceptAllButtonText}
+          managePreferencesText={cookieBannerCopy.managePreferencesText}
+          privacyPolicyText={cookieBannerCopy.privacyPolicyText}
+          privacyPolicyHref={`/${locale}/privacy`}
+        />
+      )}
 
       <main
         id="main-content"
@@ -133,22 +152,6 @@ export default function SiteChrome({
         </div>
       )}
       {routePolicy.showCustomerTools && <GlobalSummaryDrawer />}
-      {routePolicy.showCookieBanner && (
-        <CookieBanner
-          cookieTitle={cookieBannerCopy.cookieTitle}
-          cookieBannerText={
-            cookieBannerCopy.cookieMessage ||
-            complianceSettings?.cookieBannerText ||
-            "เราใช้คุกกี้เพื่อพัฒนาประสิทธิภาพ และประสบการณ์ที่ดีในการใช้เว็บไซต์ของคุณ ทั้งนี้ ท่านสามารถศึกษารายละเอียดการใช้คุกกี้ได้ที่ นโยบายความเป็นส่วนตัว"
-          }
-          cookieBannerEnabled={complianceSettings?.cookieBannerEnabled ?? true}
-          essentialButtonText={cookieBannerCopy.essentialButtonText}
-          acceptAllButtonText={cookieBannerCopy.acceptAllButtonText}
-          managePreferencesText={cookieBannerCopy.managePreferencesText}
-          privacyPolicyText={cookieBannerCopy.privacyPolicyText}
-          privacyPolicyHref={`/${locale}/privacy`}
-        />
-      )}
       <Toaster position="top-center" richColors />
     </div>
   );
