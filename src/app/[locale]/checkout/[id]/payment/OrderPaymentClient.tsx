@@ -159,6 +159,10 @@ export default function OrderPaymentClient({
   const [paymentVerificationState, setPaymentVerificationState] = useState<
     "IDLE" | "VALIDATING" | "LEDGER" | "SUCCESS"
   >("IDLE");
+  const [paymentAnnouncement, setPaymentAnnouncement] = useState<{
+    message: string;
+    kind: "status" | "error";
+  }>({ message: "", kind: "status" });
 
   // SUPPLY_ONLY timer soft-lock (30 minutes in seconds)
   const isSupplyOnly = fulfillmentType === "SUPPLY_ONLY";
@@ -263,6 +267,7 @@ export default function OrderPaymentClient({
     if (paymentVerificationState === "SUCCESS") return;
 
     setPaymentVerificationState("SUCCESS");
+    setPaymentAnnouncement({ message: t("successTitle"), kind: "status" });
     setIsUploading(false);
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!reducedMotion) {
@@ -278,7 +283,7 @@ export default function OrderPaymentClient({
     window.setTimeout(() => {
       router.push(`/${locale}/proposals?activeId=${encodeURIComponent(orderId)}`);
     }, reducedMotion ? 350 : 1700);
-  }, [locale, orderId, paymentVerificationState, router]);
+  }, [locale, orderId, paymentVerificationState, router, t]);
 
   const pollPaymentRequestNow = async () => {
     if (!activePaymentRequest) return false;
@@ -310,11 +315,11 @@ export default function OrderPaymentClient({
       if (Date.now() - startedAt >= timeoutMs) {
         setPaymentVerificationState("IDLE");
         setIsUploading(false);
-        toast.error(
-          locale === "th"
-            ? "การยืนยันใช้เวลานานกว่าปกติ กรุณาตรวจสอบสถานะอีกครั้ง"
-            : "Verification is taking longer than expected. Please check the status again."
-        );
+        const message = locale === "th"
+          ? "การยืนยันใช้เวลานานกว่าปกติ กรุณาตรวจสอบสถานะอีกครั้ง"
+          : "Verification is taking longer than expected. Please check the status again.";
+        setPaymentAnnouncement({ message, kind: "error" });
+        toast.error(message);
       }
     };
 
@@ -406,24 +411,25 @@ export default function OrderPaymentClient({
   // Verification slip upload
   const handleVerifyPayment = async () => {
     if (!activePaymentRequest && !activeMilestone) {
-      toast.error(
-        locale === "th" 
-          ? "ไม่พบงวดการชำระเงินที่ต้องชำระในขณะนี้" 
-          : "No active payment milestone found."
-      );
+      const message = locale === "th"
+        ? "ไม่พบงวดการชำระเงินที่ต้องชำระในขณะนี้"
+        : "No active payment milestone found.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       return;
     }
     if (!file) {
-      toast.error(
-        locale === "th" 
-          ? "กรุณาอัปโหลดหลักฐานการชำระเงิน (สลิปธนาคาร)" 
-          : "Please upload your payment slip."
-      );
+      const message = locale === "th"
+        ? "กรุณาอัปโหลดหลักฐานการชำระเงิน (สลิปธนาคาร)"
+        : "Please upload your payment slip.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       return;
     }
 
     setIsUploading(true);
     setPaymentVerificationState("VALIDATING");
+    setPaymentAnnouncement({ message: t("validatingSlip"), kind: "status" });
     try {
       const formData = new FormData();
       formData.set("file", file, file.name);
@@ -450,19 +456,20 @@ export default function OrderPaymentClient({
           throw new Error(result.error || "Payment verification failed.");
         }
         setPaymentVerificationState("LEDGER");
+        setPaymentAnnouncement({ message: t("updatingLedger"), kind: "status" });
         await new Promise<void>((resolve) => window.setTimeout(resolve, 450));
         handlePaymentConfirmed();
       }
     } catch (error: unknown) {
       setPaymentVerificationState("IDLE");
       setIsUploading(false);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : locale === "th"
-            ? "เกิดข้อผิดพลาดในการตรวจสอบการชำระเงิน"
-            : "Payment verification failed.",
-      );
+      const message = error instanceof Error
+        ? error.message
+        : locale === "th"
+          ? "เกิดข้อผิดพลาดในการตรวจสอบการชำระเงิน"
+          : "Payment verification failed.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
     }
   };
 
@@ -508,23 +515,40 @@ export default function OrderPaymentClient({
   // Submit the contract signature and details
   const handleSubmitContract = async () => {
     if (!mapLatitude || !mapLongitude || !mapAddress) {
-      toast.error("กรุณาปักหมุดพิกัดตำแหน่งติดตั้งบนแผนที่ให้เรียบร้อย");
+      const message = locale === "th"
+        ? "กรุณาปักหมุดพิกัดตำแหน่งติดตั้งบนแผนที่ให้เรียบร้อย"
+        : "Choose the installation location on the map before continuing.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       return;
     }
     if (!sigCanvasRef.current || sigCanvasRef.current.isEmpty()) {
-      toast.error("กรุณาเซ็นชื่อรับรองสัญญาในกรอบลายมือชื่อ");
+      const message = locale === "th"
+        ? "กรุณาเซ็นชื่อรับรองสัญญาในกรอบลายมือชื่อ"
+        : "Sign the contract in the signature area before continuing.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       return;
     }
     if (!idCardFile && !idCardPreview) {
-      toast.error("กรุณาอัปโหลดสำเนาบัตรประชาชน");
+      const message = locale === "th"
+        ? "กรุณาอัปโหลดสำเนาบัตรประชาชน"
+        : "Upload a copy of your national ID card before continuing.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       return;
     }
     if (!billFile && !billPreview) {
-      toast.error("กรุณาอัปโหลดบิลค่าไฟ");
+      const message = locale === "th"
+        ? "กรุณาอัปโหลดบิลค่าไฟ"
+        : "Upload an electricity bill before continuing.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       return;
     }
 
     setIsUploading(true);
+    setPaymentAnnouncement({ message: t("processingSignature"), kind: "status" });
     try {
       // 1. Upload ID card
       let idCardUrl = idCardPreview || "";
@@ -564,19 +588,37 @@ export default function OrderPaymentClient({
           );
 
           if (res.success) {
-            toast.success("อนุมัติสัญญาและยืนยันข้อมูลจัดจ้างเสร็จสิ้น");
+            const message = t("contractSuccessAnnouncement");
+            setPaymentAnnouncement({ message, kind: "status" });
+            toast.success(message);
             router.refresh();
           } else {
-            toast.error(res.error || "เกิดข้อผิดพลาดในการลงนามสัญญา");
+            const message = res.error || (locale === "th"
+              ? "เกิดข้อผิดพลาดในการลงนามสัญญา"
+              : "There was a problem signing the contract.");
+            setPaymentAnnouncement({ message, kind: "error" });
+            toast.error(message);
             setIsUploading(false);
           }
         } catch (err: unknown) {
-          toast.error(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการเรียกเซิร์ฟเวอร์");
+          const message = err instanceof Error
+            ? err.message
+            : locale === "th"
+              ? "เกิดข้อผิดพลาดในการเรียกเซิร์ฟเวอร์"
+              : "The server could not process the contract.";
+          setPaymentAnnouncement({ message, kind: "error" });
+          toast.error(message);
           setIsUploading(false);
         }
       });
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการประมวลผลเอกสาร");
+      const message = err instanceof Error
+        ? err.message
+        : locale === "th"
+          ? "เกิดข้อผิดพลาดในการประมวลผลเอกสาร"
+          : "The contract documents could not be processed.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       setIsUploading(false);
     }
   };
@@ -613,7 +655,15 @@ export default function OrderPaymentClient({
 
   return (
     <GsapReveal className="space-y-8 font-sans">
-      
+      <p
+        className="sr-only"
+        role={paymentAnnouncement.kind === "error" ? "alert" : "status"}
+        aria-live={paymentAnnouncement.kind === "error" ? "assertive" : "polite"}
+        aria-atomic="true"
+      >
+        {paymentAnnouncement.message}
+      </p>
+
       {/* Full screen transaction loading blocking state */}
       {(isPending || isUploading || paymentVerificationState === "VALIDATING" || paymentVerificationState === "LEDGER") && (
         <GsapReveal className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex flex-col items-center justify-center z-50">

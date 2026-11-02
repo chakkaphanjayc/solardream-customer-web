@@ -134,8 +134,12 @@ export default function WarrantyCardClient() {
       <div
         data-bagui="page"
         data-solar-surface="atelier"
+        aria-busy="true"
         className="solar-warranty-portal min-h-dvh px-4 py-8 md:px-8"
       >
+        <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+          {t("loading")}
+        </p>
         <div className="mx-auto max-w-5xl animate-pulse space-y-5">
           <div className="solar-warranty-skeleton h-5 w-32 rounded-full" />
           <div className="solar-warranty-skeleton h-80 rounded-[1.5rem]" />
@@ -155,7 +159,9 @@ export default function WarrantyCardClient() {
         <section className="solar-warranty-panel w-full max-w-md p-7 text-center">
           <TriangleAlert className="mx-auto h-9 w-9 text-amber-300" />
           <h1 className="mt-4 text-xl font-bold">{t("unavailableTitle")}</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-300">{error || t("unavailableDescription")}</p>
+          <p className="mt-2 text-sm leading-6 text-slate-300" role="alert" aria-live="assertive" aria-atomic="true">
+            {error || t("unavailableDescription")}
+          </p>
           <Link
             href={`/${locale}/my-assets`}
             className="solar-warranty-primary mt-6 inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition"
@@ -175,8 +181,12 @@ export default function WarrantyCardClient() {
     <div
       data-bagui="page"
       data-solar-surface="atelier"
+      aria-busy="false"
       className="solar-warranty-portal min-h-dvh px-4 py-6 md:px-8 md:py-10"
     >
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {t("loaded")}
+      </p>
       <div className="mx-auto max-w-5xl space-y-6">
         <header className="flex items-center justify-between gap-4">
           <Link

@@ -1746,6 +1746,7 @@
     "loadingDescription": "Loading your order and secure payment verification details.",
     "loadingSoliaAlt": "Solia preparing secure payment",
     "processingSignature": "Processing document data and signing the contract…",
+    "contractSuccessAnnouncement": "The contract was signed and your details were submitted.",
     "updatingLedger": "Updating payment ledger…",
     "validatingSlip": "Validating the slip with the bank…",
     "safeProcessing": "Please do not close or refresh this screen. Your transaction is being processed securely.",
@@ -2095,6 +2096,8 @@
     }
   },
   "WarrantyCard": {
+    "loading": "Loading your warranty card.",
+    "loaded": "Warranty card loaded.",
     "eyebrow": "Post-installation coverage",
     "title": "Digital Warranty Card",
     "subtitle": "Your installation record is ready, {name}.",
