@@ -1,5 +1,13 @@
 # Review Inbox
 
+### 🔔 [SDUX-012] Keyboard-operable payment uploads
+- **Why you need to see this**: This improves keyboard access to payment and contract upload controls while preserving the existing payment and signing flows.
+- **Files Changed**: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx` (`aa1910f`)
+- **Verification**: Passed (`npm run typecheck`, `npm run lint` with existing warnings, `npm run test` (51/51))
+- **Key Decision / Risk**:
+  - Native file inputs remain associated with their descriptive labels and keep the existing accept rules and upload handlers.
+  - No payment API, settlement decision, or signature payload changed.
+
 ### 🔔 [SDUX-006] Customer privacy consent contract
 - **Why you need to see this**: This records customer consent preferences through the privacy API and guest-session identity contract.
 - **Files Changed**: `src/components/layout/CookieBanner.tsx`, `src/lib/privacyConsentClient.ts`, `src/lib/privacyConsentClient.test.ts` (`9a6d36c`)

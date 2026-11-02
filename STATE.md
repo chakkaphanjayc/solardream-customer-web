@@ -2,7 +2,6 @@
 
 ## 📋 Backlog (Auto-Queue)
 
-- SDUX-012 (P1, important): Make both payment-slip upload controls keyboard-operable without changing the payment API or settlement flow. Evidence: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx`.
 - SDUX-013 (P1, routine): Give tracking gallery tiles button semantics and the image viewer proper dialog focus/close behavior. Evidence: `src/app/[locale]/my-proposal/[id]/tracking/TrackingGallery.tsx`.
 - SDUX-014 (P2, routine): Associate quote-checkout labels with fields and show field-specific missing-input feedback in maintenance booking. Evidence: `src/app/[locale]/checkout/quote/QuoteCheckoutClient.tsx`, `src/app/[locale]/support/maintenance/PreventiveMaintenanceBooking.tsx`.
 - SDUX-015 (P2, important): Announce payment and warranty loading, success, and error state changes to assistive technology without changing payment decisions. Evidence: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx`, `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`.
@@ -23,6 +22,7 @@
 - SDUX-010 QA follow-up: Narrowed panel catalog matching, removed guessed specifications and pricing, queried panel categories alongside the general catalog, and aligned empty-state geometry and share metadata with DESIGN.md. Commit `013e9a9`.
 - SDUX-011: Added keyboard-operated typed-name signing and normalized stroke coordinates; refined Staff login and registration focus, contrast, and responsive layout. Commits `3945e4e`, `e459bef`.
 - UXLOOP-001: Added autonomous route-family audit, one-task-per-run, CI, PR, review, and deployment rules to `AGENTS.md` and Cursor; registered the enabled weekday 09:00 Asia/Bangkok Orca automation on the PR worktree.
+- SDUX-012: Made payment-slip, identity-card, and utility-bill file inputs keyboard reachable with visible focus while preserving native file-picker behavior and payment handlers. `npm run typecheck`, `npm run lint` (existing warnings), and `npm run test` (51/51) passed. Commit `aa1910f`.
 - Customer verification before stacking: `npm run typecheck`, `npm run lint` (existing warnings), `npm run test` (35/35), `npm run i18n:check` (5,346 keys), and `npm run build:cloudflare` passed.
 - Staff verification: `npm run typecheck`, `npm run test` (14/14), `npm run i18n:check` (4,325 keys), targeted ESLint on changed auth TSX files, and `npm run build:cloudflare` passed. Full-tree `npm run lint` exceeded Node heap at 4GB, 6GB, and 8GB; targeted lint passed.
 
