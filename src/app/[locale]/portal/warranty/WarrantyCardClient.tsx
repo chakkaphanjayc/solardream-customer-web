@@ -21,6 +21,7 @@ import {
   Wrench,
   Zap,
 } from "@/components/ui/icons";
+import { getWarrantyStatusPresentation, type WarrantyStatus } from "@/lib/warrantyStatus";
 
 type WarrantyEquipment = {
   id: string;
@@ -49,7 +50,7 @@ type WarrantyCard = {
   warranty: {
     isUnderInstallationWarranty: boolean;
     daysRemaining: number;
-    status: "UNDER_WARRANTY" | "EXPIRED" | "PENDING";
+    status: WarrantyStatus;
     expiresAt: string | null;
   };
   equipment: WarrantyEquipment[];
@@ -174,8 +175,10 @@ export default function WarrantyCardClient() {
     );
   }
 
-  const isCovered = card.warranty.status === "UNDER_WARRANTY";
-  const progress = Math.min(100, Math.max(0, card.warranty.daysRemaining / 730 * 100));
+  const warrantyStatus = getWarrantyStatusPresentation(card.warranty.status);
+  const progress = warrantyStatus.tone === "pending"
+    ? 0
+    : Math.min(100, Math.max(0, card.warranty.daysRemaining / 730 * 100));
 
   return (
     <div
@@ -228,12 +231,10 @@ export default function WarrantyCardClient() {
                 <h1 className="mt-3 text-3xl font-bold tracking-tight text-white md:text-5xl">{t("title")}</h1>
                 <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">{t("subtitle", { name: card.customer.name })}</p>
               </div>
-              <div className={isCovered
-                ? "solar-warranty-status solar-warranty-status--covered inline-flex items-center gap-2 self-start rounded-full border px-4 py-2 text-sm font-bold"
-                : "solar-warranty-status solar-warranty-status--expired inline-flex items-center gap-2 self-start rounded-full border px-4 py-2 text-sm font-bold"}
+              <div className={`solar-warranty-status solar-warranty-status--${warrantyStatus.tone} inline-flex items-center gap-2 self-start rounded-full border px-4 py-2 text-sm font-bold`}
               >
-                <span aria-hidden="true">{isCovered ? "🟢" : "🟠"}</span>
-                {isCovered ? t("status.covered") : t("status.expired")}
+                <span aria-hidden="true">{warrantyStatus.icon}</span>
+                {t(warrantyStatus.labelKey)}
               </div>
             </div>
 
@@ -261,7 +262,7 @@ export default function WarrantyCardClient() {
                 <span>{card.warranty.expiresAt ? formatDate(card.warranty.expiresAt, locale) : "—"}</span>
               </div>
               <div className="solar-warranty-progress-track h-2 overflow-hidden rounded-full">
-                <div className={isCovered ? "solar-warranty-progress solar-warranty-progress--covered h-full rounded-full" : "solar-warranty-progress solar-warranty-progress--expired h-full rounded-full"} style={{ width: `${progress}%` }} />
+                <div className={`solar-warranty-progress solar-warranty-progress--${warrantyStatus.tone} h-full rounded-full`} style={{ width: `${progress}%` }} />
               </div>
             </div>
 

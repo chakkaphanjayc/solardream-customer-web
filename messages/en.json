@@ -2104,7 +2104,8 @@
     "status": {
       "covered": "Fully Covered",
       "active": "Under Warranty",
-      "expired": "Coverage Expired"
+      "expired": "Coverage Expired",
+      "pending": "Warranty registration pending"
     },
     "fields": {
       "system": "System",

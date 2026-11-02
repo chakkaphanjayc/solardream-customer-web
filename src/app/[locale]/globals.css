@@ -6787,13 +6787,19 @@ main[data-solar-surface="atelier"] {
 [data-solar-surface="atelier"] .solar-warranty-portal .solar-warranty-status--covered {
   border-color: rgb(79 127 168 / 0.28) !important;
   background: rgb(183 209 234 / 0.48) !important;
-  color: #2f6f62 !important;
+  color: #1f513d !important;
 }
 
 [data-solar-surface="atelier"] .solar-warranty-portal .solar-warranty-status--expired {
   border-color: rgb(216 168 123 / 0.42) !important;
   background: rgb(241 214 184 / 0.48) !important;
-  color: #8b5e3c !important;
+  color: #70411f !important;
+}
+
+[data-solar-surface="atelier"] .solar-warranty-portal .solar-warranty-status--pending {
+  border-color: rgb(79 127 168 / 0.28) !important;
+  background: rgb(183 209 234 / 0.3) !important;
+  color: #334155 !important;
 }
 
 [data-solar-surface="atelier"] .solar-warranty-portal .solar-warranty-icon {
@@ -6813,6 +6819,10 @@ main[data-solar-surface="atelier"] {
 
 [data-solar-surface="atelier"] .solar-warranty-portal .solar-warranty-progress--expired {
   background: var(--solar-ui-warm);
+}
+
+[data-solar-surface="atelier"] .solar-warranty-portal .solar-warranty-progress--pending {
+  background: var(--solar-ui-primary-deep);
 }
 
 [data-solar-surface="atelier"] .solar-warranty-portal :where(.solar-warranty-primary, .solar-warranty-secondary) {

@@ -79,6 +79,10 @@ body:has(.sd-site-shell[data-customer-design="solar-atelier"]) {
   padding-block: clamp(1.5rem, 4vw, 3rem);
 }
 
+.solar-route-shell.solar-project-tracker {
+  --sd-warning: #805400;
+}
+
 .sd-site-shell[data-customer-design="solar-atelier"] #main-content[data-solar-surface="atelier"]
   :is(h1, h2, h3, h4) {
   color: #0f172a;
