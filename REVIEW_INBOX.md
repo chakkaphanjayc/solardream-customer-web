@@ -1,5 +1,13 @@
 # Review Inbox
 
+### 🔔 [SDUX-016] Keep pending warranty registration distinct from expired coverage
+- **Why you need to see this**: This corrects a customer-facing warranty state that previously rendered pending registration as expired coverage.
+- **Files Changed**: `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`, `src/lib/warrantyStatus.ts`, `src/lib/warrantyStatus.test.ts`, `src/app/[locale]/globals.css`, `src/app/[locale]/solar-atelier.css`, `src/components/tracking/track-request-flow.module.css`, `messages/en.json`, `messages/th.json` (`dcb1283`)
+- **Verification**: Passed (`npm run typecheck`, `npm run lint` with existing warnings, `npm run test` (52/52), `npm run i18n:check`)
+- **Key Decision / Risk**:
+  - `PENDING` is shown as registration pending with no progress until an authoritative warranty event exists.
+  - Coverage dates and server-side warranty calculations were not changed; the status mapping is covered by a unit test.
+
 ### 🔔 [SDUX-015] Announce payment and warranty states
 - **Why you need to see this**: This changes assistive-technology feedback in the payment and warranty experiences, which are customer financial and coverage flows.
 - **Files Changed**: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx`, `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`, `messages/en.json`, `messages/th.json` (`9691753`)

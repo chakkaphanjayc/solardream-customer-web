@@ -2,7 +2,6 @@
 
 ## 📋 Backlog (Auto-Queue)
 
-- SDUX-016 (P2, routine): Review low-contrast tracker and tracking labels against WCAG 2.2 and verify warranty status text on its actual background. Evidence: `src/app/[locale]/project-tracker/[id]/page.tsx`, `src/components/tracking/track-request-flow.module.css`, `src/app/[locale]/globals.css` (warranty status styles), `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`.
 
 ## ✅ Auto-Completed & Committed
 
@@ -23,6 +22,7 @@
 - SDUX-013: Changed tracking gallery tiles to localized semantic buttons and the lightbox to a modal native dialog with Escape handling, initial focus, focus restoration, and mobile-sized controls. `npm run typecheck`, `npm run lint` (existing warnings), `npm run test` (51/51), and `npm run i18n:check` passed. Commit `2f7c87c`.
 - SDUX-014: Associated quote-checkout contact labels with their controls and added localized, field-level maintenance booking errors with focus on the first missing field. Typecheck, lint (existing warnings), tests (51/51), and locale parity passed. Commit `680c180`.
 - SDUX-015: Added live announcements for payment and contract processing, success, and errors, plus warranty loading, loaded, and error states. No payment API or settlement decisions changed. Typecheck, lint (existing warnings), tests (51/51), and locale parity passed. Commit `9691753`.
+- SDUX-016: Raised project-tracker warning text contrast to 5.90:1, completed tracking status to 7.53:1, and warranty status labels to at least 7.15:1 on their composited surfaces. Warranty registration `PENDING` now appears as a neutral pending state instead of expired; a unit test covers all three statuses. Typecheck, lint (existing warnings), tests (52/52), and locale parity passed. Commit `dcb1283`.
 - Customer verification before stacking: `npm run typecheck`, `npm run lint` (existing warnings), `npm run test` (35/35), `npm run i18n:check` (5,346 keys), and `npm run build:cloudflare` passed.
 - Staff verification: `npm run typecheck`, `npm run test` (14/14), `npm run i18n:check` (4,325 keys), targeted ESLint on changed auth TSX files, and `npm run build:cloudflare` passed. Full-tree `npm run lint` exceeded Node heap at 4GB, 6GB, and 8GB; targeted lint passed.
 
