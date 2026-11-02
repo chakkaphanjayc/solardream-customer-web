@@ -1,5 +1,13 @@
 # Review Inbox
 
+### 🔔 [SDUX-017] Keep payment confirmation stable and clarify pending warranty coverage
+- **Why you need to see this**: This changes the success and next-step UI in the customer payment flow, so a separate reviewer should confirm the longer-lived confirmation state.
+- **Files Changed**: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx`, `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`, `src/components/ui/StatusPipeline.tsx`, `messages/en.json`, `messages/th.json` (`a66abd5`)
+- **Verification**: Passed (`npm run typecheck`, `npm run lint` with existing warnings, `npm run test` (52/52), `npm run i18n:check`, Next.js route compilation, public tracker runtime check, responsive widths 390/768/1280, axe scan with zero violations)
+- **Key Decision / Risk**:
+  - Payment confirmation stays visible until the customer chooses the Project Hub action; payment APIs and settlement decisions are unchanged.
+  - Signed-in payment and warranty route interactions need a representative local session; automated contrast checks marked 15 nodes incomplete for manual review.
+
 ### 🔔 [SDUX-016] Keep pending warranty registration distinct from expired coverage
 - **Why you need to see this**: This corrects a customer-facing warranty state that previously rendered pending registration as expired coverage.
 - **Files Changed**: `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`, `src/lib/warrantyStatus.ts`, `src/lib/warrantyStatus.test.ts`, `src/app/[locale]/globals.css`, `src/app/[locale]/solar-atelier.css`, `src/components/tracking/track-request-flow.module.css`, `messages/en.json`, `messages/th.json` (`dcb1283`)

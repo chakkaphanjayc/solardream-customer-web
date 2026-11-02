@@ -23,6 +23,7 @@
 - SDUX-014: Associated quote-checkout contact labels with their controls and added localized, field-level maintenance booking errors with focus on the first missing field. Typecheck, lint (existing warnings), tests (51/51), and locale parity passed. Commit `680c180`.
 - SDUX-015: Added live announcements for payment and contract processing, success, and errors, plus warranty loading, loaded, and error states. No payment API or settlement decisions changed. Typecheck, lint (existing warnings), tests (51/51), and locale parity passed. Commit `9691753`.
 - SDUX-016: Raised project-tracker warning text contrast to 5.90:1, completed tracking status to 7.53:1, and warranty status labels to at least 7.15:1 on their composited surfaces. Warranty registration `PENDING` now appears as a neutral pending state instead of expired; a unit test covers all three statuses. Typecheck, lint (existing warnings), tests (52/52), and locale parity passed. Commit `dcb1283`.
+- SDUX-017: Improved tracker label readability, kept warranty loading announcements in a stable live region, hid unregistered warranty dates/countdowns, and kept payment confirmation available with an explicit Project Hub action. `npm run typecheck`, `npm run lint` (existing warnings), `npm run test` (52/52), and `npm run i18n:check` (5,400 keys) passed. The public Thai tracker rendered at 390px, 768px, and 1280px without horizontal overflow; axe reported zero violations, with 15 color-contrast nodes marked incomplete for manual review. Payment and warranty routes compiled without issues. Signed-in route behavior still needs a representative local session. Commit `a66abd5`.
 - Customer verification before stacking: `npm run typecheck`, `npm run lint` (existing warnings), `npm run test` (35/35), `npm run i18n:check` (5,346 keys), and `npm run build:cloudflare` passed.
 - Staff verification: `npm run typecheck`, `npm run test` (14/14), `npm run i18n:check` (4,325 keys), targeted ESLint on changed auth TSX files, and `npm run build:cloudflare` passed. Full-tree `npm run lint` exceeded Node heap at 4GB, 6GB, and 8GB; targeted lint passed.
 
@@ -34,7 +35,7 @@
 - Profile and proposals: Source reviewed; signed-in views require runtime credentials or fixtures.
 - Visualizer: English and Thai states rendered at 375px, 390px, 768px, and 1280px; no horizontal overflow. Configured keyboard movement and deletion checked with a local-only fixture.
 - Proposal signature: Keyboard typed-name option, stroke-coordinate scaling, and submission recovery are covered by source review and unit tests; live dialog interaction was not rechecked in this session.
-- Checkout/payment, tracking, warranty/portal, and maintenance: Source-level QA backlog recorded above; runtime checks need representative local data/session.
+- Checkout/payment, tracking, warranty/portal, and maintenance: `/th/track` rendered without runtime errors and passed the responsive-width check; payment and warranty routes compiled cleanly. Signed-in payment and warranty behavior still needs representative local data/session.
 
 ## 🚧 External Release Gates
 
