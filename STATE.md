@@ -2,7 +2,6 @@
 
 ## 📋 Backlog (Auto-Queue)
 
-- SDUX-014 (P2, routine): Associate quote-checkout labels with fields and show field-specific missing-input feedback in maintenance booking. Evidence: `src/app/[locale]/checkout/quote/QuoteCheckoutClient.tsx`, `src/app/[locale]/support/maintenance/PreventiveMaintenanceBooking.tsx`.
 - SDUX-015 (P2, important): Announce payment and warranty loading, success, and error state changes to assistive technology without changing payment decisions. Evidence: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx`, `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`.
 - SDUX-016 (P2, routine): Review low-contrast tracker and tracking labels against WCAG 2.2 and verify warranty status text on its actual background. Evidence: `src/app/[locale]/project-tracker/[id]/page.tsx`, `src/components/tracking/track-request-flow.module.css`, `src/app/[locale]/globals.css` (warranty status styles), `src/app/[locale]/portal/warranty/WarrantyCardClient.tsx`.
 
@@ -23,6 +22,7 @@
 - UXLOOP-001: Added autonomous route-family audit, one-task-per-run, CI, PR, review, and deployment rules to `AGENTS.md` and Cursor; registered the enabled weekday 09:00 Asia/Bangkok Orca automation on the PR worktree.
 - SDUX-012: Made payment-slip, identity-card, and utility-bill file inputs keyboard reachable with visible focus while preserving native file-picker behavior and payment handlers. `npm run typecheck`, `npm run lint` (existing warnings), and `npm run test` (51/51) passed. Commit `aa1910f`.
 - SDUX-013: Changed tracking gallery tiles to localized semantic buttons and the lightbox to a modal native dialog with Escape handling, initial focus, focus restoration, and mobile-sized controls. `npm run typecheck`, `npm run lint` (existing warnings), `npm run test` (51/51), and `npm run i18n:check` passed. Commit `2f7c87c`.
+- SDUX-014: Associated quote-checkout contact labels with their controls and added localized, field-level maintenance booking errors with focus on the first missing field. Typecheck, lint (existing warnings), tests (51/51), and locale parity passed. Commit `680c180`.
 - Customer verification before stacking: `npm run typecheck`, `npm run lint` (existing warnings), `npm run test` (35/35), `npm run i18n:check` (5,346 keys), and `npm run build:cloudflare` passed.
 - Staff verification: `npm run typecheck`, `npm run test` (14/14), `npm run i18n:check` (4,325 keys), targeted ESLint on changed auth TSX files, and `npm run build:cloudflare` passed. Full-tree `npm run lint` exceeded Node heap at 4GB, 6GB, and 8GB; targeted lint passed.
 
