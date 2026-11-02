@@ -1751,7 +1751,8 @@
     "validatingSlip": "Validating the slip with the bank…",
     "safeProcessing": "Please do not close or refresh this screen. Your transaction is being processed securely.",
     "successTitle": "Payment successful",
-    "successDescription": "Opening your Project Hub now.",
+    "successDescription": "Your payment is confirmed. Continue to your Project Hub when you’re ready.",
+    "continueToProposals": "Continue to my Project Hub",
     "headings": {
       "custom": "Custom payment request",
       "direct": "Direct checkout",
@@ -2113,6 +2114,7 @@
       "installationCoverage": "Installation coverage"
     },
     "daysRemaining": "days remaining",
+    "coveragePending": "Coverage dates will appear after warranty registration.",
     "coverageProgress": "Installation warranty",
     "requestService": "Request service",
     "equipmentEyebrow": "Registered equipment",

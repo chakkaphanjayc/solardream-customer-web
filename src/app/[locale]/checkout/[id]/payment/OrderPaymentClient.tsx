@@ -269,8 +269,8 @@ export default function OrderPaymentClient({
     setPaymentVerificationState("SUCCESS");
     setPaymentAnnouncement({ message: t("successTitle"), kind: "status" });
     setIsUploading(false);
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!reducedMotion) {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!prefersReducedMotion) {
       void confetti({
         particleCount: 120,
         spread: 72,
@@ -279,11 +279,7 @@ export default function OrderPaymentClient({
         disableForReducedMotion: true,
       });
     }
-
-    window.setTimeout(() => {
-      router.push(`/${locale}/proposals?activeId=${encodeURIComponent(orderId)}`);
-    }, reducedMotion ? 350 : 1700);
-  }, [locale, orderId, paymentVerificationState, router, t]);
+  }, [paymentVerificationState, t]);
 
   const pollPaymentRequestNow = async () => {
     if (!activePaymentRequest) return false;
@@ -685,15 +681,22 @@ export default function OrderPaymentClient({
       {paymentVerificationState === "SUCCESS" && (
           <GsapSuccessOverlay>
             <div className="max-w-md text-center">
-              <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+              <span aria-hidden="true" className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                 <CheckCircle2 className="h-10 w-10" />
               </span>
-              <h2 className="mt-5 text-3xl font-black text-slate-950">
+              <h2 id="payment-success-title" className="mt-5 text-3xl font-black text-slate-950">
                 {t("successTitle")}
               </h2>
               <p className="mt-2 text-sm font-medium leading-6 text-slate-600">
                 {t("successDescription")}
               </p>
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/proposals?activeId=${encodeURIComponent(orderId)}`)}
+                className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-[#B7D1EA] px-6 py-3 text-sm font-bold text-[#0F172A] transition hover:bg-[#A5C2DE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A] focus-visible:ring-offset-2"
+              >
+                {t("continueToProposals")}
+              </button>
             </div>
           </GsapSuccessOverlay>
         )}
@@ -1622,9 +1625,42 @@ function GsapSuccessOverlay({ children }: { children: ReactNode }) {
     return () => context.revert();
   }, []);
 
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+
+    const focusableElements = Array.from(
+      overlay.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    );
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+    firstFocusable?.focus();
+
+    const handleTabKey = (event: KeyboardEvent) => {
+      if (event.key !== "Tab" || !firstFocusable || !lastFocusable) return;
+
+      if (!overlay.contains(document.activeElement) || (event.shiftKey && document.activeElement === firstFocusable)) {
+        event.preventDefault();
+        lastFocusable.focus();
+      } else if (!event.shiftKey && document.activeElement === lastFocusable) {
+        event.preventDefault();
+        firstFocusable.focus();
+      }
+    };
+
+    overlay.addEventListener("keydown", handleTabKey);
+    return () => overlay.removeEventListener("keydown", handleTabKey);
+  }, []);
+
   return (
     <div
       ref={overlayRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="payment-success-title"
+      tabIndex={-1}
       className="fixed inset-0 z-[60] flex items-center justify-center bg-[#F5F2EB] px-6"
     >
       {children}

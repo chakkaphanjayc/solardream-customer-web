@@ -129,6 +129,11 @@ export default function WarrantyCardClient() {
     }
     return `/${locale}/my-assets?${params.toString()}`;
   }, [card, locale]);
+  const statusAnnouncement = loading
+    ? t("loading")
+    : !error && card
+      ? t("loaded")
+      : "";
 
   if (loading) {
     return (
@@ -139,7 +144,7 @@ export default function WarrantyCardClient() {
         className="solar-warranty-portal min-h-dvh px-4 py-8 md:px-8"
       >
         <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-          {t("loading")}
+          {statusAnnouncement}
         </p>
         <div className="mx-auto max-w-5xl animate-pulse space-y-5">
           <div className="solar-warranty-skeleton h-5 w-32 rounded-full" />
@@ -155,8 +160,12 @@ export default function WarrantyCardClient() {
       <div
         data-bagui="page"
         data-solar-surface="atelier"
+        aria-busy="false"
         className="solar-warranty-portal grid min-h-dvh place-items-center px-5 py-12"
       >
+        <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+          {statusAnnouncement}
+        </p>
         <section className="solar-warranty-panel w-full max-w-md p-7 text-center">
           <TriangleAlert className="mx-auto h-9 w-9 text-amber-300" />
           <h1 className="mt-4 text-xl font-bold">{t("unavailableTitle")}</h1>
@@ -176,6 +185,7 @@ export default function WarrantyCardClient() {
   }
 
   const warrantyStatus = getWarrantyStatusPresentation(card.warranty.status);
+  const hasRegisteredCoverage = warrantyStatus.tone !== "pending";
   const progress = warrantyStatus.tone === "pending"
     ? 0
     : Math.min(100, Math.max(0, card.warranty.daysRemaining / 730 * 100));
@@ -188,7 +198,7 @@ export default function WarrantyCardClient() {
       className="solar-warranty-portal min-h-dvh px-4 py-6 md:px-8 md:py-10"
     >
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-        {t("loaded")}
+        {statusAnnouncement}
       </p>
       <div className="mx-auto max-w-5xl space-y-6">
         <header className="flex items-center justify-between gap-4">
@@ -251,20 +261,28 @@ export default function WarrantyCardClient() {
               </div>
               <div className="solar-warranty-stat rounded-2xl border border-white/10 bg-white/[0.04] p-4">
                 <span className="block text-xs font-semibold text-slate-400">{t("fields.installationCoverage")}</span>
-                <span className="mt-1 block text-xl font-bold text-white">{card.warranty.daysRemaining.toLocaleString(locale === "th" ? "th-TH" : "en-US")}</span>
-                <span className="mt-1 block text-xs text-slate-400">{t("daysRemaining")}</span>
+                <span className="mt-1 block text-xl font-bold text-white">
+                  {hasRegisteredCoverage
+                    ? card.warranty.daysRemaining.toLocaleString(locale === "th" ? "th-TH" : "en-US")
+                    : "—"}
+                </span>
+                <span className="mt-1 block text-xs leading-5 text-slate-400">
+                  {hasRegisteredCoverage ? t("daysRemaining") : t("coveragePending")}
+                </span>
               </div>
             </div>
 
-            <div>
-              <div className="mb-2 flex items-center justify-between gap-3 text-xs font-semibold text-slate-300">
-                <span>{t("coverageProgress")}</span>
-                <span>{card.warranty.expiresAt ? formatDate(card.warranty.expiresAt, locale) : "—"}</span>
+            {hasRegisteredCoverage ? (
+              <div>
+                <div className="mb-2 flex items-center justify-between gap-3 text-xs font-semibold text-slate-300">
+                  <span>{t("coverageProgress")}</span>
+                  <span>{card.warranty.expiresAt ? formatDate(card.warranty.expiresAt, locale) : "—"}</span>
+                </div>
+                <div className="solar-warranty-progress-track h-2 overflow-hidden rounded-full">
+                  <div className={`solar-warranty-progress solar-warranty-progress--${warrantyStatus.tone} h-full rounded-full`} style={{ width: `${progress}%` }} />
+                </div>
               </div>
-              <div className="solar-warranty-progress-track h-2 overflow-hidden rounded-full">
-                <div className={`solar-warranty-progress solar-warranty-progress--${warrantyStatus.tone} h-full rounded-full`} style={{ width: `${progress}%` }} />
-              </div>
-            </div>
+            ) : null}
 
             <div className="flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-start gap-2 text-sm text-slate-300">

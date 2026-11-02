@@ -110,12 +110,12 @@ export default function StatusPipeline({ currentStatus }: StatusPipelineProps) {
               </div>
               <div className="mt-3 text-center">
                 <p className={cn(
-                  "text-[10px] font-bold tracking-tight",
-                  isActive ? "text-[#B7D1EA] font-black" : isCompleted ? "text-slate-200" : "text-slate-400"
+                  "text-xs font-bold leading-4 tracking-tight",
+                  isActive ? "text-[#0F172A] font-black" : "text-[#475569]"
                 )}>
                   {step.title}
                 </p>
-                <p className="text-[8px] text-slate-400 font-semibold tracking-wider uppercase mt-0.5">
+                <p className="mt-0.5 text-[10px] font-semibold tracking-wider text-[#475569] uppercase">
                   {step.sub}
                 </p>
               </div>
