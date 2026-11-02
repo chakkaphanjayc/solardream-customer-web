@@ -48,6 +48,6 @@
 
 ## 🚧 External Release Gates
 
-- GitHub CLI is not authenticated, so PR review/check status could not be read. The existing customer PR #2 branch now points to `5b6abd3`; the PR author cannot approve it, and production deployment follows an authorized merge.
+- GitHub CLI is not authenticated. Public GitHub CI for the existing customer PR #2 passed on head `510cca3`; no reviewer is requested. The PR author cannot approve it, and production deployment follows an authorized merge.
 - Customer migrations 0111 and 0114–0119 have not been applied to a database; validate them in staging before production deployment.
 - Staff full-tree lint needs chunked execution or a repository-level memory fix; changed auth files pass targeted ESLint.
