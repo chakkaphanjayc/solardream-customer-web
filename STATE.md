@@ -48,6 +48,6 @@
 
 ## 🚧 External Release Gates
 
-- GitHub CLI is not authenticated. Public GitHub CI for implementation head `510cca3` passed, including the standalone server and production image builds. The latest docs-only PR head `ad893f7` passed Workers Builds but its `verify` job failed at the standalone server step with exit code 1; its detailed log is unavailable without GitHub authentication. No reviewer is requested. The PR author cannot approve it, and production deployment follows an authorized merge.
+- GitHub CLI is not authenticated. Public GitHub CI passed on implementation head `510cca3` and retry head `3c20544`, including the standalone server and production image builds. An intermediate docs-only head `ad893f7` failed once at the standalone server step with exit code 1; no source changed, and the subsequent verify retry passed. Its detailed log is unavailable without GitHub authentication. Workers Builds for `3c20544` was still in progress at the last status read before API rate limiting. No reviewer is requested. The PR author cannot approve it, and production deployment follows an authorized merge.
 - Customer migrations 0111 and 0114–0119 have not been applied to a database; validate them in staging before production deployment.
 - Staff full-tree lint needs chunked execution or a repository-level memory fix; changed auth files pass targeted ESLint.
