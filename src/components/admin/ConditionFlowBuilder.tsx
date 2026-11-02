@@ -64,7 +64,7 @@ export default function ConditionFlowBuilder<TField extends string>({
               onClick={() => onModeChange(nextMode)}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition",
-                mode === nextMode ? "bg-[#B7D1EA] text-white" : "text-gray-400 hover:bg-[#0B1121]",
+                mode === nextMode ? "bg-[#B7D1EA] text-[#0B051D] font-bold" : "text-gray-400 hover:bg-[#0B1121]",
               )}
             >
               {nextMode === "BUILDER" ? <GitBranch className="h-3.5 w-3.5" /> : <Code2 className="h-3.5 w-3.5" />}

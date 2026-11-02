@@ -133,7 +133,7 @@ export default function PaymentReceiptModal({
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 border-b border-[#F7F6F3] print:border-slate-300 pb-6">
               <div>
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-[#B7D1EA] text-white font-black flex items-center justify-center text-lg shadow-md">
+                  <div className="h-10 w-10 rounded-xl bg-[#B7D1EA] text-[#0B051D] font-black flex items-center justify-center text-lg shadow-md">
                     SD
                   </div>
                   <div>

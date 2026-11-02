@@ -21,6 +21,11 @@ import { SALES_NOTIFICATION_TOPICS } from "@/lib/salesNotificationConfig";
 import { deleteLinkedSalesRecords } from "@/lib/salesPipelineDeletion";
 import { z } from "zod";
 import { normalizeSalesEmail, SALES_IDENTITY_MAPPING_VERSION, salesIdentityChecksum, SYSTEM_GUEST_EMAIL, SYSTEM_GUEST_USER_ID } from "@/lib/sales/customer-identity";
+import {
+  ensureInboundRequestSalesRecords,
+  InboundRequestIdempotencyConflict,
+  inboundRequestFingerprint,
+} from "@/server/services/sales/inbound-request-canonicalization";
 
 export type InboundRequestType = "WIZARD" | "BUILD" | "SERVICE";
 export type InboundRequestStatus = "NEW" | "CONTACTED" | "QUOTED" | "REJECTED";
@@ -71,6 +76,8 @@ export type InboundRequestItem = {
   quotationId: string | null;
   consultationLeadId: string | null;
   erpnextLeadId: string | null;
+  idempotencyKey: string | null;
+  salesDealId: string | null;
   erpnextSyncStatus: ErpnextSyncStatus;
   erpnextSyncError: string | null;
   erpnextLastSyncedAt: Date | null;
@@ -78,7 +85,7 @@ export type InboundRequestItem = {
   updatedAt: Date;
 };
 
-// The schema is applied by `npm run db:migrate:inbound-requests` before the
+// The schema is applied by the staff-owned manual migration before the
 // application starts. Keep this compatibility hook side-effect free so stale
 // callers cannot issue DDL from a request.
 async function ensureTableExists() {}
@@ -210,12 +217,32 @@ export type CreateInboundRequestInput = {
   payload: Record<string, unknown>;
   source?: string;
   leadProfile?: Partial<InboundLeadProfile>;
+  userId?: string | null;
+  idempotencyKey?: string | null;
   erpnextLeadId?: string | null;
   erpnextSyncStatus?: ErpnextSyncStatus;
   erpnextSyncError?: string | null;
 };
 
-export async function createInboundRequest(data: CreateInboundRequestInput): Promise<{ success: boolean; request?: InboundRequestItem; error?: string }> {
+type CreateInboundRequestResult = {
+  success: boolean;
+  request?: InboundRequestItem;
+  replayed?: boolean;
+  conflict?: boolean;
+  error?: string;
+};
+
+function serializeInboundRequest(row: typeof inboundRequests.$inferSelect): InboundRequestItem {
+  const { idempotencyHash, ...safeRow } = row;
+  void idempotencyHash;
+  return {
+    ...safeRow,
+    erpnextSyncStatus: normalizeErpnextSyncStatus(row.erpnextSyncStatus),
+    payload: (row.payload as Record<string, unknown>) || {},
+  };
+}
+
+export async function createInboundRequest(data: CreateInboundRequestInput): Promise<CreateInboundRequestResult> {
   try {
     await ensureTableExists();
 
@@ -251,11 +278,76 @@ export async function createInboundRequest(data: CreateInboundRequestInput): Pro
       return { success: false, error: "Inbound request payload is too large." };
     }
 
-    let erpnextLeadId = data.erpnextLeadId || null;
-    let erpnextSyncStatus = data.erpnextSyncStatus || (erpnextLeadId ? "SYNCED" : "PENDING");
-    let erpnextSyncError = data.erpnextSyncError || null;
+    const idempotencyKey = data.idempotencyKey?.trim() || null;
+    if (idempotencyKey && !/^[A-Za-z0-9._:-]{16,180}$/.test(idempotencyKey)) {
+      return { success: false, error: "A valid idempotency key is required." };
+    }
 
-    if (!erpnextLeadId && !data.erpnextSyncStatus) {
+    const idempotencyHash = inboundRequestFingerprint({
+      customerName: name,
+      phone,
+      email,
+      requestType: data.requestType,
+      source,
+      payload,
+      leadProfile: leadProfile as unknown as Record<string, unknown>,
+    });
+    const initialErpnextLeadId = data.erpnextLeadId || null;
+    const initialErpnextSyncStatus = data.erpnextSyncStatus || (initialErpnextLeadId ? "SYNCED" : "PENDING");
+    const initialErpnextSyncError = data.erpnextSyncError || null;
+
+    const persisted = await db.transaction(async (tx) => {
+      if (idempotencyKey) {
+        await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`inbound-request:${idempotencyKey}`}))`);
+        const existing = await tx.query.inboundRequests.findFirst({
+          where: eq(inboundRequests.idempotencyKey, idempotencyKey),
+        });
+        if (existing) {
+          if (existing.idempotencyHash && existing.idempotencyHash !== idempotencyHash) {
+            throw new InboundRequestIdempotencyConflict("This idempotency key was already used for a different inbound request.");
+          }
+          const canonical = await ensureInboundRequestSalesRecords(tx, existing, data.userId);
+          const [linked] = await tx
+            .update(inboundRequests)
+            .set({ salesDealId: canonical.salesDealId, updatedAt: new Date() })
+            .where(eq(inboundRequests.id, existing.id))
+            .returning();
+          return { request: linked ?? existing, replayed: true as const };
+        }
+      }
+
+      const [inserted] = await tx
+        .insert(inboundRequests)
+        .values({
+          customerName: name,
+          phone,
+          email,
+          requestType: data.requestType,
+          payload,
+          source,
+          ...leadProfile,
+          status: "NEW",
+          idempotencyKey,
+          idempotencyHash: idempotencyKey ? idempotencyHash : null,
+          erpnextLeadId: initialErpnextLeadId,
+          erpnextSyncStatus: initialErpnextSyncStatus,
+          erpnextSyncError: initialErpnextSyncError,
+          erpnextLastSyncedAt: initialErpnextLeadId || initialErpnextSyncStatus === "FAILED" ? new Date() : null,
+        })
+        .returning();
+      if (!inserted) throw new Error("Failed to create inbound request.");
+
+      const canonical = await ensureInboundRequestSalesRecords(tx, inserted, data.userId);
+      const [linked] = await tx
+        .update(inboundRequests)
+        .set({ salesDealId: canonical.salesDealId, updatedAt: new Date() })
+        .where(eq(inboundRequests.id, inserted.id))
+        .returning();
+      return { request: linked ?? inserted, replayed: false as const };
+    });
+
+    let inserted = persisted.request;
+    if (!persisted.replayed && !inserted.erpnextLeadId && !data.erpnextSyncStatus) {
       try {
         const erpResult = await createERPNextLead(buildErpnextLeadPayload({
           customerName: name,
@@ -265,34 +357,33 @@ export async function createInboundRequest(data: CreateInboundRequestInput): Pro
           payload,
           profile: leadProfile,
         }));
-        erpnextLeadId = erpResult.leadId;
-        erpnextSyncStatus = erpnextLeadId ? "SYNCED" : "FAILED";
-        erpnextSyncError = erpnextLeadId ? null : "ERPNext did not return a Lead ID.";
+        const erpnextLeadId = erpResult.leadId || null;
+        const [updated] = await db
+          .update(inboundRequests)
+          .set({
+            erpnextLeadId,
+            erpnextSyncStatus: erpnextLeadId ? "SYNCED" : "FAILED",
+            erpnextSyncError: erpnextLeadId ? null : "ERPNext did not return a Lead ID.",
+            erpnextLastSyncedAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(inboundRequests.id, inserted.id))
+          .returning();
+        if (updated) inserted = updated;
       } catch (syncError) {
-        erpnextSyncStatus = "FAILED";
-        erpnextSyncError = syncError instanceof Error ? syncError.message : "Failed to create ERPNext Lead.";
+        const erpnextSyncError = syncError instanceof Error ? syncError.message : "Failed to create ERPNext Lead.";
+        const [updated] = await db
+          .update(inboundRequests)
+          .set({
+            erpnextSyncStatus: "FAILED",
+            erpnextSyncError,
+            erpnextLastSyncedAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(inboundRequests.id, inserted.id))
+          .returning();
+        if (updated) inserted = updated;
       }
-    }
-
-    const [inserted] = await db
-      .insert(inboundRequests)
-      .values({
-        customerName: name,
-        phone,
-        email,
-        requestType: data.requestType,
-        payload,
-        source,
-        ...leadProfile,
-        status: "NEW",
-        erpnextLeadId,
-        erpnextSyncStatus,
-        erpnextSyncError,
-        erpnextLastSyncedAt: erpnextLeadId || erpnextSyncStatus === "FAILED" ? new Date() : null,
-      })
-      .returning();
-    if (!inserted) {
-      return { success: false, error: "Failed to create inbound request." };
     }
 
     revalidatePath("/admin/requests");
@@ -318,13 +409,13 @@ export async function createInboundRequest(data: CreateInboundRequestInput): Pro
 
     return {
       success: true,
-      request: {
-        ...inserted,
-        erpnextSyncStatus: normalizeErpnextSyncStatus(inserted.erpnextSyncStatus),
-        payload: (inserted.payload as Record<string, unknown>) || {},
-      },
+      replayed: persisted.replayed,
+      request: serializeInboundRequest(inserted),
     };
   } catch (error) {
+    if (error instanceof InboundRequestIdempotencyConflict) {
+      return { success: false, conflict: true, error: error.message };
+    }
     console.error("Error creating inbound request:", error);
     return {
       success: false,
@@ -334,7 +425,7 @@ export async function createInboundRequest(data: CreateInboundRequestInput): Pro
 }
 
 /** Admin-only entry point for manually creating a request from the console. */
-export async function createAdminInboundRequest(data: CreateInboundRequestInput): Promise<{ success: boolean; request?: InboundRequestItem; error?: string }> {
+export async function createAdminInboundRequest(data: CreateInboundRequestInput): Promise<CreateInboundRequestResult> {
   await requireStaff();
   return createInboundRequest(data);
 }
@@ -564,11 +655,7 @@ export async function getInboundRequests(options?: {
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(inboundRequests.createdAt));
 
-    return rows.map((r) => ({
-      ...r,
-      erpnextSyncStatus: normalizeErpnextSyncStatus(r.erpnextSyncStatus),
-      payload: (r.payload as Record<string, unknown>) || {},
-    }));
+    return rows.map(serializeInboundRequest);
   } catch (error) {
     console.error("Error fetching inbound requests:", error);
     return [];
@@ -822,6 +909,15 @@ export async function generateQuotationFromInboundRequest(
         return { kind: "existing" as const, quotationId: request.quotationId };
       }
 
+      // Backfill the canonical identity/deal bridge for legacy requests before
+      // creating a quotation. New requests already perform this in the intake
+      // transaction; this keeps older rows on the same Sales V2 path.
+      const canonical = await ensureInboundRequestSalesRecords(tx, request);
+      await tx
+        .update(inboundRequests)
+        .set({ salesDealId: canonical.salesDealId, updatedAt: new Date() })
+        .where(eq(inboundRequests.id, request.id));
+
       const payload = (request.payload as Record<string, unknown>) || {};
       const systemSizeKwp = getFinitePayloadNumber(
         payload,
@@ -851,6 +947,7 @@ export async function generateQuotationFromInboundRequest(
             email: request.email,
             source: request.source,
             inboundRequestId: parsedId.data,
+            salesDealId: canonical.salesDealId,
             notes: `Generated from Inbound Request [ID: ${parsedId.data}] (Type: ${request.requestType}, Source: ${request.source})`,
             payload,
           },

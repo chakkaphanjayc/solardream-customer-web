@@ -204,7 +204,7 @@ export default function GlobalBanner({ initialData }: GlobalBannerProps) {
           onClick={handleDismiss}
           type="button"
           aria-label="Close announcement banner"
-          className="ml-2 inline-flex min-h-8 min-w-8 shrink-0 items-center justify-center rounded-full text-[var(--sd-muted)] transition-colors hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--sd-focus)] focus:ring-offset-1 focus:ring-offset-[var(--sd-soft-solar)]"
+          className="ml-2 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full text-[var(--sd-muted)] transition-colors hover:bg-[var(--sd-selected)] hover:text-[var(--sd-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--sd-focus)] focus:ring-offset-1 focus:ring-offset-[var(--sd-soft-solar)]"
         >
           <X className="h-3.5 w-3.5" />
         </button>

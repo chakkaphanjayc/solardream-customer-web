@@ -48,6 +48,11 @@
     "test:solar-domain": "tsx scripts/security/verify-solar-domain.ts",
     "test:worker-contract": "tsx scripts/security/verify-worker-contract.ts",
     "test:sales-v2": "NODE_OPTIONS='--require ./scripts/security/server-only-test-shim.cjs' tsx src/server/services/sales/__tests__/sales-v2-foundation.test.ts",
+    "test:quotation-read-model": "NODE_OPTIONS='--require ./scripts/security/server-only-test-shim.cjs' tsx src/server/services/sales/__tests__/quotation-read-model.test.ts",
+    "test:erpnext-commercial": "NODE_OPTIONS='--require ./scripts/security/server-only-test-shim.cjs' tsx src/server/services/integrations/__tests__/erpnext-commercial-service.test.ts",
+    "test:integration-webhook": "NODE_OPTIONS='--require ./scripts/security/server-only-test-shim.cjs' tsx --test src/server/services/integrations/__tests__/webhook-verifier.test.ts",
+    "test:commercial-outbox": "NODE_OPTIONS='--require ./scripts/security/server-only-test-shim.cjs' tsx --test src/server/services/sales/__tests__/commercial-outbox.test.ts",
+    "test:erpnext-quotation-event": "NODE_OPTIONS='--require ./scripts/security/server-only-test-shim.cjs' tsx --test src/server/services/sales/__tests__/erpnext-quotation-event.test.ts",
     "test:golden-path": "npm run test:sales-v2"
   },
   "dependencies": {

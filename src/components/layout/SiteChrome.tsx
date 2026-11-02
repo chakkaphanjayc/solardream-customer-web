@@ -1,11 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 import type { WebsiteSettings } from "@/lib/websiteSettingsTypes";
+import { resolveCookieBannerCopy } from "@/lib/cookieConsentPresentation";
 import { getCustomerRoutePolicy } from "@/lib/customerRoutePolicy";
 import type { GlobalBannerData } from "../GlobalBanner";
 
@@ -25,6 +27,7 @@ const GlobalSummaryDrawer = dynamic(() => import("./GlobalSummaryDrawer"), {
 
 type SiteChromeProps = {
   initialGlobalBanner: GlobalBannerData | null;
+  initialConsentSnapshot: string;
   forumUrl: string;
   complianceSettings: {
     cookieBannerText: string;
@@ -41,6 +44,7 @@ type SiteChromeProps = {
 
 export default function SiteChrome({
   initialGlobalBanner,
+  initialConsentSnapshot,
   forumUrl,
   complianceSettings,
   websiteSettings,
@@ -49,6 +53,20 @@ export default function SiteChrome({
 }: SiteChromeProps & { children: React.ReactNode }) {
   const pathname = usePathname();
   const routePolicy = getCustomerRoutePolicy(pathname);
+  const locale = routePolicy.locale ?? "en";
+  const cookieT = useTranslations("CookiePreferences");
+  const cookieBannerCopy = resolveCookieBannerCopy(
+    websiteSettings.cookieConsent,
+    locale,
+    {
+      title: cookieT("title"),
+      description: cookieT("bannerDescription"),
+      privacyPolicy: cookieT("bannerPrivacyPolicy"),
+      essentialOnly: cookieT("essentialOnly"),
+      acceptAll: cookieT("acceptAll"),
+      managePreferences: cookieT("managePreferences"),
+    },
+  );
   useEffect(() => {
     document.body.dataset.solarUi = routePolicy.isAdmin
       ? "operations"
@@ -82,12 +100,29 @@ export default function SiteChrome({
       {routePolicy.showNavigation && (
         <div
           data-site-header
-          className="layer-chrome pointer-events-none fixed inset-x-0 top-0 z-[var(--layer-chrome)]"
+          className="layer-chrome pointer-events-none relative z-[var(--layer-chrome)]"
         >
           <div className="pointer-events-auto">
             <Navbar forumUrl={forumUrl} navigationItems={navigationItems} />
           </div>
         </div>
+      )}
+      {routePolicy.showCookieBanner && (
+        <CookieBanner
+          initialConsentSnapshot={initialConsentSnapshot}
+          cookieTitle={cookieBannerCopy.cookieTitle}
+          cookieBannerText={
+            cookieBannerCopy.cookieMessage ||
+            complianceSettings?.cookieBannerText ||
+            "เราใช้คุกกี้เพื่อพัฒนาประสิทธิภาพ และประสบการณ์ที่ดีในการใช้เว็บไซต์ของคุณ ทั้งนี้ ท่านสามารถศึกษารายละเอียดการใช้คุกกี้ได้ที่ นโยบายความเป็นส่วนตัว"
+          }
+          cookieBannerEnabled={complianceSettings?.cookieBannerEnabled ?? true}
+          essentialButtonText={cookieBannerCopy.essentialButtonText}
+          acceptAllButtonText={cookieBannerCopy.acceptAllButtonText}
+          managePreferencesText={cookieBannerCopy.managePreferencesText}
+          privacyPolicyText={cookieBannerCopy.privacyPolicyText}
+          privacyPolicyHref={`/${locale}/privacy`}
+        />
       )}
 
       <main
@@ -117,26 +152,6 @@ export default function SiteChrome({
         </div>
       )}
       {routePolicy.showCustomerTools && <GlobalSummaryDrawer />}
-      {routePolicy.showCookieBanner && (
-        <CookieBanner
-          cookieTitle={websiteSettings.cookieConsent.cookieTitle}
-          cookieBannerText={
-            websiteSettings.cookieConsent.cookieMessage ||
-            complianceSettings?.cookieBannerText ||
-            "เราใช้คุกกี้เพื่อพัฒนาประสิทธิภาพ และประสบการณ์ที่ดีในการใช้เว็บไซต์ของคุณ ทั้งนี้ ท่านสามารถศึกษารายละเอียดการใช้คุกกี้ได้ที่ นโยบายความเป็นส่วนตัว"
-          }
-          cookieBannerEnabled={complianceSettings?.cookieBannerEnabled ?? true}
-          essentialButtonText={
-            websiteSettings.cookieConsent.essentialButtonText
-          }
-          acceptAllButtonText={
-            websiteSettings.cookieConsent.acceptAllButtonText
-          }
-          managePreferencesText={
-            websiteSettings.cookieConsent.managePreferencesText
-          }
-        />
-      )}
       <Toaster position="top-center" richColors />
     </div>
   );

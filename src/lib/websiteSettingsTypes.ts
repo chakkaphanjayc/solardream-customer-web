@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_COOKIE_CONSENT_SETTINGS } from "@/lib/cookieConsentPresentation";
 
 const safeFooterHrefSchema = z.string().trim().min(1).max(500).refine((value) => {
   if (value.startsWith("/") || value.startsWith("#")) return true;
@@ -105,13 +106,6 @@ export const DEFAULT_WEBSITE_SETTINGS: WebsiteSettings = {
       ],
     },
   ],
-  cookieConsent: {
-    cookieTitle: "Cookie preferences",
-    cookieMessage:
-      "We use essential cookies to keep SolarDream secure. Analytics and marketing cookies are optional and help us improve the experience.",
-    essentialButtonText: "Essential only",
-    acceptAllButtonText: "Accept all",
-    managePreferencesText: "Manage preferences",
-  },
+  cookieConsent: DEFAULT_COOKIE_CONSENT_SETTINGS,
   localizedContent: {},
 };

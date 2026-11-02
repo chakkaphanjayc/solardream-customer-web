@@ -13,7 +13,12 @@
     "taxId": "TAX ID",
     "address": "ADDRESS",
     "tel": "TEL",
-    "email": "EMAIL"
+    "email": "EMAIL",
+    "newsletterTitle": "Monthly Solar Tips & Insights",
+    "newsletterDescription": "Energy saving techniques, incentives updates, and expert solar insights delivered monthly.",
+    "newsletterPlaceholder": "Enter your email address",
+    "newsletterSubmit": "Subscribe",
+    "newsletterSubscribed": "Thank you for subscribing!"
   },
   "HomeLanding": {
     "nav": {
@@ -1523,6 +1528,9 @@
       },
       "emptyTitle": "No Proposals",
       "emptyDescription": "No historic quote requests found.",
+      "archivedEmptyTitle": "No archived proposals",
+      "archivedEmptyDescription": "Completed or cancelled proposals will appear here for reference.",
+      "emptyImageAlt": "Solia is ready to help with your solar proposal",
       "systemSummary": "{kwp} kWp ({count} panels)",
       "uploadedVersion": "v{version} Uploaded"
     },
@@ -1566,13 +1574,18 @@
       "eyebrow": "SolarDream Project Hub",
       "title": "My proposals and installation progress",
       "buildSystem": "Build new system",
-      "startWizard": "Start solar wizard"
+      "startWizard": "Start solar wizard",
+      "description": "Review your quote, signature, payment, and installation milestones in one place."
     },
     "labels": {
       "serviceProposal": "Service proposal",
       "installationProposal": "Installation proposal",
       "service": "Service",
       "solar": "Solar",
+      "requestNumber": "Request",
+      "proposalNumber": "Proposal",
+      "pendingEngineeringReview": "Our engineering team is reviewing the system",
+      "awaitingSignature": "Awaiting your signature",
       "system": "{size} kWp system",
       "totalInvestment": "Total investment",
       "pricePending": "Price pending",
@@ -1620,7 +1633,8 @@
     },
     "emptySelection": {
       "title": "No Proposal Selected",
-      "description": "Please select a quote iteration from the left panel to review configuration specs and uploads."
+      "description": "Please select a proposal from the list to review its details and documents.",
+      "imageAlt": "Choose a proposal to see its details"
     },
     "signature": {
       "title": "Approve & Sign Contract",
@@ -1741,11 +1755,13 @@
     "loadingDescription": "Loading your order and secure payment verification details.",
     "loadingSoliaAlt": "Solia preparing secure payment",
     "processingSignature": "Processing document data and signing the contract…",
+    "contractSuccessAnnouncement": "The contract was signed and your details were submitted.",
     "updatingLedger": "Updating payment ledger…",
     "validatingSlip": "Validating the slip with the bank…",
     "safeProcessing": "Please do not close or refresh this screen. Your transaction is being processed securely.",
     "successTitle": "Payment successful",
-    "successDescription": "Opening your Project Hub now.",
+    "successDescription": "Your payment is confirmed. Continue to your Project Hub when you’re ready.",
+    "continueToProposals": "Continue to my Project Hub",
     "headings": {
       "custom": "Custom payment request",
       "direct": "Direct checkout",
@@ -2090,13 +2106,16 @@
     }
   },
   "WarrantyCard": {
+    "loading": "Loading your warranty card.",
+    "loaded": "Warranty card loaded.",
     "eyebrow": "Post-installation coverage",
     "title": "Digital Warranty Card",
     "subtitle": "Your installation record is ready, {name}.",
     "status": {
       "covered": "Fully Covered",
       "active": "Under Warranty",
-      "expired": "Coverage Expired"
+      "expired": "Coverage Expired",
+      "pending": "Warranty registration pending"
     },
     "fields": {
       "system": "System",
@@ -2104,11 +2123,13 @@
       "installationCoverage": "Installation coverage"
     },
     "daysRemaining": "days remaining",
+    "coveragePending": "Coverage dates will appear after warranty registration.",
     "coverageProgress": "Installation warranty",
     "requestService": "Request service",
     "equipmentEyebrow": "Registered equipment",
     "equipmentTitle": "Equipment breakdown",
     "components": "components",
+    "noEquipment": "No equipment has been registered to this installation yet. Your list will appear here after registration.",
     "expires": "Manufacturer warranty expiry",
     "documentsEyebrow": "Your documents",
     "documentsTitle": "Installation records",
@@ -2120,6 +2141,12 @@
     "serviceHint": "The service team will use this installation record to route your request to the right technician.",
     "unavailableTitle": "Warranty card unavailable",
     "unavailableDescription": "Your completed installation record is still being prepared. Please check again shortly.",
+    "notReadyTitle": "Warranty registration in progress",
+    "notReadyDescription": "Your installation coverage is not ready yet. It will appear here after the team completes the warranty registration.",
+    "retryableTitle": "We could not load your warranty card",
+    "retryableDescription": "The warranty service is temporarily unavailable. Try again in a moment.",
+    "retry": "Try again",
+    "retrying": "Trying again…",
     "error": "We could not load your warranty card.",
     "backToHome": "Back to home",
     "backToAssets": "Open my assets"
@@ -2189,6 +2216,8 @@
       },
       "saving": "Saving preference…",
       "saved": "Preference saved.",
+      "loading": "Loading your saved preferences…",
+      "retry": "Try again",
       "loadError": "Unable to load communication preferences.",
       "saveError": "Unable to save this preference. Your previous setting was restored."
     }
@@ -2237,7 +2266,9 @@
     "validUntil": "📅 Promotion ends: {date}",
     "includedTitle": "Components Included",
     "specialPrice": "Bundle Special Price",
-    "orderBundle": "Order This Bundle"
+    "askAboutBundle": "Ask about this bundle",
+    "addBundleToCart": "Add to cart: {name}",
+    "addToCart": "Add to cart"
   },
   "DiscordTestButton": {
     "title": "System Integration Testing",
@@ -2466,6 +2497,9 @@
     "pdfDocument": "PDF Document",
     "closeImageAriaLabel": "Close image",
     "documentPreview": "Document URL Preview",
+    "previewDialogTitle": "Evidence preview",
+    "openPreview": "Open evidence item {count} in preview",
+    "surveyAssetAlt": "Survey photo {count}",
     "openDocument": "Open Document in New Tab",
     "surveyPreviewAlt": "Survey Preview",
     "openOriginal": "Open original size"
@@ -2730,7 +2764,8 @@
       "showing": "Showing {count} {count, plural, =1 {Component} other {Components}}"
     },
     "productCard": {
-      "details": "Details"
+      "details": "Details",
+      "detailsForProduct": "Details for {productName}"
     },
     "detail": {
       "previewImageUnavailable": "Preview image unavailable",
@@ -2755,7 +2790,23 @@
     "emptyState": {
       "title": "No Components Found",
       "description": "We couldn't find any products matching your active search filters. Try selecting a different category or clearing keyword queries."
-    }
+    },
+    "compare": "Compare",
+    "clearFilters": "Clear all filters",
+    "compareMaxError": "You can compare up to 3 components",
+    "compareDockTitle": "Compare Components",
+    "compareNow": "Compare Now",
+    "clearCompare": "Clear",
+    "compareDescription": "Compare technical specifications side by side.",
+    "compareScrollHint": "Swipe or scroll sideways to compare the selected products.",
+    "compareSpecProduct": "Product",
+    "compareSpecPrice": "Price",
+    "compareSpecWattage": "Wattage",
+    "compareSpecDimensions": "Dimensions",
+    "removeComparedProduct": "Remove {name} from comparison",
+    "scrollToTop": "Back to top",
+    "tier1Badge": "Tier-1 / Best Value",
+    "bundleSectionTitle": "Complete Solar Packages & Bundles"
   },
   "DiscussionThread": {
     "systemPrefix": "⚡ System:",
@@ -3316,6 +3367,14 @@
     "metaDesc": "SolarDream notes on residential solar sizing, savings, installation, and support.",
     "subtitle": "Solar insights",
     "headerTitle": "What SolarDream is helping homeowners understand.",
+    "featured": "Featured Article",
+    "minRead": "min read",
+    "categories": {
+      "all": "All",
+      "news": "News",
+      "solarTips": "Solar Tips",
+      "caseStudies": "Case Studies"
+    },
     "articles": {
       "homepage-feel-expensive": {
         "title": "How to estimate a home solar system before talking to an advisor",
@@ -3385,8 +3444,15 @@
     }
   },
   "WorksPage": {
-    "title": "SolarDream Platform | SolarDream",
-    "metaDesc": "SolarDream tools from weather-aware planning to quotation signing and customer support.",
+    "title": "Solar Project Showcase | SolarDream",
+    "metaDesc": "Explore SolarDream's published residential solar projects, with installation photos and system details when available.",
+    "eyebrow": "Published projects",
+    "heroNote": "Project details across Thailand",
+    "heroTitle": "Solar, already at home.",
+    "heroDescription": "Browse published project photos and system details from SolarDream installations.",
+    "fieldNotes": "Field notes",
+    "installedHomes": "projects in the gallery",
+    "locations": "Project locations across Thailand",
     "subtitle": "SolarDream platform",
     "headerTitle": "Every solar step, connected.",
     "projects": {
@@ -3589,6 +3655,7 @@
     "signIn": "Sign in to book",
     "errors": {
       "required": "Complete the appointment and contact fields.",
+      "fieldRequired": "This field is required.",
       "asset": "Select one of your installed assets.",
       "external": "Add the external system size, inverter brand, and roof type.",
       "create": "We could not create this booking. Please try again.",
@@ -3629,6 +3696,8 @@
       "primaryAction": "Check request status",
       "primaryHint": "Reference lookup is immediate",
       "backHome": "Back to home",
+      "soliaAlt": "Solia pointing to the next step in your request tracking",
+      "soliaMessage": "Start with your reference, then unlock private details only when you need them.",
       "stepsTitle": "How request tracking works",
       "stepsDescription": "Choose the level of detail you need. A reference shows progress; a secure email link opens your private project information.",
       "securityTitle": "Your request stays protected",
@@ -3981,6 +4050,7 @@
     "added": "Added {productName} to your quote cart",
     "addedDescription": "Ready to include in your quotation.",
     "openingSales": "Opening the sales contact channel",
+    "actionForProduct": "{action} for {productName}",
     "quote": "Request a quote",
     "quoteWithCount": "Request a quote ({count})",
     "checkStock": "Check stock",
@@ -4037,8 +4107,11 @@
     "success": {
       "eyebrow": "Message received",
       "title": "We'll come back with a clear solar next step.",
-      "description": "Thanks for reaching out. We usually reply within one business day with fit, timing, and a useful first recommendation.",
-      "sendAnother": "Send another message"
+      "description": "Thanks for reaching out. We usually reply within 1 business day with fit, timing, and a useful first recommendation.",
+      "sendAnother": "Send another message",
+      "soliaAlt": "Solia successfully delivered your message",
+      "soliaMessage": "Thank you for trusting SolarDream! We will review your home's energy context and respond promptly.",
+      "responseTimeBadge": "We'll reply within 1 business day"
     },
     "fields": {
       "name": "Name",
@@ -4059,6 +4132,7 @@
       "tier3": "$50k - $100k",
       "tier4": "$100k+"
     },
+    "charCount": "{count}/500 characters",
     "sending": "Sending...",
     "send": "Send inquiry"
   },
@@ -4066,12 +4140,17 @@
     "eyebrow": "Solar consultation",
     "title": "Let's plan a solar home that fits your roof.",
     "emailLabel": "Direct email",
+    "phoneLabel": "Direct phone",
+    "chatLineOa": "Chat on LINE OA",
+    "lineOaSubtitle": "Quick response, speak directly with engineers",
     "availabilityLabel": "Availability",
     "availabilityValue": "Consultation slots open this week",
     "serviceAreaLabel": "Service area",
     "serviceAreaValue": "Thailand, remote-first planning",
     "formEyebrow": "Start with context",
-    "formTitle": "Tell us about your roof, bill, and target system."
+    "formTitle": "Tell us about your roof, bill, and target system.",
+    "soliaAlt": "Solia guiding you into a SolarDream consultation",
+    "soliaMessage": "Tell us how your home uses energy, and we’ll help turn the first questions into a clear next step."
   },
   "ForgotPassword": {
     "title": "Reset Password",
@@ -5379,10 +5458,21 @@
     "tutorialEyebrow": "Video tutorials",
     "tutorialTitle": "Video guides",
     "videoGuide": "Video guide",
+    "youtubeSearchResults": "YouTube search results",
+    "youtubeSearchNote": "These links open YouTube search results. Choose a video that matches your system and question.",
+    "opensInNewTab": "Opens in a new tab.",
     "faqs": {
       "inverter": {
         "question": "What should I do when the inverter shows a red light?",
         "answer": "Record the error code and take a photo. Check whether the AC/DC breakers are ON. If the red light remains, do not open the unit; shut the system down according to its guide and submit a service request."
+      },
+      "battery": {
+        "question": "How do I care for battery storage during extended rain or a power outage?",
+        "answer": "Set the battery's minimum state-of-charge (SOC) to 20% in the SolarDream App during rainy weeks to protect battery life and preserve emergency reserve power."
+      },
+      "warranty": {
+        "question": "How does the 25-year panel performance warranty claim process work?",
+        "answer": "SolarDream coordinates manufacturer warranty claims directly. Submit an inquiry through the Support Hub or LINE, and our field team will arrange an on-site thermal diagnostic."
       },
       "bill": {
         "question": "How do I read a PEA bill to understand savings?",
@@ -5405,22 +5495,26 @@
       "inverter": {
         "title": "Check inverter status lights",
         "description": "Understand warning lights and what to document for your technician.",
-        "duration": "4 min"
+        "duration": "4 min",
+        "searchTerm": "solar inverter red light troubleshooting"
       },
       "bill": {
         "title": "Read your PEA electricity bill",
         "description": "Review units, billing periods, and savings comparisons.",
-        "duration": "6 min"
+        "duration": "6 min",
+        "searchTerm": "PEA electricity bill solar savings"
       },
       "production": {
         "title": "Read a production graph",
         "description": "Separate normal variation from a potential issue.",
-        "duration": "5 min"
+        "duration": "5 min",
+        "searchTerm": "solar production graph troubleshooting"
       },
       "cleaning": {
         "title": "Prepare before panel cleaning",
         "description": "Safety considerations and the right time for panel care.",
-        "duration": "5 min"
+        "duration": "5 min",
+        "searchTerm": "solar panel cleaning safety"
       }
     }
   },
@@ -5543,6 +5637,11 @@
     }
   },
   "GuestProposalSign": {
+    "snapshot": {
+      "refreshFailed": "We couldn't refresh this proposal's latest payment and project updates. Some information may be out of date.",
+      "retry": "Retry update",
+      "refreshing": "Updating…"
+    },
     "saveTitle": "Save this proposal for later",
     "saveDescription": "Create a free SolarDream account to track installation and manage your warranty in one place.",
     "createAccount": "Create account & save",
@@ -5699,6 +5798,10 @@
   "CookiePreferences": {
     "title": "Cookie preferences",
     "subtitle": "Manage how we use cookies on this site",
+    "bannerDescription": "We use essential cookies to keep SolarDream secure. Analytics and marketing cookies are optional and help us improve the experience.",
+    "bannerPrivacyPolicy": "Privacy Policy",
+    "essentialOnly": "Essential only",
+    "managePreferences": "Manage preferences",
     "close": "Close settings",
     "essentialTitle": "Strictly necessary cookies",
     "required": "Required",
@@ -5724,6 +5827,7 @@
     "soliaLabel": "Solia assistant",
     "signedGreeting": "Thank you. Your document has been signed and our team will start the next step right away.",
     "unsignedGreeting": "Please review the equipment and proposal details, then sign the document when you are ready.",
+    "preparingGreeting": "Our team is preparing your quotation. You can review the details here as soon as it is ready.",
     "quotationId": "Quotation ID",
     "trackRef": "Tracking reference",
     "systemCapacity": "System capacity"
@@ -5806,6 +5910,16 @@
       "title": "Payment installments",
       "description": "Review the installments activated by our team, then pay or attach transfer proof from the current list.",
       "activeUnpaid": "{count} active unpaid",
+      "invoicesTitle": "Issued invoices",
+      "invoicesDescription": "Invoices issued for this proposal, with their current payment status.",
+      "invoiceIssued": "Issued {date}",
+      "invoiceStatus": {
+        "paid": "Paid",
+        "partiallyPaid": "Partially paid",
+        "unpaid": "Unpaid",
+        "unknown": "Status unavailable"
+      },
+      "viewInvoice": "View invoice",
       "paymentRequest": "Payment request",
       "payNowUploadSlip": "Pay now / upload slip",
       "openProof": "Open proof",
@@ -6617,6 +6731,15 @@
     "createdDate": "Created date"
   },
   "HomeEditorial": {
+    "salesHeroMicrocopy": "Start with what you know. No purchase commitment.",
+    "salesBoardHeaderTitle": "WHAT THE QUOTE SHOULD SHOW",
+    "salesBoardHeaderInspectable": "INSPECTABLE",
+    "salesEconomicsCta": "Try the System Simulator →",
+    "skipToProof": "Skip editorial journey to project showcase",
+    "authorityPea": "PEA / MEA planning support",
+    "authorityMea": "Utility requirements considered",
+    "authorityTier1": "Equipment options matched to your system",
+    "backToTop": "Back to top",
     "navigation": {
       "menu": "Menu",
       "close": "Close",

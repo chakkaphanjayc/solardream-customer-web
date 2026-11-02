@@ -493,14 +493,17 @@ export default function RequestQuotationPage() {
                       <div className="space-y-4">
                         {/* Name Input */}
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+                          <label htmlFor="quote-contact-name" className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
                             <User className="w-3.5 h-3.5 text-slate-400" />
                             {t("form.nameLabel")}
                             <span className="text-rose-500">*</span>
                           </label>
                           <input
+                            id="quote-contact-name"
+                            name="name"
                             type="text"
                             required
+                            autoComplete="name"
                             placeholder={t("form.namePlaceholder")}
                             value={name}
                             onChange={(e) => setName(e.target.value)}
@@ -511,14 +514,17 @@ export default function RequestQuotationPage() {
                         {/* Email + Phone side by side */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+                            <label htmlFor="quote-contact-email" className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
                               <Mail className="w-3.5 h-3.5 text-slate-400" /> 
                               {t("form.emailLabel")}
                               <span className="text-rose-500">*</span>
                             </label>
                             <input
+                              id="quote-contact-email"
+                              name="email"
                               type="email"
                               required
+                              autoComplete="email"
                               placeholder="somchai@gmail.com"
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
@@ -526,14 +532,17 @@ export default function RequestQuotationPage() {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+                            <label htmlFor="quote-contact-phone" className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
                               <Phone className="w-3.5 h-3.5 text-slate-400" /> 
                               {t("form.phoneLabel")}
                               <span className="text-rose-500">*</span>
                             </label>
                             <input
+                              id="quote-contact-phone"
+                              name="phone"
                               type="tel"
                               required
+                              autoComplete="tel"
                               placeholder="0812345678"
                               value={phone}
                               onChange={(e) => setPhone(e.target.value)}
@@ -544,7 +553,7 @@ export default function RequestQuotationPage() {
 
                         {/* Tax ID */}
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+                          <label htmlFor="quote-tax-id" className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
                             <FileText className="w-3.5 h-3.5 text-slate-400" />
                             {t("form.taxIdLabel")}
                             <span className="text-slate-400 text-[10px] font-medium lowercase">
@@ -552,7 +561,11 @@ export default function RequestQuotationPage() {
                             </span>
                           </label>
                           <input
+                            id="quote-tax-id"
+                            name="taxId"
                             type="text"
+                            inputMode="numeric"
+                            autoComplete="off"
                             placeholder="e.g. 0105562000000"
                             value={taxId}
                             onChange={(e) => setTaxId(e.target.value)}

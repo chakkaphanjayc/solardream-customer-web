@@ -1,8 +1,9 @@
+import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { quotationDeliveryDocuments } from "@/db/schema";
+import { proposalRevisions, quotationAcceptances } from "@/db/schema";
 import { getSystemSetting } from "@/app/actions/systemSettings";
 import { downloadDrivePdf } from "@/lib/document-signing/drive";
 import { resolvePortalAccess } from "@/lib/portalAccess";
@@ -19,8 +20,17 @@ type ErpnextFileConfig = {
 
 function extractDriveFileId(value: string | null | undefined): string | null {
   if (!value) return null;
-  const match = /\/file\/d\/([a-zA-Z0-9_-]{10,200})/.exec(value);
-  return match?.[1] || null;
+  const directId = /^[a-zA-Z0-9_-]{10,200}$/.test(value.trim()) ? value.trim() : null;
+  if (directId) return directId;
+  try {
+    const url = new URL(value);
+    const pathMatch = /\/file\/d\/([a-zA-Z0-9_-]{10,200})/.exec(url.pathname);
+    if (pathMatch?.[1]) return pathMatch[1];
+    const queryId = url.searchParams.get("id");
+    return queryId && /^[a-zA-Z0-9_-]{10,200}$/.test(queryId) ? queryId : null;
+  } catch {
+    return null;
+  }
 }
 
 function contentDispositionFileName(value: string): string {
@@ -107,18 +117,43 @@ export async function GET(
   }
 
   const proposal = access.proposal;
-  const finalQuotation = await db.query.quotationDeliveryDocuments.findFirst({
-    where: and(
-      eq(quotationDeliveryDocuments.quotationId, proposal.id),
-      eq(quotationDeliveryDocuments.deliveryType, "FINAL_QUOTATION"),
-      eq(quotationDeliveryDocuments.status, "READY"),
-    ),
+  const currentRevision = await db.query.proposalRevisions.findFirst({
+    where: eq(proposalRevisions.proposalId, proposal.id),
+    orderBy: [desc(proposalRevisions.revisionNumber)],
     columns: {
-      fileUrl: true,
-      storageFileId: true,
+      id: true,
+      status: true,
+      pdfDocumentReference: true,
+      documentHash: true,
     },
   });
+  const isPublishedRevision = currentRevision
+    && ["SENT", "VIEWED", "ACCEPTED"].includes(currentRevision.status);
+  if (!isPublishedRevision) {
+    return NextResponse.json({ error: "The quotation PDF is not available." }, { status: 404 });
+  }
+
   const isSignedStatus = ["SIGNED", "FULLY_SIGNED", "CLIENT_SIGNED_PENDING_REVIEW", "APPROVED", "APPROVED_BY_CUSTOMER", "CUSTOMER_APPROVED"].includes(proposal.status.toUpperCase());
+  if (isSignedStatus && currentRevision.status !== "ACCEPTED") {
+    return NextResponse.json({ error: "The signed quotation PDF is not available." }, { status: 404 });
+  }
+  const acceptance = isSignedStatus
+    ? await db.query.quotationAcceptances.findFirst({
+        where: eq(quotationAcceptances.proposalId, proposal.id),
+        orderBy: (rows, { desc: descending }) => [descending(rows.acceptedAt)],
+        columns: { revisionId: true, signedDocumentHash: true },
+      })
+    : null;
+  if (isSignedStatus && acceptance?.revisionId !== currentRevision.id) {
+    return NextResponse.json({ error: "The signed quotation PDF is not available." }, { status: 404 });
+  }
+  const expectedHash = isSignedStatus
+    ? acceptance?.signedDocumentHash
+    : currentRevision.documentHash;
+  if (!expectedHash) {
+    return NextResponse.json({ error: "The quotation PDF is not available." }, { status: 404 });
+  }
+
   try {
     let pdf: { bytes: Buffer; fileName: string } | null = null;
     if (isSignedStatus) {
@@ -137,14 +172,19 @@ export async function GET(
     }
 
     if (!pdf) {
-      const fileId = finalQuotation?.storageFileId
-        || extractDriveFileId(finalQuotation?.fileUrl)
-        || extractDriveFileId(proposal.revisedPdfUrl)
-        || extractDriveFileId(proposal.pdfUrl);
+      if (isSignedStatus) {
+        return NextResponse.json({ error: "The signed quotation PDF is not available." }, { status: 404 });
+      }
+      const fileId = extractDriveFileId(currentRevision.pdfDocumentReference);
       if (!fileId) {
-        return NextResponse.json({ error: "A signed quotation PDF is not available." }, { status: 404 });
+        return NextResponse.json({ error: "The current quotation PDF is not available." }, { status: 404 });
       }
       pdf = await downloadDrivePdf(fileId);
+    }
+
+    const actualHash = createHash("sha256").update(pdf.bytes).digest("hex");
+    if (actualHash !== expectedHash) {
+      return NextResponse.json({ error: "The stored quotation PDF does not match its verified revision." }, { status: 502 });
     }
 
     return new NextResponse(new Uint8Array(pdf.bytes), {

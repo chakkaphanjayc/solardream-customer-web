@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 type SolarRouteShellProps = {
   children: ReactNode;
   className?: string;
+  contentClassName?: string;
   as?: "div" | "main" | "section";
 };
 
@@ -16,6 +17,7 @@ type SolarRouteShellProps = {
 export function SolarRouteShell({
   children,
   className,
+  contentClassName,
   as = "div",
 }: SolarRouteShellProps) {
   const Component = as;
@@ -37,7 +39,7 @@ export function SolarRouteShell({
         <span className="solar-route-glow solar-route-glow--sun" />
         <span className="solar-route-horizon" />
       </div>
-      <div className="solar-route-content relative z-[1] pt-20 sm:pt-24 lg:pt-28">
+      <div className={cn("solar-route-content relative z-[1] pt-20 sm:pt-24 lg:pt-28", contentClassName)}>
         {children}
       </div>
     </Component>

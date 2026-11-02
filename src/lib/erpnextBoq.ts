@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getSystemSetting } from "@/app/actions/systemSettings";
+import { erpNextCommercialService } from "@/server/services/integrations/erpnext-commercial-service";
 import type { BoqLine, BoqTemplate, ErpnextQuotationPayload } from "@/types/boq";
 
 export type ErpnextResourceRecord = Record<string, unknown>;
@@ -255,8 +256,8 @@ export function buildErpnextQuotationPayload(input: { partyName: string; company
 }
 
 export async function createErpnextBoqQuotation(payload: ErpnextQuotationPayload) {
-  const response = await request("POST", "/api/resource/Quotation", payload);
-  const created = record(response.data);
+  const createdResult = await erpNextCommercialService.createQuotation({ ...payload });
+  const created = createdResult.raw;
   const name = text(created.name);
   if (!name) throw new Error("ERPNext did not return a Quotation ID.");
   return { name, document: created };

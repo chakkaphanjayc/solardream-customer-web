@@ -8,7 +8,6 @@ import {
   Check,
   ChevronRight,
   ClipboardCheck,
-  Search,
   MapPin,
   PackageCheck,
   ShieldCheck,
@@ -23,23 +22,23 @@ import type { ServiceLocation } from "@/components/services/ServiceLocationPicke
 import TurnstileWrapper from "@/components/security/TurnstileWrapper";
 import MobileActionBar from "@/components/layout/MobileActionBar";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
-import TrackRequestModal from "@/components/tracking/TrackRequestModal";
 import ConfirmationDetailsCard from "@/components/feedback/ConfirmationDetailsCard";
 import { cn } from "@/lib/utils";
 import { trackProductEvent } from "@/lib/productAnalytics";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import Skeleton from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { PageShell } from "@/components/ui/page-shell";
 import { SoliaGuide } from "@/components/brand/solia-scenes";
+
+import ServiceMapLoadingPlaceholder from "@/components/services/ServiceMapLoadingPlaceholder";
 
 const ServiceLocationPicker = dynamic(
   () => import("@/components/services/ServiceLocationPicker"),
   {
     ssr: false,
-    loading: () => <Skeleton className="h-72 rounded-xl" />,
+    loading: () => <ServiceMapLoadingPlaceholder />,
   },
 );
 
@@ -935,7 +934,7 @@ export default function ServicesHubClient({
               !canProceedToDetails ? "service-cart-disabled-reason" : undefined
             }
             className={cn(
-              "mt-5 w-full rounded-full bg-[#B7D1EA] px-6 text-sm font-medium text-white shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/90 hover:shadow-md active:scale-95",
+              "mt-5 w-full rounded-full bg-[#B7D1EA] px-6 text-sm font-bold text-[var(--sd-ink)] shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/90 hover:shadow-md active:scale-95",
               !canProceedToDetails && "opacity-70",
             )}
           >
@@ -964,7 +963,7 @@ export default function ServicesHubClient({
             type="button"
             onClick={() => void confirm()}
             disabled={busy || !confirmTurnstileToken}
-            className="mt-5 w-full rounded-full bg-[#B7D1EA] px-6 text-sm font-medium text-white shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/90 hover:shadow-md active:scale-95"
+            className="mt-5 w-full rounded-full bg-[#B7D1EA] px-6 text-sm font-bold text-[var(--sd-ink)] shadow-sm transition-all duration-300 hover:bg-[#A5C2DE]/90 hover:shadow-md active:scale-95"
           >
             {busy ? "…" : c.confirm}
             <ChevronRight className="h-4 w-4" />
@@ -975,35 +974,25 @@ export default function ServicesHubClient({
   );
 
   return (
-    <PageShell className="bg-[#F0EEE9] pb-28 lg:pb-16">
-      <header className="border-b border-[#8E8B83]/15 bg-[#F0EEE9] px-4 py-10 text-[#1C1C1A] sm:py-12">
-        <div className="mx-auto max-w-7xl">
-          <div
-            className="mb-7 flex flex-col gap-3 rounded-[24px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"
-          >
-            <p className="flex items-center gap-2 text-sm font-medium text-[#1C1C1A]">
-              <Search className="h-4 w-4 text-[#4F7FA8]" />
-              {c.trackPrompt}
-            </p>
-            <TrackRequestModal
-              surface="services"
-              trigger={
-                <Button type="button" className="rounded-full bg-[#B7D1EA] text-white hover:bg-[#A5C2DE]/90 active:scale-95 text-sm font-medium shadow-sm">
-                  {c.trackAction}
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              }
-            />
+    <div id="booking-engine" className="bg-[var(--background)] pb-28 lg:pb-16 scroll-mt-20">
+      <div className="mx-auto max-w-7xl px-4 pt-10 sm:pt-12">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[var(--border)] pb-6">
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/30 px-3 py-1 text-xs font-black uppercase tracking-wider text-[var(--accent-foreground)]">
+              <Sparkles className="h-3.5 w-3.5 text-[var(--primary-foreground)]" aria-hidden="true" />
+              <span>{lang === "th" ? "ปรับแต่ง & ขอใบเสนอราคา" : "Interactive Quote Engine"}</span>
+            </span>
+            <h2 className="mt-2 text-2xl font-black tracking-tight text-[var(--sd-ink)] sm:text-3xl">
+              {lang === "th" ? "กำหนดรายละเอียดระบบและเลือกบริการ" : "Configure Your Solar System & Schedule Service"}
+            </h2>
           </div>
-          <p className="text-sm font-medium text-[#4F7FA8]">{c.eyebrow}</p>
-          <h1 className="mt-3 max-w-4xl text-3xl font-bold tracking-tight text-[#1C1C1A] sm:text-4xl">
-            {c.title}
-          </h1>
-          <p className="mt-4 max-w-2xl text-base font-normal leading-7 text-[#4E4B44]">
-            {c.intro}
+          <p className="max-w-md text-xs sm:text-sm font-medium text-[var(--sd-text-secondary)]">
+            {lang === "th"
+              ? "คำนวณราคาประเมินอัตโนมัติ พร้อมตรวจพิกัดและยืนยันการนัดหมาย"
+              : "Instant estimated pricing based on system size and service options."}
           </p>
         </div>
-      </header>
+      </div>
       <nav
         aria-label={lang === "th" ? "ขั้นตอนการจอง" : "Booking progress"}
         className="mx-auto flex max-w-7xl items-center gap-3 px-4 pt-8"
@@ -1021,7 +1010,7 @@ export default function ServicesHubClient({
                 className={cn(
                   "grid h-10 w-10 place-items-center rounded-full text-sm font-bold transition-colors",
                   active
-                    ? "bg-[#B7D1EA] text-white shadow-sm"
+                    ? "bg-[#B7D1EA] text-[#0B051D] font-bold shadow-sm"
                     : "bg-[#F7F6F3] text-[#4E4B44]",
                 )}
               >
@@ -1081,9 +1070,9 @@ export default function ServicesHubClient({
                       invalidate();
                     }}
                     className={cn(
-                      "w-full rounded-full py-2.5 px-4 text-xs font-medium transition-all duration-300",
+                      "min-h-11 w-full rounded-full py-2.5 px-4 text-xs font-medium transition-all duration-300",
                       source === "SOLARDREAM"
-                        ? "bg-[#B7D1EA] text-white shadow-sm"
+                        ? "bg-[#B7D1EA] text-[#0B051D] font-bold shadow-sm"
                         : "bg-transparent text-[#4E4B44] hover:bg-[#A5C2DE]/10",
                       (!isMember || !assets.length) && "opacity-50 cursor-not-allowed",
                     )}
@@ -1099,9 +1088,9 @@ export default function ServicesHubClient({
                       invalidate();
                     }}
                     className={cn(
-                      "w-full rounded-full py-2.5 px-4 text-xs font-medium transition-all duration-300",
+                      "min-h-11 w-full rounded-full py-2.5 px-4 text-xs font-medium transition-all duration-300",
                       source === "EXTERNAL"
-                        ? "bg-[#B7D1EA] text-white shadow-sm"
+                        ? "bg-[#B7D1EA] text-[#0B051D] font-bold shadow-sm"
                         : "bg-transparent text-[#4E4B44] hover:bg-[#A5C2DE]/10",
                     )}
                   >
@@ -1326,12 +1315,12 @@ export default function ServicesHubClient({
                                     className={cn(
                                       "grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-colors duration-200",
                                       active
-                                        ? "border-[#7CA8D0] bg-[#B7D1EA] text-white shadow-sm"
+                                        ? "border-[#7CA8D0] bg-[#B7D1EA] text-[#0B051D] shadow-sm font-bold"
                                         : "border-[#8E8B83]/40 bg-[#F0EEE9] text-transparent",
                                     )}
                                     aria-hidden="true"
                                   >
-                                    <Check className="h-3.5 w-3.5" />
+                                    <Check className="h-3.5 w-3.5 stroke-[3]" />
                                   </span>
                                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#DCE8F5] text-[#4F7FA8]">
                                     <Icon className="h-5 w-5" />
@@ -1591,6 +1580,7 @@ export default function ServicesHubClient({
       </div>
       {!isLargeViewport ? (
         <MobileActionBar
+          className="solar-service-booking-action-bar"
           label={c.total}
           value={
             selected.length ? (
@@ -1623,10 +1613,13 @@ export default function ServicesHubClient({
             (step === "REVIEW" && !confirmTurnstileToken)
           }
           data-incomplete={!canProceedToDetails}
-          buttonClassName={!canProceedToDetails ? "opacity-70" : undefined}
+          buttonClassName={cn(
+            "bg-[#B7D1EA] text-[var(--sd-ink)] font-bold hover:bg-[#A5C2DE]/90",
+            !canProceedToDetails && "opacity-70",
+          )}
         />
       ) : null}
-    </PageShell>
+    </div>
   );
 }
 

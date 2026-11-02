@@ -8,9 +8,16 @@ import {
 } from "@/db/schema";
 import type { PortalAccess } from "@/lib/portalAccess";
 import { loadInstallationSnapshot } from "@/lib/installationWorkflow";
+import { getCustomerQuotationReadModel } from "@/server/services/sales/quotation-read-model-service";
+import { listCustomerQuotationNegotiationEvents } from "@/server/services/sales/quotation-negotiation-service";
+import { getQuotationAcceptanceSummary } from "@/server/services/sales/quotation-acceptance-read-service";
+import {
+  hasPublishedCustomerQuotation,
+  redactUnpublishedCustomerProposal,
+} from "@/lib/proposalPortalExposure";
 
 export async function loadPortalSnapshot(access: PortalAccess) {
-  const [documentRequests, deliveryDocuments, billingRequests, installation] = await Promise.all([
+  const [documentRequests, deliveryDocuments, billingRequests, installation, quotationReadModel, negotiationEvents, acceptance] = await Promise.all([
     db.query.quotationDocumentRequests.findMany({
       where: eq(quotationDocumentRequests.quotationId, access.proposal.id),
       orderBy: [asc(quotationDocumentRequests.createdAt)],
@@ -40,11 +47,31 @@ export async function loadPortalSnapshot(access: PortalAccess) {
       mode: access.mode === "guest" ? "GUEST" : "MEMBER",
       role: "CUSTOMER",
     }),
+    getCustomerQuotationReadModel(access.proposal.id, access.proposal.revisionNumber),
+    listCustomerQuotationNegotiationEvents(access.proposal.id),
+    getQuotationAcceptanceSummary(access.proposal.id),
   ]);
+  const isQuotationPublished = hasPublishedCustomerQuotation({
+    status: access.proposal.status,
+    dispatchStatus: access.proposal.dispatchStatus,
+    hasPublishedReadModel: Boolean(quotationReadModel),
+    hasAcceptance: Boolean(acceptance),
+  });
+  const proposal = isQuotationPublished
+    ? access.proposal
+    : redactUnpublishedCustomerProposal(access.proposal);
+  const customerQuotationReadModel = isQuotationPublished ? quotationReadModel : null;
+  const customerDeliveryDocuments = isQuotationPublished
+    ? deliveryDocuments
+    : deliveryDocuments.filter((document) => document.deliveryType !== "FINAL_QUOTATION");
+
   return {
-    proposal: access.proposal,
+    proposal,
+    acceptance,
+    quotationReadModel: customerQuotationReadModel,
+    negotiationEvents,
     documentRequests,
-    deliveryDocuments,
+    deliveryDocuments: customerDeliveryDocuments,
     paymentRequests: billingRequests,
     installation,
     accessMode: access.mode,

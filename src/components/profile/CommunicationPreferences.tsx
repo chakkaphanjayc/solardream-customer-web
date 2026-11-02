@@ -50,6 +50,8 @@ export default function CommunicationPreferences() {
   const t = useTranslations("ProfileLayout.communication");
   const [preferences, setPreferences] = useState<Preferences | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<CommunicationPreferenceKey | null>(null);
   const requestSequence = useRef(0);
   const patchController = useRef<AbortController | null>(null);
@@ -57,6 +59,7 @@ export default function CommunicationPreferences() {
 
   useEffect(() => {
     const controller = new AbortController();
+
     const loadPreferences = async () => {
       try {
         const response = await fetch("/api/users/preferences", {
@@ -68,9 +71,10 @@ export default function CommunicationPreferences() {
           throw new Error(payload?.error || t("loadError"));
         }
         setPreferences(payload.preferences);
-      } catch (error) {
+        setLoadError(null);
+      } catch (error: unknown) {
         if (!controller.signal.aborted) {
-          toast.error(error instanceof Error ? error.message : t("loadError"));
+          setLoadError(error instanceof Error ? error.message : t("loadError"));
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -79,7 +83,14 @@ export default function CommunicationPreferences() {
 
     void loadPreferences();
     return () => controller.abort();
-  }, [t]);
+  }, [loadAttempt, t]);
+
+  const retryPreferenceLoad = () => {
+    if (loading) return;
+    setLoading(true);
+    setLoadError(null);
+    setLoadAttempt((attempt) => attempt + 1);
+  };
 
   useEffect(() => () => {
     requestSequence.current += 1;
@@ -158,32 +169,56 @@ export default function CommunicationPreferences() {
           suffix={<LockKeyhole className="h-4 w-4 text-slate-500" aria-hidden="true" />}
           switchControl={<PreferenceSwitch checked disabled label={t("systemUpdates.title")} />}
         />
-        <PreferenceRow
-          title={t("news.title")}
-          description={t("news.description")}
-          switchControl={(
-            <PreferenceSwitch
-              checked={preferences?.news ?? false}
-              disabled={loading || busyKey !== null || !preferences}
-              busy={busyKey === "news"}
-              label={t("news.title")}
-              onToggle={() => void updatePreference("news")}
+        {loading ? (
+          <p className="py-5 text-sm text-muted-foreground" role="status" aria-live="polite" aria-atomic="true">
+            {t("loading")}
+          </p>
+        ) : loadError || !preferences ? (
+          <div className="flex flex-col items-start gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm leading-6 text-amber-950" role="alert" aria-live="assertive">
+              {loadError || t("loadError")}
+            </p>
+            <button
+              type="button"
+              onClick={retryPreferenceLoad}
+              className={cn(
+                "solar-route-secondary inline-flex min-h-11 shrink-0 items-center justify-center px-4 text-sm font-semibold",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--solar-route-accent-strong)]",
+              )}
+            >
+              {t("retry")}
+            </button>
+          </div>
+        ) : (
+          <>
+            <PreferenceRow
+              title={t("news.title")}
+              description={t("news.description")}
+              switchControl={(
+                <PreferenceSwitch
+                  checked={preferences.news}
+                  disabled={busyKey !== null}
+                  busy={busyKey === "news"}
+                  label={t("news.title")}
+                  onToggle={() => void updatePreference("news")}
+                />
+              )}
             />
-          )}
-        />
-        <PreferenceRow
-          title={t("promotions.title")}
-          description={t("promotions.description")}
-          switchControl={(
-            <PreferenceSwitch
-              checked={preferences?.promotions ?? false}
-              disabled={loading || busyKey !== null || !preferences}
-              busy={busyKey === "promotions"}
-              label={t("promotions.title")}
-              onToggle={() => void updatePreference("promotions")}
+            <PreferenceRow
+              title={t("promotions.title")}
+              description={t("promotions.description")}
+              switchControl={(
+                <PreferenceSwitch
+                  checked={preferences.promotions}
+                  disabled={busyKey !== null}
+                  busy={busyKey === "promotions"}
+                  label={t("promotions.title")}
+                  onToggle={() => void updatePreference("promotions")}
+                />
+              )}
             />
-          )}
-        />
+          </>
+        )}
       </div>
     </section>
   );

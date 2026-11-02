@@ -99,8 +99,13 @@ export async function POST(request: NextRequest) {
     await db
       .update(proposals)
       .set({
-        status: "AWAITING_CLIENT_SIGNATURE",
-        signedDocumentDriveUrl: pdfUrl,
+        status: activeProposal.dispatchStatus === "PENDING_DISPATCH"
+          ? "DRAFT"
+          : activeProposal.status,
+        dispatchStatus: activeProposal.dispatchStatus,
+        pdfUrl,
+        revisedPdfUrl: pdfUrl,
+        signedDocumentDriveUrl: null,
         erpnextQuotationId: erpnextQuotationId,
         updatedAt: new Date(),
       })
@@ -110,7 +115,9 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Quotation synchronized and customer portal access prepared.",
       proposalId,
-      status: "AWAITING_CLIENT_SIGNATURE",
+      status: activeProposal.dispatchStatus === "PENDING_DISPATCH"
+        ? "DRAFT"
+        : activeProposal.status,
       erpnextQuotationId,
       portalUrl: `/th/portal/${encodeURIComponent(proposalId)}`,
     });

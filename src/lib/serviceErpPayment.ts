@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { proposals, serviceOfferings, serviceOrderItems, serviceOrderPayments, serviceOrders, serviceRequests } from "@/db/schema";
 import { createErpnextCustomerIdempotently, frappeRequest } from "@/lib/erpnext";
+import { erpNextCommercialService } from "@/server/services/integrations/erpnext-commercial-service";
 import { createAdminClient } from "@/utils/supabase/server";
 import { serviceInvoiceItemsMatch } from "@/lib/servicePricing";
 import { deriveServiceTrackingReference } from "@/lib/trackingReference";
@@ -242,15 +243,15 @@ export async function syncRequestedServiceQuote(orderId: string) {
     };
     const requestTypeField = process.env.ERPNEXT_QUOTATION_REQUEST_TYPE_FIELD?.trim();
     if (requestTypeField && /^[a-z][a-z0-9_]*$/.test(requestTypeField)) quotationData[requestTypeField] = "Service";
-    let created;
-    try { created = await frappeRequest("POST", "/api/resource/Quotation", { data: quotationData }); }
+    let created: Awaited<ReturnType<typeof erpNextCommercialService.createQuotation>>;
+    try { created = await erpNextCommercialService.createQuotation(quotationData); }
     catch (error) {
       const missingCustomField = requestTypeField && error instanceof Error && /unknown column|unknown field|field .* not found|does not exist/i.test(error.message);
       if (!missingCustomField) throw error;
       delete quotationData[requestTypeField];
-      created = await frappeRequest("POST", "/api/resource/Quotation", { data: quotationData });
+      created = await erpNextCommercialService.createQuotation(quotationData);
     }
-    quotationId = nameFrom(created.data);
+    quotationId = text(created.providerId) || text(created.raw.name) || nameFrom(created.raw);
   }
   if (!quotationId) throw new Error("ERPNext did not return the service Quotation ID.");
   const publicReference = servicePublicReference(order);

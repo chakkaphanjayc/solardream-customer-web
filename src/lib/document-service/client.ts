@@ -4,6 +4,7 @@ import { createHash, createHmac } from "node:crypto";
 import { PDFDocument } from "pdf-lib";
 import { z } from "zod";
 
+import { verifiedPdfSha256 } from "@/lib/document-service/document-hash";
 import { findAnchorCoordinates, type PdfAnchorCoordinates } from "@/lib/pdf-signer";
 
 const documentResponseSchema = z.object({
@@ -374,7 +375,7 @@ export async function signQuotationWithDocumentService(input: {
     }),
   });
   const finalPdf = await requestPdf(config, `/v1/documents/${encodeURIComponent(signed.id)}/download`, input.actorId);
-  const finalHash = signed.currentVersion.finalSignedPdfHash || sha256Hex(finalPdf);
+  const finalHash = verifiedPdfSha256(finalPdf, signed.currentVersion.finalSignedPdfHash);
   return {
     document: signed,
     finalPdf,

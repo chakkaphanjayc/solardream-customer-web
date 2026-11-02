@@ -2,17 +2,19 @@
 
 import { DollarSign, Zap, TrendingUp, Calendar, CreditCard, Sparkles } from "@/components/ui/icons";
 import { formatPrice } from "@/lib/utils";
-import type { ClientProposal } from "@/types/proposals";
+import type { ClientProposal, ProposalQuotationReadModelDto } from "@/types/proposals";
 import { useTranslations } from "next-intl";
 
 interface ProposalFinancialsCardProps {
   proposal: ClientProposal;
+  quotation?: ProposalQuotationReadModelDto | null;
 }
 
-export function ProposalFinancialsCard({ proposal }: ProposalFinancialsCardProps) {
+export function ProposalFinancialsCard({ proposal, quotation = null }: ProposalFinancialsCardProps) {
   const t = useTranslations("ProposalFinancials");
   const financing = proposal.selectedFinancing;
-  const hasPrice = Number.isFinite(proposal.totalPrice) && proposal.totalPrice > 0;
+  const quotationTotal = quotation ? Number(quotation.grandTotal) : proposal.totalPrice;
+  const hasPrice = Number.isFinite(quotationTotal) && quotationTotal > 0;
   const hasSystemSize = Number.isFinite(proposal.systemSizeKwp) && proposal.systemSizeKwp > 0;
   const hasMonthlySavings = Number.isFinite(proposal.monthlySavings) && proposal.monthlySavings > 0;
   const hasPanelCount = Number.isFinite(proposal.panelCount) && proposal.panelCount > 0;
@@ -40,7 +42,7 @@ export function ProposalFinancialsCard({ proposal }: ProposalFinancialsCardProps
       <div className="solar-soft-panel space-y-1 p-5">
         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--sd-muted)]">{t("totalInvestment")}</span>
         <div className="text-3xl font-bold tracking-tight text-[var(--sd-ink)]">
-          {hasPrice ? formatPrice(proposal.totalPrice) : t("pricingPending")}
+          {hasPrice ? formatPrice(quotationTotal) : t("pricingPending")}
         </div>
         <p className="pt-1 text-xs font-medium leading-5 text-[var(--sd-muted)]">
           {hasPrice ? t("included") : t("pricingPendingDescription")}

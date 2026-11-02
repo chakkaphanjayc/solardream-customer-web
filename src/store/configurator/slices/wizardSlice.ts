@@ -1,5 +1,6 @@
 import type {
   ConfiguratorSliceCreator,
+  WizardAnswerMap,
   WizardAnswerValue,
   WizardSlice,
 } from "../types";
@@ -15,6 +16,16 @@ export const createWizardSlice: ConfiguratorSliceCreator<WizardSlice> = (
         ...state.wizardAnswers,
         [key]: value,
       },
+    })),
+
+  setWizardAnswers: (answers: WizardAnswerMap) =>
+    set(() => ({
+      wizardAnswers: { ...answers },
+    })),
+
+  resetWizardState: () =>
+    set(() => ({
+      wizardAnswers: {},
     })),
 
   applyWizardToVisualizer: () =>

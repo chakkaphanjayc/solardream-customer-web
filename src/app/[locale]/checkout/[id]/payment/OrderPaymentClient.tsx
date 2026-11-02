@@ -159,6 +159,10 @@ export default function OrderPaymentClient({
   const [paymentVerificationState, setPaymentVerificationState] = useState<
     "IDLE" | "VALIDATING" | "LEDGER" | "SUCCESS"
   >("IDLE");
+  const [paymentAnnouncement, setPaymentAnnouncement] = useState<{
+    message: string;
+    kind: "status" | "error";
+  }>({ message: "", kind: "status" });
 
   // SUPPLY_ONLY timer soft-lock (30 minutes in seconds)
   const isSupplyOnly = fulfillmentType === "SUPPLY_ONLY";
@@ -263,9 +267,10 @@ export default function OrderPaymentClient({
     if (paymentVerificationState === "SUCCESS") return;
 
     setPaymentVerificationState("SUCCESS");
+    setPaymentAnnouncement({ message: t("successTitle"), kind: "status" });
     setIsUploading(false);
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!reducedMotion) {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!prefersReducedMotion) {
       void confetti({
         particleCount: 120,
         spread: 72,
@@ -274,11 +279,7 @@ export default function OrderPaymentClient({
         disableForReducedMotion: true,
       });
     }
-
-    window.setTimeout(() => {
-      router.push(`/${locale}/proposals?activeId=${encodeURIComponent(orderId)}`);
-    }, reducedMotion ? 350 : 1700);
-  }, [locale, orderId, paymentVerificationState, router]);
+  }, [paymentVerificationState, t]);
 
   const pollPaymentRequestNow = async () => {
     if (!activePaymentRequest) return false;
@@ -310,11 +311,11 @@ export default function OrderPaymentClient({
       if (Date.now() - startedAt >= timeoutMs) {
         setPaymentVerificationState("IDLE");
         setIsUploading(false);
-        toast.error(
-          locale === "th"
-            ? "การยืนยันใช้เวลานานกว่าปกติ กรุณาตรวจสอบสถานะอีกครั้ง"
-            : "Verification is taking longer than expected. Please check the status again."
-        );
+        const message = locale === "th"
+          ? "การยืนยันใช้เวลานานกว่าปกติ กรุณาตรวจสอบสถานะอีกครั้ง"
+          : "Verification is taking longer than expected. Please check the status again.";
+        setPaymentAnnouncement({ message, kind: "error" });
+        toast.error(message);
       }
     };
 
@@ -406,24 +407,25 @@ export default function OrderPaymentClient({
   // Verification slip upload
   const handleVerifyPayment = async () => {
     if (!activePaymentRequest && !activeMilestone) {
-      toast.error(
-        locale === "th" 
-          ? "ไม่พบงวดการชำระเงินที่ต้องชำระในขณะนี้" 
-          : "No active payment milestone found."
-      );
+      const message = locale === "th"
+        ? "ไม่พบงวดการชำระเงินที่ต้องชำระในขณะนี้"
+        : "No active payment milestone found.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       return;
     }
     if (!file) {
-      toast.error(
-        locale === "th" 
-          ? "กรุณาอัปโหลดหลักฐานการชำระเงิน (สลิปธนาคาร)" 
-          : "Please upload your payment slip."
-      );
+      const message = locale === "th"
+        ? "กรุณาอัปโหลดหลักฐานการชำระเงิน (สลิปธนาคาร)"
+        : "Please upload your payment slip.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       return;
     }
 
     setIsUploading(true);
     setPaymentVerificationState("VALIDATING");
+    setPaymentAnnouncement({ message: t("validatingSlip"), kind: "status" });
     try {
       const formData = new FormData();
       formData.set("file", file, file.name);
@@ -450,19 +452,20 @@ export default function OrderPaymentClient({
           throw new Error(result.error || "Payment verification failed.");
         }
         setPaymentVerificationState("LEDGER");
+        setPaymentAnnouncement({ message: t("updatingLedger"), kind: "status" });
         await new Promise<void>((resolve) => window.setTimeout(resolve, 450));
         handlePaymentConfirmed();
       }
     } catch (error: unknown) {
       setPaymentVerificationState("IDLE");
       setIsUploading(false);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : locale === "th"
-            ? "เกิดข้อผิดพลาดในการตรวจสอบการชำระเงิน"
-            : "Payment verification failed.",
-      );
+      const message = error instanceof Error
+        ? error.message
+        : locale === "th"
+          ? "เกิดข้อผิดพลาดในการตรวจสอบการชำระเงิน"
+          : "Payment verification failed.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
     }
   };
 
@@ -508,23 +511,40 @@ export default function OrderPaymentClient({
   // Submit the contract signature and details
   const handleSubmitContract = async () => {
     if (!mapLatitude || !mapLongitude || !mapAddress) {
-      toast.error("กรุณาปักหมุดพิกัดตำแหน่งติดตั้งบนแผนที่ให้เรียบร้อย");
+      const message = locale === "th"
+        ? "กรุณาปักหมุดพิกัดตำแหน่งติดตั้งบนแผนที่ให้เรียบร้อย"
+        : "Choose the installation location on the map before continuing.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       return;
     }
     if (!sigCanvasRef.current || sigCanvasRef.current.isEmpty()) {
-      toast.error("กรุณาเซ็นชื่อรับรองสัญญาในกรอบลายมือชื่อ");
+      const message = locale === "th"
+        ? "กรุณาเซ็นชื่อรับรองสัญญาในกรอบลายมือชื่อ"
+        : "Sign the contract in the signature area before continuing.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       return;
     }
     if (!idCardFile && !idCardPreview) {
-      toast.error("กรุณาอัปโหลดสำเนาบัตรประชาชน");
+      const message = locale === "th"
+        ? "กรุณาอัปโหลดสำเนาบัตรประชาชน"
+        : "Upload a copy of your national ID card before continuing.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       return;
     }
     if (!billFile && !billPreview) {
-      toast.error("กรุณาอัปโหลดบิลค่าไฟ");
+      const message = locale === "th"
+        ? "กรุณาอัปโหลดบิลค่าไฟ"
+        : "Upload an electricity bill before continuing.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       return;
     }
 
     setIsUploading(true);
+    setPaymentAnnouncement({ message: t("processingSignature"), kind: "status" });
     try {
       // 1. Upload ID card
       let idCardUrl = idCardPreview || "";
@@ -564,19 +584,37 @@ export default function OrderPaymentClient({
           );
 
           if (res.success) {
-            toast.success("อนุมัติสัญญาและยืนยันข้อมูลจัดจ้างเสร็จสิ้น");
+            const message = t("contractSuccessAnnouncement");
+            setPaymentAnnouncement({ message, kind: "status" });
+            toast.success(message);
             router.refresh();
           } else {
-            toast.error(res.error || "เกิดข้อผิดพลาดในการลงนามสัญญา");
+            const message = res.error || (locale === "th"
+              ? "เกิดข้อผิดพลาดในการลงนามสัญญา"
+              : "There was a problem signing the contract.");
+            setPaymentAnnouncement({ message, kind: "error" });
+            toast.error(message);
             setIsUploading(false);
           }
         } catch (err: unknown) {
-          toast.error(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการเรียกเซิร์ฟเวอร์");
+          const message = err instanceof Error
+            ? err.message
+            : locale === "th"
+              ? "เกิดข้อผิดพลาดในการเรียกเซิร์ฟเวอร์"
+              : "The server could not process the contract.";
+          setPaymentAnnouncement({ message, kind: "error" });
+          toast.error(message);
           setIsUploading(false);
         }
       });
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการประมวลผลเอกสาร");
+      const message = err instanceof Error
+        ? err.message
+        : locale === "th"
+          ? "เกิดข้อผิดพลาดในการประมวลผลเอกสาร"
+          : "The contract documents could not be processed.";
+      setPaymentAnnouncement({ message, kind: "error" });
+      toast.error(message);
       setIsUploading(false);
     }
   };
@@ -613,7 +651,15 @@ export default function OrderPaymentClient({
 
   return (
     <GsapReveal className="space-y-8 font-sans">
-      
+      <p
+        className="sr-only"
+        role={paymentAnnouncement.kind === "error" ? "alert" : "status"}
+        aria-live={paymentAnnouncement.kind === "error" ? "assertive" : "polite"}
+        aria-atomic="true"
+      >
+        {paymentAnnouncement.message}
+      </p>
+
       {/* Full screen transaction loading blocking state */}
       {(isPending || isUploading || paymentVerificationState === "VALIDATING" || paymentVerificationState === "LEDGER") && (
         <GsapReveal className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex flex-col items-center justify-center z-50">
@@ -635,15 +681,22 @@ export default function OrderPaymentClient({
       {paymentVerificationState === "SUCCESS" && (
           <GsapSuccessOverlay>
             <div className="max-w-md text-center">
-              <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+              <span aria-hidden="true" className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                 <CheckCircle2 className="h-10 w-10" />
               </span>
-              <h2 className="mt-5 text-3xl font-black text-slate-950">
+              <h2 id="payment-success-title" className="mt-5 text-3xl font-black text-slate-950">
                 {t("successTitle")}
               </h2>
               <p className="mt-2 text-sm font-medium leading-6 text-slate-600">
                 {t("successDescription")}
               </p>
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/proposals?activeId=${encodeURIComponent(orderId)}`)}
+                className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-[#B7D1EA] px-6 py-3 text-sm font-bold text-[#0F172A] transition hover:bg-[#A5C2DE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A] focus-visible:ring-offset-2"
+              >
+                {t("continueToProposals")}
+              </button>
             </div>
           </GsapSuccessOverlay>
         )}
@@ -764,7 +817,7 @@ export default function OrderPaymentClient({
                           : "border-slate-300 hover:border-[#B7D1EA] bg-white hover:bg-slate-50/50"
                       }`}
                     >
-                      <label className="flex flex-col items-center justify-center w-full h-full text-center px-4 cursor-pointer focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0F172A] focus-within:ring-offset-2">
+                      <label className="flex flex-col items-center justify-center w-full h-full text-center px-4 cursor-pointer focus-within:ring-2 focus-within:ring-[#2C486A] focus-within:ring-offset-2">
                         <Upload className={`w-10 h-10 mb-3 transition-colors ${dragActive ? "text-[#2C486A]" : "text-slate-400"}`} />
                         <p className="text-xs font-black text-slate-800 uppercase tracking-wider">
                           ลากไฟล์สลิปมาวาง หรือ คลิกเพื่ออัปโหลด
@@ -908,7 +961,7 @@ export default function OrderPaymentClient({
                           : "border-slate-300 hover:border-[#B7D1EA] bg-white hover:bg-slate-50/50"
                       }`}
                     >
-                      <label className="flex flex-col items-center justify-center w-full h-full text-center px-4 cursor-pointer focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0F172A] focus-within:ring-offset-2">
+                      <label className="flex flex-col items-center justify-center w-full h-full text-center px-4 cursor-pointer focus-within:ring-2 focus-within:ring-[#2C486A] focus-within:ring-offset-2">
                         <Upload className={`w-10 h-10 mb-3 transition-colors ${dragActive ? "text-[#2C486A]" : "text-slate-400"}`} />
                         <p className="text-xs font-black text-slate-800 uppercase tracking-wider">
                           ลากไฟล์สลิปมาวาง หรือ คลิกเพื่ออัปโหลด
@@ -1196,7 +1249,7 @@ export default function OrderPaymentClient({
                     
                     {!idCardPreview ? (
                       <div className="relative flex flex-col items-center justify-center w-full min-h-[140px] border-2 border-dashed border-slate-300 hover:border-[#B7D1EA] bg-slate-50/30 rounded-2xl cursor-pointer transition-colors p-4">
-                        <label className="flex flex-col items-center justify-center w-full h-full text-center cursor-pointer">
+                        <label className="flex flex-col items-center justify-center w-full h-full text-center cursor-pointer focus-within:ring-2 focus-within:ring-[#2C486A] focus-within:ring-offset-2">
                           <Upload className="w-8 h-8 text-slate-400 mb-2" />
                           <span className="text-xs font-bold text-slate-800">คลิกเพื่ออัปโหลดสำเนาบัตรประชาชน</span>
                           <span className="text-[9px] text-slate-450 mt-1 uppercase font-bold tracking-wider">JPG, PNG, WEBP (ไม่เกิน 5MB)</span>
@@ -1204,7 +1257,7 @@ export default function OrderPaymentClient({
                             type="file"
                             accept="image/jpeg, image/png, image/webp"
                             onChange={(e) => handleDocUpload("idcard", e)}
-                            className="hidden"
+                            className="sr-only"
                           />
                         </label>
                       </div>
@@ -1237,7 +1290,7 @@ export default function OrderPaymentClient({
                     
                     {!billPreview ? (
                       <div className="relative flex flex-col items-center justify-center w-full min-h-[140px] border-2 border-dashed border-slate-300 hover:border-[#B7D1EA] bg-slate-50/30 rounded-2xl cursor-pointer transition-colors p-4">
-                        <label className="flex flex-col items-center justify-center w-full h-full text-center cursor-pointer">
+                        <label className="flex flex-col items-center justify-center w-full h-full text-center cursor-pointer focus-within:ring-2 focus-within:ring-[#2C486A] focus-within:ring-offset-2">
                           <Upload className="w-8 h-8 text-slate-400 mb-2" />
                           <span className="text-xs font-bold text-slate-800">คลิกเพื่ออัปโหลดบิลค่าไฟ</span>
                           <span className="text-[9px] text-slate-450 mt-1 uppercase font-bold tracking-wider">JPG, PNG, WEBP (ไม่เกิน 5MB)</span>
@@ -1245,7 +1298,7 @@ export default function OrderPaymentClient({
                             type="file"
                             accept="image/jpeg, image/png, image/webp"
                             onChange={(e) => handleDocUpload("bill", e)}
-                            className="hidden"
+                            className="sr-only"
                           />
                         </label>
                       </div>
@@ -1432,7 +1485,7 @@ export default function OrderPaymentClient({
                                       : "border-slate-300 hover:border-[#B7D1EA] bg-white hover:bg-slate-50/50"
                                   }`}
                                 >
-                                  <label className="flex flex-col items-center justify-center w-full h-full text-center px-4 cursor-pointer focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0F172A] focus-within:ring-offset-2">
+                                  <label className="flex flex-col items-center justify-center w-full h-full text-center px-4 cursor-pointer focus-within:ring-2 focus-within:ring-[#2C486A] focus-within:ring-offset-2">
                                     <Upload className={`w-10 h-10 mb-3 transition-colors ${dragActive ? "text-[#2C486A]" : "text-slate-400"}`} />
                                     <p className="text-xs font-black text-slate-800 uppercase tracking-wider">
                                       ลากไฟล์สลิปมาวาง หรือ คลิกเพื่ออัปโหลด
@@ -1572,9 +1625,42 @@ function GsapSuccessOverlay({ children }: { children: ReactNode }) {
     return () => context.revert();
   }, []);
 
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+
+    const focusableElements = Array.from(
+      overlay.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    );
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+    firstFocusable?.focus();
+
+    const handleTabKey = (event: KeyboardEvent) => {
+      if (event.key !== "Tab" || !firstFocusable || !lastFocusable) return;
+
+      if (!overlay.contains(document.activeElement) || (event.shiftKey && document.activeElement === firstFocusable)) {
+        event.preventDefault();
+        lastFocusable.focus();
+      } else if (!event.shiftKey && document.activeElement === lastFocusable) {
+        event.preventDefault();
+        firstFocusable.focus();
+      }
+    };
+
+    overlay.addEventListener("keydown", handleTabKey);
+    return () => overlay.removeEventListener("keydown", handleTabKey);
+  }, []);
+
   return (
     <div
       ref={overlayRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="payment-success-title"
+      tabIndex={-1}
       className="fixed inset-0 z-[60] flex items-center justify-center bg-[#F5F2EB] px-6"
     >
       {children}

@@ -164,6 +164,12 @@ export async function POST(request: NextRequest) {
       where: eq(proposals.erpnextQuotationId, payload.quotation_id),
     });
 
+    const existingLifecycle = existingProposal?.dispatchStatus !== "PENDING_DISPATCH"
+      ? existingProposal
+      : null;
+    const syncedStatus = existingLifecycle?.status || "DRAFT";
+    const syncedDispatchStatus = existingLifecycle?.dispatchStatus || "PENDING_DISPATCH";
+
     const existingConfig = asRecord(existingProposal?.configurationData);
 
     if (existingProposal?.dispatchStatus === "DISPATCHED") {
@@ -203,7 +209,7 @@ export async function POST(request: NextRequest) {
       },
       dispatch: {
         ...asRecord(existingConfig.dispatch),
-        status: "AWAITING_CLIENT_SIGNATURE",
+        status: syncedStatus,
         erpnextSubmittedAt: now.toISOString(),
         staffContact,
       },
@@ -219,8 +225,8 @@ export async function POST(request: NextRequest) {
         totalPrice: payload.grand_total,
         monthlySavings: existingProposal?.monthlySavings ?? 0,
         paybackPeriod: existingProposal?.paybackPeriod || "Pending consultant confirmation",
-        status: "AWAITING_CLIENT_SIGNATURE",
-        dispatchStatus: "DISPATCHED",
+        status: syncedStatus,
+        dispatchStatus: syncedDispatchStatus,
         configurationData,
         erpnextQuotationId: payload.quotation_id,
         fulfillmentType: existingProposal?.fulfillmentType || "INSTALLATION",
@@ -230,8 +236,8 @@ export async function POST(request: NextRequest) {
         set: {
           userId: customer.id,
           totalPrice: payload.grand_total,
-          status: "AWAITING_CLIENT_SIGNATURE",
-          dispatchStatus: "DISPATCHED",
+          status: syncedStatus,
+          dispatchStatus: syncedDispatchStatus,
           configurationData,
           updatedAt: now,
         },

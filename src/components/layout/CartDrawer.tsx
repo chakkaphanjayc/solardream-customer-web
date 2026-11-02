@@ -172,7 +172,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     <button
                       type="button"
                       onClick={handleRemoveUnavailable}
-                      className="inline-flex min-h-9 items-center gap-2 rounded-full border border-amber-300 bg-[#F0EEE9] px-3.5 py-1.5 text-xs font-bold text-amber-900 transition-colors hover:bg-amber-100/60 active:scale-95"
+                      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-300 bg-[#F0EEE9] px-3.5 py-1.5 text-xs font-bold text-amber-900 transition-colors hover:bg-amber-100/60 active:scale-95"
                     >
                       <Trash2 className="size-3.5" />
                       {t("unavailable.deleteAction")}
@@ -312,7 +312,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         onClick={() => removeItem(item.product.id)}
                         data-analytics-event="cart_updated"
                         data-analytics-change-type="remove"
-                        className="flex size-9 shrink-0 items-center justify-center rounded-full text-[#4E4B44] transition-colors hover:bg-rose-50 hover:text-rose-600 active:scale-95"
+                        className="flex size-11 shrink-0 items-center justify-center rounded-full text-[#4E4B44] transition-colors hover:bg-rose-50 hover:text-rose-600 active:scale-95"
                         aria-label={t("item.removeAriaLabel")}
                       >
                         <Trash2 className="size-4" />

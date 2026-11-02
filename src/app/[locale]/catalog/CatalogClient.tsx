@@ -2,15 +2,21 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import {
   ArrowRight,
+  ArrowUp,
+  Award,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Circle,
+  Clock,
   Dot,
   PackageOpen,
-  ArrowUp,
+  ShieldCheck,
+  Zap,
 } from "@/components/ui/icons";
 import { formatPrice } from "@/lib/utils";
 import { getInfiniteProducts } from "@/app/actions/product";
@@ -265,7 +271,7 @@ function ProductImageGallery({
             <button
               type="button"
               onClick={() => onChangeIndex((activeIndex - 1 + media.length) % media.length)}
-              className="absolute left-3 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#8E8B83]/30 bg-[#F0EEE9]/90 text-[#1C1C1A] shadow-sm backdrop-blur transition hover:bg-[#DCE8F5] active:scale-95"
+              className="absolute left-3 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#8E8B83]/30 bg-[#F0EEE9]/90 text-[#1C1C1A] shadow-sm backdrop-blur transition hover:bg-[#DCE8F5] active:scale-95"
               aria-label={t("detail.previousImage")}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -273,7 +279,7 @@ function ProductImageGallery({
             <button
               type="button"
               onClick={() => onChangeIndex((activeIndex + 1) % media.length)}
-              className="absolute right-3 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#8E8B83]/30 bg-[#F0EEE9]/90 text-[#1C1C1A] shadow-sm backdrop-blur transition hover:bg-[#DCE8F5] active:scale-95"
+              className="absolute right-3 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#8E8B83]/30 bg-[#F0EEE9]/90 text-[#1C1C1A] shadow-sm backdrop-blur transition hover:bg-[#DCE8F5] active:scale-95"
               aria-label={t("detail.nextImage")}
             >
               <ChevronRight className="h-4 w-4" />
@@ -333,7 +339,7 @@ function ProductDetailDialog({
   onImageError: (url: string) => void;
   imageError: Record<string, boolean>;
 }) {
-  const t = useTranslations("CatalogFilters");
+  const t = useTranslations("CatalogPage");
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (!product) return null;
@@ -496,6 +502,8 @@ export default function CatalogClient({
   initialBundles,
 }: CatalogClientProps) {
   const t = useTranslations("CatalogPage");
+  const router = useRouter();
+  const locale = useLocale();
 
   const [products, setProducts] = useState<CatalogProduct[]>(initialProducts);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -505,6 +513,9 @@ export default function CatalogClient({
   const [passedMilestones, setPassedMilestones] = useState<{ id: string; name: string }[]>([]);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
   const [imageError, setImageError] = useState<Record<string, boolean>>({});
+  const [compareProducts, setCompareProducts] = useState<CatalogProduct[]>([]);
+  const [compareDialogOpen, setCompareDialogOpen] = useState(false);
+  const [compareLimitProductId, setCompareLimitProductId] = useState<string | null>(null);
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
@@ -671,6 +682,7 @@ export default function CatalogClient({
 
     products.forEach((product, index) => {
       const cat = product.category;
+      const productName = generatePublicProductName(product);
 
       if (!categoryId && cat.id !== lastCategoryId) {
         lastCategoryId = cat.id;
@@ -774,20 +786,48 @@ export default function CatalogClient({
 
                 {/* 2. Product Name — line-clamped to prevent height misalignment */}
                 <h2 className={[titleClass, "mb-0.5 min-h-[24px] truncate"].join(" ")}>
-                  {generatePublicProductName(product)}
+                  {productName}
                 </h2>
                 <div className="text-[10px] text-[#4E4B44] font-mono mb-2">
                   SKU: {product.erpnextItemCode || product.id}
                 </div>
 
-                {/* 3. Stock Status + Sale status pill */}
+                {/* 3. Specs & Trust Badges + Semantic Stock Status */}
                 <div className="flex flex-wrap items-center gap-1.5 mb-3">
-                  <Badge
-                    variant={product.stock > 0 ? "success" : "warning"}
-                    className="px-2.5 py-0.5 text-[10px] font-bold"
-                  >
-                    {product.stock > 0 ? t("detail.inStock") : t("detail.limited")}
-                  </Badge>
+                  {/* Wattage Capacity Badge in --primary + --accent-foreground */}
+                  {product.wattageCapacity ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#B7D1EA] px-2.5 py-0.5 text-[10px] font-bold text-[#3c567a]">
+                      <Zap className="h-3 w-3 text-[#3c567a]" aria-hidden="true" />
+                      {product.wattageCapacity}W
+                    </span>
+                  ) : null}
+
+                  {/* Tier-1 / Best Value Badge */}
+                  {product.recommendTier ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-[#5089bf]/30 bg-[#B7D1EA]/25 px-2.5 py-0.5 text-[10px] font-bold text-[#3c567a]">
+                      <ShieldCheck className="h-3 w-3 text-[#5089bf]" aria-hidden="true" />
+                      {product.recommendTier}
+                    </span>
+                  ) : isRecommended ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-[#5089bf]/30 bg-[#B7D1EA]/25 px-2.5 py-0.5 text-[10px] font-bold text-[#3c567a]">
+                      <Award className="h-3 w-3 text-[#5089bf]" aria-hidden="true" />
+                      {t("tier1Badge")}
+                    </span>
+                  ) : null}
+
+                  {/* Semantic Stock Status Pill pairing color + icon + text label */}
+                  {product.stock > 0 ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#C4EED0] px-2.5 py-0.5 text-[10px] font-bold text-[#07522C]">
+                      <CheckCircle2 className="h-3 w-3 text-[#07522C]" aria-hidden="true" />
+                      {t("detail.inStock")}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#FFE2A4] px-2.5 py-0.5 text-[10px] font-bold text-[#633B00]">
+                      <Clock className="h-3 w-3 text-[#633B00]" aria-hidden="true" />
+                      {t("detail.limited")}
+                    </span>
+                  )}
+
                   {isOnSale && (
                     <Badge variant="warning" className="bg-[#FFE2A4] text-[#633B00] px-2.5 py-0.5 text-[10px] font-bold">
                       {t("detail.onSale")}
@@ -805,6 +845,7 @@ export default function CatalogClient({
                   <button
                     type="button"
                     onClick={() => openProduct(product.id)}
+                    aria-label={t("productCard.detailsForProduct", { productName })}
                     className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[#8E8B83] bg-transparent px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-[#4F7FA8] transition-all hover:bg-[#A5C2DE]/10 active:scale-95"
                   >
                     {t("productCard.details")}
@@ -812,15 +853,54 @@ export default function CatalogClient({
                   <ProductCTA product={product} context="catalog-card" className="py-2.5 tracking-widest" />
                   <AskInChatButton
                     variant="icon"
-                    tooltip="สอบถามสินค้านี้ (Ask about this)"
+                    tooltip={t("detail.askAboutProduct")}
                     reference={{
                       type: "PRODUCT",
                       id: product.id,
-                      title: generatePublicProductName(product),
+                      title: productName,
                       subtitle: formatPrice(product.price),
                     }}
                     className="min-h-11 w-full rounded-full animate-none active:scale-95"
                   />
+                </div>
+
+                {/* Compare Checkbox */}
+                <div className="mt-2 flex flex-col items-start gap-1.5 border-t border-[var(--border)] pt-2">
+                  <label
+                    className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-[#4E4B44] hover:text-[#1C1C1A] select-none"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={compareProducts.some((p) => p.id === product.id)}
+                      aria-describedby={compareLimitProductId === product.id ? `compare-limit-${product.id}` : undefined}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          if (compareProducts.length >= 3) {
+                            setCompareLimitProductId(product.id);
+                            return;
+                          }
+                          setCompareLimitProductId(null);
+                          setCompareProducts((prev) => [...prev, product]);
+                        } else {
+                          setCompareLimitProductId(null);
+                          setCompareProducts((prev) => prev.filter((p) => p.id !== product.id));
+                        }
+                      }}
+                      className="size-4 rounded border-[#8E8B83]/40 text-[#5089bf] focus:ring-[#5089bf] cursor-pointer"
+                    />
+                    <span>{t("compare")}</span>
+                  </label>
+                  {compareLimitProductId === product.id ? (
+                    <span
+                      id={`compare-limit-${product.id}`}
+                      role="status"
+                      aria-live="polite"
+                      className="text-xs font-semibold text-[var(--sd-text-secondary)]"
+                    >
+                      {t("compareMaxError")}
+                    </span>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -830,10 +910,15 @@ export default function CatalogClient({
     });
 
     return items;
-  }, [categoryId, imageError, openProduct, products, t]);
+  }, [categoryId, compareLimitProductId, compareProducts, imageError, openProduct, products, t]);
 
   const floatingUtilityVisible = !categoryId && showFloatingUtility;
   const visibleMilestones = categoryId ? [] : passedMilestones;
+  const resultDockSpacing = compareProducts.length > 0
+    ? "pb-[calc(14rem_+_env(safe-area-inset-bottom))] lg:pb-24"
+    : floatingUtilityVisible
+      ? "pb-20 sm:pb-24"
+      : "";
 
   return (
     <div className="flex w-full flex-col items-start gap-8 md:flex-row">
@@ -851,11 +936,19 @@ export default function CatalogClient({
         </div>
       </aside>
 
-      <div className="w-full flex-1 space-y-6">
+      <div className={`w-full flex-1 space-y-6 ${resultDockSpacing}`}>
         {!categoryId && !search && (
-          <div className="pb-6">
+          <section
+            aria-label={t("bundleSectionTitle")}
+            className="rounded-2xl border border-[var(--border)] bg-[#E6DCCD]/45 p-6 sm:p-8 mb-8 shadow-xs"
+          >
+            <div className="mb-4">
+              <h2 className="text-xl font-bold tracking-tight text-[#1C1C1A]">
+                {t("bundleSectionTitle")}
+              </h2>
+            </div>
             <ProductBundlesList bundles={initialBundles} />
-          </div>
+          </section>
         )}
 
         <div className="flex items-center justify-between border-b border-[#8E8B83]/20 pb-4">
@@ -882,12 +975,25 @@ export default function CatalogClient({
             )}
           </div>
         ) : (
-          <SolarStatePanel
-            kind="empty"
-            title={t("emptyState.title")}
-            description={t("emptyState.description")}
-            soliaAlt="Solia helping you refine the SolarDream catalog filters"
-          />
+          <div className="py-8">
+            <SolarStatePanel
+              kind="empty"
+              title={t("emptyState.title")}
+              description={t("emptyState.description")}
+              soliaAlt="Solia helping you refine the SolarDream catalog filters"
+              action={
+                <button
+                  type="button"
+                  onClick={() => {
+                    router.push(`/${locale}/catalog`);
+                  }}
+                  className="mt-4 inline-flex items-center justify-center rounded-full bg-[var(--sd-ink)] px-6 py-3 text-xs font-bold text-white shadow-md transition-all hover:bg-[var(--accent-foreground)] active:scale-95"
+                >
+                  {t("clearFilters")}
+                </button>
+              }
+            />
+          </div>
         )}
       </div>
 
@@ -914,11 +1020,11 @@ export default function CatalogClient({
               <button
                 type="button"
                 onClick={scrollToTop}
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#B7D1EA] text-white shadow-md transition-all hover:bg-[#A5C2DE]/90 active:scale-95"
-                title="Scroll to Top"
-                aria-label="Scroll to top"
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#B7D1EA] text-[#0B051D] shadow-md transition-all hover:bg-[#A5C2DE]/90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5089bf]"
+                title={t("scrollToTop")}
+                aria-label={t("scrollToTop")}
               >
-                <ArrowUp className="h-5 w-5 text-white" />
+                <ArrowUp className="h-5 w-5 text-[#0B051D] stroke-[2.5]" />
               </button>
             </div>
         </LayerPortal>
@@ -932,6 +1038,213 @@ export default function CatalogClient({
         onImageError={(url) => setImageError((prev) => ({ ...prev, [url]: true }))}
         imageError={imageError}
       />
+
+      {/* Floating Comparison Dock */}
+      {compareProducts.length > 0 ? (
+        <LayerPortal layer="floating">
+          <aside
+            role="region"
+            aria-label={t("compareDockTitle")}
+            className="catalog-comparison-dock fixed bottom-[calc(5rem_+_env(safe-area-inset-bottom))] left-1/2 z-50 flex w-[min(92vw,28rem)] -translate-x-1/2 flex-col gap-2 rounded-2xl border border-[var(--border)] bg-white/95 px-3 py-3 shadow-2xl backdrop-blur-md sm:w-auto sm:flex-row sm:items-center sm:gap-3 sm:rounded-full sm:px-4 sm:py-2.5 lg:bottom-6"
+          >
+            <div className="flex w-full max-w-full items-center gap-2 overflow-x-auto sm:w-auto sm:max-w-[50vw]">
+              {compareProducts.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center gap-1.5 rounded-full bg-[#F0EEE9] py-1 pl-2.5 pr-1.5 text-xs font-bold text-[#1C1C1A]"
+                >
+                  <span className="max-w-[100px] truncate">{p.model || p.brand}</span>
+                  <button
+                    type="button"
+                    onClick={() => setCompareProducts(compareProducts.filter((item) => item.id !== p.id))}
+                    className="flex size-11 shrink-0 items-center justify-center rounded-full bg-slate-300 text-slate-700 hover:bg-slate-400 text-xs"
+                    aria-label={t("removeComparedProduct", { name: p.model || p.brand })}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex w-full shrink-0 items-center justify-between gap-2 sm:w-auto sm:justify-start">
+              <button
+                type="button"
+                onClick={() => setCompareDialogOpen(true)}
+                className="min-h-11 rounded-full bg-[#B7D1EA] px-4 py-1.5 text-xs font-bold text-[#142533] hover:bg-[#99BFE3] transition-colors shadow-sm"
+              >
+                {t("compareNow")} ({compareProducts.length}/3)
+              </button>
+              <button
+                type="button"
+                onClick={() => setCompareProducts([])}
+                className="min-h-11 min-w-11 rounded-full px-2 text-xs font-semibold text-slate-500 underline hover:text-slate-800"
+              >
+                {t("clearCompare")}
+              </button>
+            </div>
+          </aside>
+        </LayerPortal>
+      ) : null}
+
+      {/* Comparison Dialog */}
+      <Dialog
+        isOpen={compareDialogOpen}
+        onClose={() => setCompareDialogOpen(false)}
+        size="md"
+        tone="light"
+        ariaLabel={t("compareDockTitle")}
+        closeLabel={t("detail.continueBrowsing")}
+        className="rounded-[28px] border border-[var(--border)] bg-[#F0EEE9] max-w-4xl"
+      >
+        <DialogContent>
+          <DialogHeader className="border-b border-[var(--border)] bg-[#E6DCCD]/40 p-6">
+            <DialogTitle className="text-xl font-bold text-[#1C1C1A]">
+              {t("compareDockTitle")} ({compareProducts.length}/3)
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#4E4B44]">
+              {t("compareDescription")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody className="overflow-hidden p-0">
+            <div className="max-h-[calc(90dvh_-_8rem)] overflow-y-auto p-4 sm:p-6">
+              <div className="space-y-2 lg:hidden">
+                <p className="text-xs text-slate-600">{t("compareScrollHint")}</p>
+                <div
+                  role="region"
+                  aria-label={t("compareDockTitle")}
+                  tabIndex={0}
+                  className="overflow-x-auto rounded-xl border border-[var(--border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#5089bf]"
+                >
+                  <table className="w-full min-w-[38rem] table-fixed border-collapse text-left text-xs">
+                    <colgroup>
+                      <col className="w-32" />
+                      {compareProducts.map((product) => <col key={product.id} className="w-48" />)}
+                    </colgroup>
+                    <thead className="bg-[#E6DCCD]/55 text-[#1C1C1A]">
+                      <tr>
+                        <th scope="col" className="sticky left-0 z-10 border-b border-r border-[var(--border)] bg-[#F0EEE9] p-3 font-bold">
+                          {t("compareSpecProduct")}
+                        </th>
+                        {compareProducts.map((product) => (
+                          <th key={product.id} scope="col" className="border-b border-[var(--border)] p-3 align-top">
+                            <div className="relative mb-2 h-16 w-full overflow-hidden rounded-lg bg-white">
+                              {product.imageUrl ? (
+                                <Image src={product.imageUrl} alt="" fill className="object-contain p-1" unoptimized />
+                              ) : (
+                                <PackageOpen className="absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 text-[#5089bf]" aria-hidden="true" />
+                              )}
+                            </div>
+                            <span className="block text-[10px] font-bold uppercase text-[#4F7FA8]">{product.brand}</span>
+                            <span className="mt-1 block font-bold">{product.model}</span>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--border)] bg-white">
+                      <tr>
+                        <th scope="row" className="sticky left-0 z-10 border-r border-[var(--border)] bg-[#F0EEE9] p-3 font-semibold text-slate-600">{t("compareSpecPrice")}</th>
+                        {compareProducts.map((product) => <td key={product.id} className="p-3 font-bold text-[#475569]">{formatPrice(product.price)}</td>)}
+                      </tr>
+                      <tr>
+                        <th scope="row" className="sticky left-0 z-10 border-r border-[var(--border)] bg-[#F0EEE9] p-3 font-semibold text-slate-600">{t("compareSpecWattage")}</th>
+                        {compareProducts.map((product) => <td key={product.id} className="p-3 font-semibold text-slate-800">{product.wattageCapacity ? `${product.wattageCapacity}W` : "—"}</td>)}
+                      </tr>
+                      <tr>
+                        <th scope="row" className="sticky left-0 z-10 border-r border-[var(--border)] bg-[#F0EEE9] p-3 font-semibold text-slate-600">{t("detail.stock")}</th>
+                        {compareProducts.map((product) => <td key={product.id} className="p-3 font-semibold text-slate-800">{product.stock > 0 ? t("detail.inStock") : t("detail.limited")}</td>)}
+                      </tr>
+                      <tr>
+                        <th scope="row" className="sticky left-0 z-10 border-r border-[var(--border)] bg-[#F0EEE9] p-3 font-semibold text-slate-600">{t("detail.category")}</th>
+                        {compareProducts.map((product) => <td key={product.id} className="truncate p-3 font-semibold text-slate-800">{product.category.name}</td>)}
+                      </tr>
+                      <tr>
+                        <th scope="row" className="sticky left-0 z-10 border-r border-[var(--border)] bg-[#F0EEE9] p-3 font-semibold text-slate-600">{t("compareSpecDimensions")}</th>
+                        {compareProducts.map((product) => <td key={product.id} className="p-3 font-semibold text-slate-800">{product.physicalWidth && product.physicalLength ? `${product.physicalLength}×${product.physicalWidth}mm` : "—"}</td>)}
+                      </tr>
+                      <tr>
+                        <th scope="row" className="sticky left-0 z-10 border-r border-[var(--border)] bg-[#F0EEE9] p-3 font-semibold text-slate-600">{t("productCard.details")}</th>
+                        {compareProducts.map((product) => (
+                          <td key={product.id} className="p-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCompareDialogOpen(false);
+                                openProduct(product.id);
+                              }}
+                              className="min-h-11 w-full rounded-full bg-[#B7D1EA] px-3 py-2 text-xs font-bold text-[#142533] hover:bg-[#99BFE3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5089bf]"
+                            >
+                              {t("productCard.details")}
+                            </button>
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="hidden gap-4 lg:grid lg:grid-cols-3">
+                {compareProducts.map((prod) => (
+                  <div
+                    key={prod.id}
+                    className="rounded-2xl border border-[var(--border)] bg-white p-4 flex flex-col justify-between space-y-4 shadow-xs"
+                  >
+                    <div className="space-y-3">
+                      <div className="relative aspect-video w-full rounded-xl bg-[#F0EEE9] p-2 flex items-center justify-center overflow-hidden">
+                        {prod.imageUrl ? (
+                          <Image
+                            src={prod.imageUrl}
+                            alt={prod.model}
+                            fill
+                            className="object-contain"
+                            unoptimized
+                          />
+                        ) : (
+                          <PackageOpen className="size-8 text-[#5089bf]" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase text-[#4F7FA8]">{prod.brand}</p>
+                        <h4 className="text-sm font-bold text-[#1C1C1A]">{prod.model}</h4>
+                        <p className="text-base font-bold text-[#475569] mt-1">{formatPrice(prod.price)}</p>
+                      </div>
+                      <dl className="space-y-1.5 text-xs border-t border-slate-100 pt-2">
+                        <div className="flex justify-between py-1 border-b border-slate-50">
+                          <dt className="text-slate-500">{t("compareSpecWattage")}</dt>
+                          <dd className="font-semibold text-slate-800">{prod.wattageCapacity ? `${prod.wattageCapacity}W` : "—"}</dd>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-50">
+                          <dt className="text-slate-500">{t("detail.stock")}</dt>
+                          <dd className="font-semibold text-slate-800">{prod.stock > 0 ? t("detail.inStock") : t("detail.limited")}</dd>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-50">
+                          <dt className="text-slate-500">{t("detail.category")}</dt>
+                          <dd className="font-semibold text-slate-800 truncate max-w-[120px]">{prod.category.name}</dd>
+                        </div>
+                        {prod.physicalWidth && prod.physicalLength ? (
+                          <div className="flex justify-between py-1 border-b border-slate-50">
+                            <dt className="text-slate-500">{t("compareSpecDimensions")}</dt>
+                            <dd className="font-semibold text-slate-800">{prod.physicalLength}×{prod.physicalWidth}mm</dd>
+                          </div>
+                        ) : null}
+                      </dl>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCompareDialogOpen(false);
+                        openProduct(prod.id);
+                      }}
+                      className="w-full rounded-full bg-[#B7D1EA] py-2 text-xs font-bold text-[#142533] hover:bg-[#99BFE3]"
+                    >
+                      {t("productCard.details")}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </DialogBody>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

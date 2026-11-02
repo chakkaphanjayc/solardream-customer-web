@@ -111,8 +111,7 @@ export default function ProductBundlesList({ bundles }: ProductBundlesListProps)
             <Card
               key={bundle.id}
               tone="subtle"
-              interactive
-              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-[var(--sd-raised)] p-6 lg:p-8"
+              className="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-[var(--sd-raised)] p-6 lg:p-8"
             >
               {/* Promo Badge */}
               <Badge variant="dark" className="absolute right-6 top-6 z-10 border-0 text-[9px] tracking-widest">
@@ -133,7 +132,7 @@ export default function ProductBundlesList({ bundles }: ProductBundlesListProps)
                     </div>
                   )}
 
-                  <h3 className="font-sans text-lg font-black text-[var(--sd-ink)] transition-colors group-hover:text-[var(--sd-navy-900)]">
+                  <h3 className="font-sans text-lg font-black text-[var(--sd-ink)]">
                     {bundle.name}
                   </h3>
                   
@@ -198,7 +197,7 @@ export default function ProductBundlesList({ bundles }: ProductBundlesListProps)
                 <div className="flex items-center gap-2">
                   <AskInChatButton
                     variant="icon"
-                    tooltip="สอบถามชุดสินค้านี้ (Ask about this)"
+                    tooltip={t("askAboutBundle")}
                     reference={{
                       type: "BUNDLE",
                       id: bundle.id,
@@ -212,10 +211,11 @@ export default function ProductBundlesList({ bundles }: ProductBundlesListProps)
                     onClick={() => handleAddBundleToCart(bundle)}
                     variant="secondary"
                     size="sm"
+                    aria-label={t("addBundleToCart", { name: bundle.name })}
                     className="rounded-xl bg-[var(--sd-technical)] px-5 text-[10px] font-black uppercase tracking-widest text-[var(--sd-white)] hover:bg-[var(--sd-navy-900)]"
                   >
                     <ShoppingBag className="w-3.5 h-3.5" />
-                    {t("orderBundle")}
+                    {t("addToCart")}
                   </Button>
                 </div>
               </div>

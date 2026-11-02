@@ -101,7 +101,7 @@ export function ProposalFileCenterCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => handlePdfClick(e, pdfUrl, t("mainDocumentTitle"))}
-                  className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-[#DCE8F5] px-4 text-xs font-bold text-[#2E2C27] transition-all hover:bg-[#DCE8F5] active:scale-95 shadow-xs"
+                  className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#DCE8F5] px-4 text-xs font-bold text-[#2E2C27] transition-all hover:bg-[#DCE8F5] active:scale-95 shadow-xs"
                 >
                   <ExternalLink className="h-3 w-3 text-[#4F7FA8]" />
                   {t("view")}
@@ -109,7 +109,7 @@ export function ProposalFileCenterCard({
                 <a
                   href={pdfUrl}
                   download
-                  className="inline-flex min-h-9 w-9 items-center justify-center rounded-full border border-[#8E8B83]/20 bg-[#F0EEE9] text-[#4E4B44] transition-all hover:bg-[#DCE8F5]/40 active:scale-95"
+                  className="inline-flex size-11 items-center justify-center rounded-full border border-[#8E8B83]/20 bg-[#F0EEE9] text-[#4E4B44] transition-all hover:bg-[#DCE8F5]/40 active:scale-95"
                   title={t("download")}
                 >
                   <Download className="h-3.5 w-3.5" />
@@ -146,7 +146,7 @@ export function ProposalFileCenterCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => handlePdfClick(e, doc.fileUrl!, doc.title)}
-                  className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#DCE8F5] px-4 text-xs font-bold text-[#2E2C27] transition-all hover:bg-[#DCE8F5] active:scale-95 shadow-xs"
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#DCE8F5] px-4 text-xs font-bold text-[#2E2C27] transition-all hover:bg-[#DCE8F5] active:scale-95 shadow-xs"
                 >
                   <ExternalLink className="h-3 w-3 text-[#4F7FA8]" />
                   {t("view")}

@@ -22,17 +22,20 @@ import {
 import type {
   ClientDeliveryDocument,
   ClientDocumentRequest,
+  ClientInvoice,
   ClientPaymentInstructions,
   ClientPaymentRequest,
   ClientProposal,
   ClientInstallationSnapshot,
+  ProposalAcceptanceDto,
+  ProposalNegotiationEventDto,
+  ProposalQuotationReadModelDto,
   ProposalPortalSnapshotResponseDto,
 } from "@/types/proposals";
 import { ProjectTaskStepper } from "@/components/proposals/detail/ProjectTaskStepper";
 import { PortalRevisionAndBilling } from "@/components/proposals/PortalRevisionAndBilling";
 import { SoliaGuide } from "@/components/brand/solia-scenes";
 import { deriveQuotationTrackingReference } from "@/lib/trackingReference";
-import { getQuotationDeliveryDocumentVersion } from "@/lib/quotationDeliveryDocuments";
 import { trackProductEvent } from "@/lib/productAnalytics";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,10 +47,14 @@ import { ProposalSignatureModal } from "@/components/proposals/detail/ProposalSi
 import { ProposalFinancialsCard } from "@/components/proposals/detail/ProposalFinancialsCard";
 import { ProposalEmbeddedPdfViewer } from "@/components/proposals/detail/ProposalEmbeddedPdfViewer";
 import { ProposalRevisionRequestCard } from "@/components/proposals/detail/ProposalRevisionRequestCard";
+import { StructuredQuotationCard } from "@/components/proposals/detail/StructuredQuotationCard";
+import { NegotiationHistoryCard } from "@/components/proposals/detail/NegotiationHistoryCard";
+import { AcceptanceHandoffCard } from "@/components/proposals/detail/AcceptanceHandoffCard";
 import {
   getEffectiveQuotationStatus,
   isQuotationAvailableForSignature,
 } from "@/lib/quotationSigningEligibility";
+import { hasPublishedCustomerQuotation } from "@/lib/proposalPortalExposure";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -78,6 +85,10 @@ export default function GuestProposalSignView({
   initialDocumentRequests = [],
   initialDeliveryDocuments = [],
   initialPaymentRequests = [],
+  initialInvoices = [],
+  quotationReadModel: initialQuotationReadModel = null,
+  initialNegotiationEvents = [],
+  acceptance: initialAcceptance = null,
   paymentInstructions,
   presentation = "fullscreen",
   showAccountCta = false,
@@ -87,6 +98,10 @@ export default function GuestProposalSignView({
   initialDocumentRequests?: ClientDocumentRequest[];
   initialDeliveryDocuments?: ClientDeliveryDocument[];
   initialPaymentRequests?: ClientPaymentRequest[];
+  initialInvoices?: ClientInvoice[];
+  quotationReadModel?: ProposalQuotationReadModelDto | null;
+  initialNegotiationEvents?: ProposalNegotiationEventDto[];
+  acceptance?: ProposalAcceptanceDto | null;
   paymentInstructions?: ClientPaymentInstructions;
   presentation?: "fullscreen" | "embedded";
   showAccountCta?: boolean;
@@ -97,6 +112,11 @@ export default function GuestProposalSignView({
   const [documentRequests, setDocumentRequests] = useState(initialDocumentRequests);
   const [deliveryDocuments, setDeliveryDocuments] = useState(initialDeliveryDocuments);
   const [paymentRequests, setPaymentRequests] = useState(initialPaymentRequests);
+  const [snapshotRefreshFailed, setSnapshotRefreshFailed] = useState(false);
+  const [snapshotRefreshing, setSnapshotRefreshing] = useState(false);
+  const [quotationReadModel, setQuotationReadModel] = useState(initialQuotationReadModel);
+  const [negotiationEvents, setNegotiationEvents] = useState(initialNegotiationEvents);
+  const [acceptance, setAcceptance] = useState(initialAcceptance);
   const [installation, setInstallation] = useState<ClientInstallationSnapshot>(null);
   const [isSignModalOpen, setIsSignModalOpen] = useState(false);
   const [hasReviewedQuotation, setHasReviewedQuotation] = useState(false);
@@ -145,7 +165,9 @@ export default function GuestProposalSignView({
         },
       );
       const payload = (await response.json()) as ProposalPortalSnapshotResponseDto;
-      if (!response.ok || !payload.success || !payload.snapshot) return;
+      if (!response.ok || !payload.success || !payload.snapshot) {
+        throw new Error("Proposal snapshot is unavailable.");
+      }
       const snapshot = payload.snapshot;
       setCurrentProposal((current) => ({
         ...current,
@@ -158,11 +180,24 @@ export default function GuestProposalSignView({
       setDocumentRequests(snapshot.documentRequests);
       setDeliveryDocuments(snapshot.deliveryDocuments);
       setPaymentRequests(snapshot.paymentRequests);
+      setQuotationReadModel(snapshot.quotationReadModel);
+      setNegotiationEvents(snapshot.negotiationEvents);
+      setAcceptance(snapshot.acceptance);
       setInstallation(snapshot.installation);
+      setSnapshotRefreshFailed(false);
+    } catch {
+      setSnapshotRefreshFailed(true);
     } finally {
       snapshotRequestInFlight.current = false;
+      setSnapshotRefreshing(false);
     }
   }, [proposal.id]);
+
+  const retrySnapshotRefresh = () => {
+    if (document.visibilityState === "hidden" || snapshotRequestInFlight.current) return;
+    setSnapshotRefreshing(true);
+    void refreshSnapshot();
+  };
 
   const handleSignComplete = useCallback(
     (payload?: { status?: string; signed_pdf_url?: string }) => {
@@ -191,10 +226,11 @@ export default function GuestProposalSignView({
       if (document.visibilityState === "visible") void refreshSnapshot();
     };
     const intervalId = window.setInterval(refreshWhenVisible, 15_000);
-    void refreshSnapshot();
+    const initialRefreshId = window.setTimeout(() => void refreshSnapshot(), 0);
     window.addEventListener("focus", refreshWhenVisible);
     document.addEventListener("visibilitychange", refreshWhenVisible);
     return () => {
+      window.clearTimeout(initialRefreshId);
       window.clearInterval(intervalId);
       window.removeEventListener("focus", refreshWhenVisible);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
@@ -213,7 +249,7 @@ export default function GuestProposalSignView({
     "APPROVED_BY_CUSTOMER",
     "CUSTOMER_APPROVED",
   ].includes(effectiveStatus);
-  const revisionRequested = effectiveStatus === "REVISION_REQUESTED";
+  const revisionRequested = ["REVISION_REQUESTED", "REVISION_REQUIRED"].includes(effectiveStatus);
   const isSignableStatus = isQuotationAvailableForSignature({
     status: currentProposal.status,
     dispatchStatus: currentProposal.dispatchStatus,
@@ -270,16 +306,20 @@ export default function GuestProposalSignView({
       document.status === "READY" &&
       Boolean(document.storageFileId || document.fileUrl),
   );
-  const hasFinalQuotation = Boolean(finalQuotationDocument);
-  const quotationVersion = getQuotationDeliveryDocumentVersion(
-    finalQuotationDocument,
-    currentProposal.revisionNumber,
-  );
+  const hasPublishedQuotation = hasPublishedCustomerQuotation({
+    status: currentProposal.status,
+    dispatchStatus: currentProposal.dispatchStatus,
+    hasPublishedReadModel: Boolean(quotationReadModel),
+    hasAcceptance: Boolean(acceptance),
+  });
+  const hasFinalQuotation = hasPublishedQuotation && Boolean(finalQuotationDocument);
+  const quotationVersion = Math.max(1, currentProposal.revisionNumber);
   const hasQuotationPdf = Boolean(
-    currentProposal.signedDocumentDriveUrl ||
-      hasFinalQuotation ||
-      currentProposal.revisedPdfUrl ||
-      currentProposal.pdfUrl,
+    hasPublishedQuotation &&
+      (currentProposal.signedDocumentDriveUrl ||
+        hasFinalQuotation ||
+        currentProposal.revisedPdfUrl ||
+        currentProposal.pdfUrl),
   );
   const nativePdfUrl = hasQuotationPdf
     ? `/api/proposals/${encodeURIComponent(proposal.id)}/native-pdf`
@@ -297,6 +337,20 @@ export default function GuestProposalSignView({
           : "min-h-dvh bg-[var(--sd-page)] px-4 pb-12 pt-8 text-[var(--sd-ink)] md:pt-10"
       }
     >
+      {snapshotRefreshFailed ? (
+        <div className="mx-auto mb-5 flex w-full max-w-7xl flex-col gap-3 rounded-[var(--sd-radius-md)] border border-amber-300 bg-amber-50 p-4 text-amber-950 sm:flex-row sm:items-center sm:justify-between" role="alert" aria-live="polite">
+          <p className="text-sm leading-6">{t("snapshot.refreshFailed")}</p>
+          <button
+            type="button"
+            onClick={retrySnapshotRefresh}
+            disabled={snapshotRefreshing}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-[var(--sd-radius-md)] border border-amber-700 bg-white px-4 text-sm font-semibold text-amber-950 transition hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-70"
+          >
+            {snapshotRefreshing ? t("snapshot.refreshing") : t("snapshot.retry")}
+          </button>
+        </div>
+      ) : null}
+
       {showAccountCta && (
         <section className="solar-route-card mx-auto mb-6 flex max-w-7xl flex-col items-center justify-between gap-4 bg-[var(--sd-soft-solar)] p-6 sm:flex-row">
           <div className="space-y-1 text-center sm:text-left">
@@ -334,6 +388,7 @@ export default function GuestProposalSignView({
               customerName={customerName}
               trackRequestNumber={trackRequestNumber}
               isSigned={isSigned}
+              hasPublishedQuotation={hasPublishedQuotation}
             />
           </div>
 
@@ -440,6 +495,16 @@ export default function GuestProposalSignView({
               )}
 
               <div className="space-y-6 lg:col-span-2">
+                {quotationReadModel ? (
+                  <StructuredQuotationCard
+                    quotation={quotationReadModel}
+                    locale={locale}
+                  />
+                ) : null}
+                {negotiationEvents.length > 0 ? (
+                  <NegotiationHistoryCard events={negotiationEvents} locale={locale} />
+                ) : null}
+                {acceptance ? <AcceptanceHandoffCard acceptance={acceptance} locale={locale} /> : null}
                 <ProposalEmbeddedPdfViewer
                   pdfUrl={nativePdfUrl}
                   version={quotationVersion}
@@ -459,27 +524,34 @@ export default function GuestProposalSignView({
               </div>
 
               <aside className="space-y-6 lg:col-span-1 lg:sticky lg:top-24 lg:self-start">
-                <ProposalFinancialsCard proposal={currentProposal} />
+                {hasPublishedQuotation ? (
+                  <ProposalFinancialsCard
+                    proposal={currentProposal}
+                    quotation={quotationReadModel}
+                  />
+                ) : null}
 
-                <ProposalRevisionRequestCard
-                  proposalId={proposal.id}
-                  magicTokenSlug={magicTokenSlug}
-                  paymentHasStarted={paymentHasStarted}
-                  onRevisionRequested={({
-                    status,
-                    dispatchStatus,
-                    updatedAt,
-                  }) => {
-                    setCurrentProposal((current) => ({
-                      ...current,
+                {hasPublishedQuotation ? (
+                  <ProposalRevisionRequestCard
+                    proposalId={proposal.id}
+                    magicTokenSlug={magicTokenSlug}
+                    paymentHasStarted={paymentHasStarted}
+                    onRevisionRequested={({
                       status,
-                      dispatchStatus: dispatchStatus || current.dispatchStatus,
-                      signedDocumentDriveUrl: null,
-                      updatedAt: updatedAt || new Date().toISOString(),
-                    }));
-                    void refreshSnapshot();
-                  }}
-                />
+                      dispatchStatus,
+                      updatedAt,
+                    }) => {
+                      setCurrentProposal((current) => ({
+                        ...current,
+                        status,
+                        dispatchStatus: dispatchStatus || current.dispatchStatus,
+                        signedDocumentDriveUrl: null,
+                        updatedAt: updatedAt || new Date().toISOString(),
+                      }));
+                      void refreshSnapshot();
+                    }}
+                  />
+                ) : null}
               </aside>
             </>
           </TabsContent>
@@ -490,6 +562,7 @@ export default function GuestProposalSignView({
               proposal={currentProposal}
               magicTokenSlug={magicTokenSlug}
               initialPaymentRequests={paymentRequests}
+              initialInvoices={initialInvoices}
               paymentInstructions={paymentInstructions}
               onRevisionRequested={(status, dispatchStatus, updatedAt) => {
                 setCurrentProposal((current) => ({

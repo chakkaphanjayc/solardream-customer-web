@@ -428,8 +428,8 @@ export default function ServiceCheckout({
                 sizes="96px"
                 className="object-contain"
               />
-              <span className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-[#B7D1EA] text-white shadow-sm">
-                <Upload className="h-4 w-4" />
+              <span className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-[#B7D1EA] text-[#0B051D] shadow-sm">
+                <Upload className="h-4 w-4 stroke-[2.5]" />
               </span>
             </span>
           )}
@@ -477,7 +477,7 @@ export default function ServiceCheckout({
             onClick={verifyPayment}
             disabled={!file || !promptPayPayload}
             size="lg"
-            className="rounded-full bg-[#B7D1EA] text-white hover:bg-[#A5C2DE]/90 active:scale-95 shadow-sm"
+            className="rounded-full bg-[#B7D1EA] text-[#0B051D] font-bold hover:bg-[#A5C2DE]/90 active:scale-95 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5089bf]"
           >
             <FileImage className="mr-2 inline h-4 w-4" />
             {t("payment.verify")}

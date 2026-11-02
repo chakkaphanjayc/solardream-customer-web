@@ -79,6 +79,10 @@ body:has(.sd-site-shell[data-customer-design="solar-atelier"]) {
   padding-block: clamp(1.5rem, 4vw, 3rem);
 }
 
+.solar-route-shell.solar-project-tracker {
+  --sd-warning: #805400;
+}
+
 .sd-site-shell[data-customer-design="solar-atelier"] #main-content[data-solar-surface="atelier"]
   :is(h1, h2, h3, h4) {
   color: #0f172a;
@@ -414,29 +418,34 @@ html body[data-solar-ui="customer"]
   background: #f5f2eb !important;
 }
 
-/* Proposal workspace: soften the list/detail split while retaining every
-   existing tab, payment action, signature control, and document workflow. */
+/* Proposal workspace follows the same quiet card and action hierarchy as the
+   customer shell while keeping the active quote and next action easy to find. */
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page {
   min-height: auto;
-  color: #0f172a;
+  color: var(--sd-ink);
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .solar-ui-panel {
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid var(--sd-line) !important;
   border-radius: 16px !important;
-  background: #f5f2eb !important;
-  box-shadow: 0 1px 3px rgb(15 23 42 / 0.06) !important;
+  background: var(--sd-raised) !important;
+  box-shadow: var(--sd-customer-shadow-soft) !important;
 }
 
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page aside {
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [data-solar-part="proposal-header"] h1 {
+  color: var(--sd-ink);
+  text-wrap: balance;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [data-solar-part="proposal-list"] {
   top: 1.25rem;
   padding: clamp(1rem, 2vw, 1.5rem);
 }
 
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [role="tablist"] {
-  border: 1px solid #e2e8f0 !important;
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [data-solar-part="proposal-tabs"] {
+  border: 1px solid var(--sd-line) !important;
   border-radius: 12px !important;
-  background: #f3f1ea !important;
+  background: var(--sd-page) !important;
   box-shadow: none !important;
 }
 
@@ -446,7 +455,7 @@ html body[data-solar-ui="customer"]
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [role="tab"][aria-selected="true"] {
-  background: #b7d1ea !important;
+  background: var(--sd-selected) !important;
   color: #0f172a !important;
 }
 
@@ -455,38 +464,70 @@ html body[data-solar-ui="customer"]
   outline-color: #7eaed4;
 }
 
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page button[class*="border-[3px]"],
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page button[class*="border-[4px]"],
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page button[class*="shadow-[4px_4px_0"] {
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 12px !important;
-  background: #ffffff !important;
-  box-shadow: 0 1px 3px rgb(15 23 42 / 0.06) !important;
-  color: #0f172a !important;
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page :is([class*="border-[3px]"], [class*="border-[4px]"]) {
+  border-width: 1px !important;
+  border-color: var(--sd-line) !important;
 }
 
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page button[class*="border-[3px]"]:hover,
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page button[class*="border-[4px]"]:hover {
-  border-color: #7eaed4 !important;
-  background: #f3f1ea !important;
-  transform: translateY(-1px);
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [class*="shadow-["] {
+  box-shadow: none !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .proposal-list-card {
+  border: 1px solid var(--sd-line) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  color: var(--sd-ink) !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .proposal-list-card--idle {
+  background: var(--sd-raised) !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .proposal-list-card--idle:hover {
+  border-color: var(--solar-route-accent-strong) !important;
+  background: var(--sd-page) !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .proposal-list-card--active {
+  border-color: var(--solar-route-accent-strong) !important;
+  background: var(--sd-selected) !important;
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .solar-route-primary,
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .solar-ui-primary {
   min-height: 44px;
   border-radius: 999px !important;
-  background: #b7d1ea !important;
+  background: var(--sd-selected) !important;
   color: #0f172a !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page .solar-route-secondary {
+  min-height: 44px;
+  border: 1px solid var(--sd-line) !important;
+  border-radius: 999px !important;
+  background: var(--sd-raised) !important;
+  color: var(--sd-ink) !important;
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] [data-solar-workspace="proposal-detail"] {
   min-width: 0;
-  color: #0f172a;
+  color: var(--sd-ink);
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] [data-solar-workspace="proposal-detail"] > div {
-  border-color: #e2e8f0;
+  border-color: var(--sd-line);
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page [data-solar-part="proposal-summary"] {
+  border-color: var(--sd-line);
+  background: var(--sd-raised);
+  box-shadow: var(--sd-customer-shadow-soft);
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-proposals-page :is(a, button):focus-visible {
+  outline: 2px solid var(--solar-route-accent-strong);
+  outline-offset: 3px;
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-site-footer {
@@ -501,16 +542,18 @@ html body[data-solar-ui="customer"]
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner {
-  right: 1rem !important;
-  bottom: 1rem !important;
-  left: auto !important;
-  width: min(27rem, calc(100vw - 2rem));
-  max-height: min(48dvh, 25rem) !important;
+  position: relative !important;
+  inset: auto !important;
+  width: min(74rem, calc(100% - 2rem)) !important;
+  max-width: 74rem !important;
+  max-height: none !important;
+  margin: 0.75rem auto 0 !important;
+  overflow: visible !important;
   padding: 1rem !important;
   border: 1px solid #e2e8f0 !important;
   border-radius: 16px !important;
   background: #f5f2eb !important;
-  box-shadow: 0 12px 28px rgb(15 23 42 / 0.14) !important;
+  box-shadow: 0 6px 8px rgb(15 23 42 / 0.08) !important;
   color: #0f172a !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -520,22 +563,82 @@ html body[data-solar-ui="customer"]
   color: #0f172a !important;
 }
 
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:last-child {
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner__choices {
   gap: 0.75rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
 }
 
-.sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:last-child > div:first-child {
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner__heading-row {
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.5rem;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner__secondary-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+@media (max-width: 639px) and (max-height: 640px) {
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-support-knowledge header h1 {
+    margin-top: 0.5rem;
+    font-size: 1.5rem;
+    line-height: 1.25;
+  }
+
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-support-knowledge header p:last-child {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.375rem;
+  }
+
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-support-knowledge form {
+    margin-top: 0.75rem;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 639px) and (max-height: 560px) {
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-support-knowledge header p:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) and (max-height: 480px) {
+  .sd-site-shell[data-customer-design="solar-atelier"] #main-content:has(.solar-support-knowledge) {
+    padding-top: 0.5rem !important;
+  }
+
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-support-knowledge header p:first-child {
+    display: none;
+  }
+
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-support-knowledge header h1 {
+    margin-top: 0;
+  }
+
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-support-knowledge form {
+    margin-top: 0.25rem;
+  }
+}
+
+@media (max-width: 639px) and (max-height: 440px) {
+  .sd-site-shell[data-customer-design="solar-atelier"] #main-content:has(.solar-support-knowledge) {
+    padding-top: 0 !important;
+  }
+
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-support-knowledge .solar-support-knowledge-back {
+    display: none;
+  }
+
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-support-knowledge form {
+    margin-top: 0;
+  }
 }
 
 .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner :is(button, a) {
-  min-height: 40px;
+  min-height: 44px;
   border-radius: 999px !important;
 }
 
@@ -585,23 +688,20 @@ html body[data-solar-ui="customer"]
   }
 
   .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner {
-    right: 0.75rem !important;
-    bottom: 0.75rem !important;
-    left: 0.75rem !important;
-    width: auto;
-    max-height: min(44dvh, 22rem) !important;
+    width: calc(100% - 1.5rem) !important;
+    margin-top: 0.75rem !important;
     padding: 0.75rem !important;
   }
 
-  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:first-child {
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:first-child > div:first-child {
     gap: 0 !important;
   }
 
-  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:first-child > div:first-child {
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:first-child > div:first-child > div:first-child {
     display: none !important;
   }
 
-  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:first-child > div:last-child {
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:first-child > div:first-child > div:last-child {
     flex: 1 1 auto;
     min-width: 0;
   }
@@ -612,27 +712,27 @@ html body[data-solar-ui="customer"]
 
   .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner p {
     font-size: 0.6875rem;
-    line-height: 1.4;
+    line-height: 1.3;
+    margin-top: 0.125rem;
   }
 
-  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:last-child {
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner__choices {
+    gap: 0.25rem;
   }
 
-  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:last-child > div:first-child > :is(a, button) {
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner__secondary-actions > :is(a, button) {
     overflow: visible;
     white-space: nowrap;
   }
 
   .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner :is(button, a) {
-    min-height: 36px;
+    min-height: 44px;
   }
 
-  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner > div:last-child > div:last-child {
+  .sd-site-shell[data-customer-design="solar-atelier"] .solar-cookie-banner__choices {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem;
   }
 }
 

@@ -16,7 +16,7 @@ const AccordionItem = React.forwardRef<
     ref={ref}
     data-bagui="accordion-item"
     className={cn(
-      "rounded-2xl bg-[#E6E3DC] border border-[#CBC7BE] mb-3 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] hover:shadow-[0_2px_8px_rgba(28,28,26,0.08)]",
+      "rounded-2xl bg-[var(--sd-card,#FFFFFF)] border border-[var(--border,rgba(60,86,122,0.14))] mb-3 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] hover:shadow-[0_4px_16px_rgba(11,5,29,0.06)]",
       className,
     )}
     {...props}
@@ -33,9 +33,9 @@ const AccordionTrigger = React.forwardRef<
       ref={ref}
       data-bagui="accordion-trigger"
       className={cn(
-        "group flex min-h-14 flex-1 items-center justify-between gap-4 px-6 py-4 text-left text-base font-semibold text-[#1C1C1A]",
-        "transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] hover:bg-[#A5C2DE]/5",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B7D1EA] focus-visible:ring-offset-2",
+        "group flex min-h-14 flex-1 items-center justify-between gap-4 px-6 py-4 text-left text-base font-bold text-[var(--sd-ink,#0B051D)]",
+        "transition-all duration-200 ease-out hover:bg-[var(--primary)]/10",
+        "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[#5089bf] focus-visible:ring-offset-2",
         "disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
         className,
       )}
@@ -44,7 +44,7 @@ const AccordionTrigger = React.forwardRef<
       <span className="min-w-0 flex-1">{children}</span>
       <ChevronDown
         aria-hidden="true"
-        className="h-5 w-5 shrink-0 text-[#4F7FA8] transition-transform duration-300 ease-[cubic-bezier(0.2,0,0,1)] group-data-[state=open]:rotate-180 motion-reduce:transition-none"
+        className="h-5 w-5 shrink-0 text-[#5089bf] transition-transform duration-300 ease-[cubic-bezier(0.2,0,0,1)] group-data-[state=open]:rotate-180 motion-reduce:transition-none"
       />
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
@@ -59,12 +59,12 @@ const AccordionContent = React.forwardRef<
     ref={ref}
     data-bagui="accordion-content"
     className={cn(
-      "overflow-hidden text-sm text-[#4E4B44] data-[state=open]:animate-fade-in motion-reduce:animate-none",
+      "overflow-hidden text-sm text-[var(--sd-text-secondary,#282636)] data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down transition-all",
       className,
     )}
     {...props}
   >
-    <div className="px-6 pb-5 pt-1 leading-relaxed">{children}</div>
+    <div className="px-6 pb-5 pt-2 leading-relaxed border-t border-[var(--border)]/40">{children}</div>
   </AccordionPrimitive.Content>
 ));
 AccordionContent.displayName = AccordionPrimitive.Content.displayName;

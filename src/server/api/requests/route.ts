@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     if (rateLimited) return rateLimited;
 
     const body = inboundRequestSchema.parse(await request.json());
-    const { customer_name, customerName, phone, email, request_type, requestType, payload, source, notes, preferred_language, preferredLanguage } = body;
+    const { customer_name, customerName, phone, email, request_type, requestType, payload, source, notes, preferred_language, preferredLanguage, idempotency_key, idempotencyKey: bodyIdempotencyKey } = body;
 
     const finalCustomerName = (customer_name || customerName || "").trim();
     const finalPhone = (phone || "").trim();
@@ -35,6 +35,7 @@ export async function POST(request: Request) {
     const finalSource = (source || "Direct").trim();
     const finalRequestType = (request_type || requestType || "WIZARD").toUpperCase() as InboundRequestType;
     const finalPreferredLanguage = normalizePreferredLanguage(preferred_language ?? preferredLanguage);
+    const finalIdempotencyKey = request.headers.get("idempotency-key")?.trim() || idempotency_key || bodyIdempotencyKey || null;
     const rawPayload = payload || (notes ? { notes } : {});
     const finalPayload = { ...rawPayload, preferred_language: finalPreferredLanguage };
 
@@ -46,12 +47,13 @@ export async function POST(request: Request) {
       requestType: finalRequestType,
       payload: finalPayload,
       source: finalSource,
+      idempotencyKey: finalIdempotencyKey,
     });
 
     if (!result.success) {
       return NextResponse.json(
         { success: false, error: result.error },
-        { status: 400 }
+        { status: result.conflict ? 409 : 400 }
       );
     }
 
@@ -66,6 +68,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
+      replayed: result.replayed ?? false,
       request: createdRequest,
       erpnextLead: createdRequest.erpnextLeadId || null,
     });

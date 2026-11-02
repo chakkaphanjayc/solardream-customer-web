@@ -271,10 +271,85 @@ export interface ProposalInstallationSnapshotDto {
 
 export interface ProposalPortalSnapshotDto {
   proposal: Partial<ProposalPortalDto>;
+  acceptance: ProposalAcceptanceDto | null;
+  quotationReadModel: ProposalQuotationReadModelDto | null;
+  negotiationEvents: ProposalNegotiationEventDto[];
   documentRequests: ProposalDocumentRequestDto[];
   deliveryDocuments: ProposalDeliveryDocumentDto[];
   paymentRequests: ProposalPaymentRequestDto[];
   installation: ProposalInstallationSnapshotDto | null;
+}
+
+export interface ProposalAcceptanceDto {
+  status: "RECORDED" | "ORDER_PENDING" | "ORDER_CREATED" | "ORDER_FAILED";
+  revisionNumber: number;
+  erpnextQuotationId: string;
+  providerSalesOrderId: string | null;
+  acceptedAt: IsoDateString;
+}
+
+export interface ProposalNegotiationEventDto {
+  id: string;
+  proposalId: string;
+  revisionId: string | null;
+  eventType: string;
+  source: string;
+  visibility: "CUSTOMER" | "INTERNAL";
+  message: string;
+  createdAt: IsoDateString;
+}
+
+export interface ProposalQuotationLineItemDto {
+  itemCode: string | null;
+  name: string;
+  description: string | null;
+  quantity: number;
+  unit: string | null;
+  unitPrice: string;
+  amount: string;
+}
+
+export interface ProposalQuotationTaxDto {
+  label: string;
+  chargeType: string | null;
+  rate: string | null;
+  amount: string;
+}
+
+export interface ProposalQuotationPaymentTermDto {
+  label: string;
+  dueDate: string | null;
+  percentage: string | null;
+  amount: string | null;
+}
+
+/**
+ * Published, customer-safe quotation projection. Provider payloads and
+ * credentials never cross the portal boundary; the PDF is only an optional
+ * artifact alongside this structured read model.
+ */
+export interface ProposalQuotationReadModelDto {
+  proposalId: string;
+  revisionId: string | null;
+  revisionNumber: number;
+  erpnextQuotationId: string;
+  status: string;
+  customerName: string | null;
+  currency: string;
+  quotationDate: string | null;
+  validUntil: string | null;
+  subtotal: string;
+  discountAmount: string;
+  taxAmount: string;
+  grandTotal: string;
+  items: ProposalQuotationLineItemDto[];
+  taxes: ProposalQuotationTaxDto[];
+  paymentTerms: ProposalQuotationPaymentTermDto[];
+  terms: string | null;
+  contentHash: string;
+  providerModifiedAt: string | null;
+  publishedAt: IsoDateString;
+  updatedAt: IsoDateString;
 }
 
 export type ProposalPortalSnapshotResponseDto =

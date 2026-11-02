@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { proposals, serviceOrders, users, consultationLeads } from "@/db/schema";
 import { getSigningSecret } from "@/lib/portalTokens";
 import { verifyHs256Jwt } from "@/lib/signedJwt";
+import { hasPublishedCustomerQuotation } from "@/lib/proposalPortalExposure";
 import {
   isServicePortalConfigured,
   serviceContactEmailDigest,
@@ -15,6 +16,7 @@ import GuestProposalsClient from "./GuestProposalsClient";
 interface DBProposal {
   id: string;
   status: string;
+  dispatchStatus: string;
   systemSizeKwp: number;
   panelCount: number;
   totalPrice: number;
@@ -110,14 +112,22 @@ export default async function GuestProposalsDashboard({
     <GuestProposalsClient
       locale={locale}
       email={email}
-      proposals={matchedProposals.map((p) => ({
-        id: p.id,
-        reference: p.erpnextQuotationId || p.id,
-        status: p.status,
-        systemSizeKwp: p.systemSizeKwp > 0 ? p.systemSizeKwp : null,
-        panelCount: p.panelCount > 0 ? p.panelCount : null,
-        totalPrice: p.totalPrice > 0 ? p.totalPrice : null,
-      }))}
+      proposals={matchedProposals.map((p) => {
+        const isPublished = hasPublishedCustomerQuotation({
+          status: p.status,
+          dispatchStatus: p.dispatchStatus,
+          hasPublishedReadModel: false,
+          hasAcceptance: false,
+        });
+        return {
+          id: p.id,
+          reference: isPublished ? p.erpnextQuotationId || p.id : p.id,
+          status: p.status,
+          systemSizeKwp: isPublished && p.systemSizeKwp > 0 ? p.systemSizeKwp : null,
+          panelCount: isPublished && p.panelCount > 0 ? p.panelCount : null,
+          totalPrice: isPublished && p.totalPrice > 0 ? p.totalPrice : null,
+        };
+      })}
       serviceOrders={matchedServiceOrders.map((so) => ({
         id: so.id,
         reference: so.trackingRef || so.id,

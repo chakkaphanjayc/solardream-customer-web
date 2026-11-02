@@ -153,7 +153,7 @@ export default function ProductCTA({
           : t("quote"),
       icon: quantityInCart > 0 ? CheckCheck : ShoppingCart,
       classes:
-        "bg-[#B7D1EA] text-white hover:bg-[#A5C2DE]/90 active:scale-95 shadow-sm hover:shadow-md",
+        "bg-[#B7D1EA] text-[#0B051D] font-bold hover:bg-[#A5C2DE]/90 active:scale-95 shadow-sm hover:shadow-md",
     },
     CHECK_STOCK: {
       label: t("checkStock"),
@@ -177,6 +177,10 @@ export default function ProductCTA({
         type="button"
         variant="secondary"
         onClick={handleClick}
+        aria-label={t("actionForProduct", {
+          action: buttonConfig.label,
+          productName,
+        })}
         data-product-cta={ctaType}
         data-product-cta-context={context}
         data-product-sku={sku}

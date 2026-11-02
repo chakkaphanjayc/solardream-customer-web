@@ -246,7 +246,7 @@ export default function CatalogFilters({
           type="submit"
           variant="quiet"
           size="icon"
-          className="absolute right-2 top-1/2 h-9 w-9 min-h-9 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          className="absolute right-2 top-1/2 size-11 min-h-11 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           aria-label={t("searchPlaceholder")}
         >
           <Search className="w-4 h-4" />
@@ -376,9 +376,9 @@ export default function CatalogFilters({
       <div className="lg:hidden flex items-center gap-3">
         <button
           onClick={() => setMobileOpen(true)}
-          className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-transparent bg-[#B7D1EA] px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-sm transition-all hover:bg-[#A5C2DE]/90 active:scale-95"
+          className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-transparent bg-[#B7D1EA] px-5 py-3 text-xs font-black uppercase tracking-widest text-[#142533] shadow-sm transition-all hover:bg-[#A5C2DE]/90 active:scale-95"
         >
-          <SlidersHorizontal className="w-3.5 h-3.5 text-white" />
+          <SlidersHorizontal className="w-3.5 h-3.5 text-[#142533]" />
           {t("filtersAndSort")}
         </button>
         
@@ -392,6 +392,24 @@ export default function CatalogFilters({
           </button>
         )}
       </div>
+
+      {/* Mobile Fixed Bottom Filter & Sort FAB */}
+      <LayerPortal layer="floating">
+        <div className="catalog-mobile-filter-dock fixed bottom-[calc(1rem_+_env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-40 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            className="flex min-h-11 items-center gap-2.5 rounded-full bg-[var(--sd-ink,#0B051D)] text-white px-6 py-3.5 shadow-2xl border border-[var(--primary,#B7D1EA)]/40 text-xs font-bold uppercase tracking-wider active:scale-95 transition-all hover:bg-[#1a1433]"
+            aria-label={t("filtersAndSort")}
+          >
+            <SlidersHorizontal className="w-4 h-4 text-[var(--primary,#B7D1EA)]" />
+            <span>{t("filtersAndSort")}</span>
+            {hasActiveFilters && (
+              <span className="flex h-2 w-2 rounded-full bg-[var(--primary)]" />
+            )}
+          </button>
+        </div>
+      </LayerPortal>
 
       {/* 2. Desktop Filters Panel Display */}
       <div className="hidden lg:block">

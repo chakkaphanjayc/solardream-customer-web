@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { and, eq, inArray } from "drizzle-orm";
 
 import { requireStaff } from "@/lib/auth-guard";
-import { frappeRequest } from "@/lib/erpnext";
 import { db } from "@/db";
 import { activityLogs, paymentRequests, proposals } from "@/db/schema";
 import type { BoqLine } from "@/types/boq";
 import { createProposalRevision } from "@/lib/proposal-revisions";
+import { erpNextCommercialService } from "@/server/services/integrations/erpnext-commercial-service";
 
 
 function record(value: unknown): Record<string, unknown> {
@@ -36,8 +36,7 @@ export async function POST(_request: NextRequest, context: { params: Promise<{ p
       );
     }
     const originalName = proposal.erpnextQuotationId;
-    const source = record((await frappeRequest("GET", `/api/resource/Quotation/${encodeURIComponent(originalName)}`)).data).data;
-    const document = record(source);
+    const document = record(await erpNextCommercialService.getQuotation(originalName));
     const docstatus = Number(document.docstatus);
     if (!Number.isInteger(docstatus)) {
       return NextResponse.json(
@@ -50,7 +49,7 @@ export async function POST(_request: NextRequest, context: { params: Promise<{ p
       return { id: `revision-${index}-${text(item.item_code)}`, source: "BUNDLE" as const, itemCode: text(item.item_code), itemName: text(item.item_name) || text(item.item_code), description: text(item.description) || null, qty: number(item.qty), uom: text(item.uom) || "Nos", rate: number(item.rate), warehouse: text(item.warehouse) || null };
     }).filter((line) => line.itemCode && line.qty > 0);
     if (docstatus === 1) {
-      await frappeRequest("POST", "/api/method/frappe.client.cancel", { doctype: "Quotation", name: originalName });
+      await erpNextCommercialService.cancelQuotation(originalName);
     } else if (docstatus !== 0) {
       return NextResponse.json(
         { error: `ERPNext quotation ${originalName} cannot be revised because it is already cancelled or in an unsupported state.` },
@@ -65,7 +64,7 @@ export async function POST(_request: NextRequest, context: { params: Promise<{ p
           ...config,
           customerApproval: {
             ...record(config.customerApproval),
-            status: proposal.status.toUpperCase() === "REVISION_REQUESTED" ? "REVISION_IN_PROGRESS" : record(config.customerApproval).status,
+            status: ["REVISION_REQUESTED", "REVISION_REQUIRED"].includes(proposal.status.toUpperCase()) ? "REVISION_IN_PROGRESS" : record(config.customerApproval).status,
             revisionStartedAt: startedAt,
           },
           revisionDraft: { amendedFrom: originalName, lines, startedAt },

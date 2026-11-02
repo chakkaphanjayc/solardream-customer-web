@@ -689,16 +689,16 @@ export default function CartLeadCaptureModal({
                         isSubmitting || !pdpaConsent || !requiredFieldsFilled
                       }
                       onClick={() => handleFormSubmit("EVALUATION")}
-                      className="w-full py-4 bg-[#B7D1EA] text-white font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 ease-expo-out hover:scale-[1.01] active:scale-95 cursor-pointer flex items-center justify-center gap-2 shadow-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#A5C2DE]"
+                      className="w-full py-4 bg-[#B7D1EA] text-[#0B051D] font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 ease-expo-out hover:scale-[1.01] active:scale-95 cursor-pointer flex items-center justify-center gap-2 shadow-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#A5C2DE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5089bf]"
                     >
                       {isSubmitting ? (
                         <>
-                          <GsapSpinner className="w-4 h-4 text-white" />
+                          <GsapSpinner className="w-4 h-4 text-[#0B051D]" />
                           <span>{t("actions.processing")}</span>
                         </>
                       ) : (
                         <>
-                          <ClipboardCheck className="w-4 h-4 text-white" />
+                          <ClipboardCheck className="w-4 h-4 text-[#0B051D]" />
                           <span>{t("actions.submitEvaluation")}</span>
                         </>
                       )}
@@ -712,11 +712,11 @@ export default function CartLeadCaptureModal({
                           isSubmitting || !pdpaConsent || !requiredFieldsFilled
                         }
                         onClick={() => handleFormSubmit("DIGITAL")}
-                        className="w-full py-4 bg-[#B7D1EA] text-white font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 ease-expo-out hover:scale-[1.01] active:scale-95 cursor-pointer flex items-center justify-center gap-2 shadow-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#A5C2DE]"
+                        className="w-full py-4 bg-[#B7D1EA] text-[#0B051D] font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 ease-expo-out hover:scale-[1.01] active:scale-95 cursor-pointer flex items-center justify-center gap-2 shadow-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#A5C2DE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5089bf]"
                       >
                         {isSubmitting ? (
                           <>
-                            <GsapSpinner className="w-4 h-4 text-white" />
+                            <GsapSpinner className="w-4 h-4 text-[#0B051D]" />
                             <span>{t("actions.processing")}</span>
                           </>
                         ) : (

@@ -5,8 +5,8 @@ import { db } from "@/db";
 import { activityLogs, consultationLeads, inboundRequests, proposals, userNotifications } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireStaff } from "@/lib/auth-guard";
-import { getSystemSetting } from "@/app/actions/systemSettings";
 import { getQuotationDocumentNo } from "@/lib/erpnext";
+import { erpNextCommercialService } from "@/server/services/integrations/erpnext-commercial-service";
 import { sendDiscordQuotationCancellationNotification } from "@/lib/discord";
 import { sendDynamicQuotationCancellationEmail } from "@/lib/email";
 import { issuePortalDispatchLink } from "@/lib/portalTokens";
@@ -14,16 +14,6 @@ import { getConfiguredAdminSiteUrl } from "@/lib/siteUrl";
 import { enqueueIntegrationEvent } from "@/lib/integrationOutbox";
 import { processOutboxBestEffort } from "@/lib/outboxProcessor";
 import { SALES_NOTIFICATION_TOPICS } from "@/lib/salesNotificationConfig";
-
-type ErpnextBody = Record<string, unknown>;
-type ErpnextJson = {
-  data?: unknown;
-  exception?: string;
-  exc_type?: string;
-  message?: string;
-  messages?: unknown;
-  server_messages?: string;
-};
 
 type ErpnextCancelResult = {
   attempted: boolean;
@@ -56,10 +46,6 @@ type ProposalWorkflowSnapshot = Pick<
   typeof proposals.$inferSelect,
   "id" | "status" | "dispatchStatus" | "configurationData" | "updatedAt" | "isArchived"
 >;
-
-const ERP_AUTH_HEADER = process.env.ERPNEXT_API_KEY && process.env.ERPNEXT_API_SECRET
-  ? `token ${process.env.ERPNEXT_API_KEY}:${process.env.ERPNEXT_API_SECRET}`
-  : null;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
@@ -111,23 +97,6 @@ function extractErpnextQuotationId(proposal: {
 
 function isSendForApprovalStatus(status: string) {
   return ["DRAFT", "REVISION_REQUIRED"].includes(status.toUpperCase());
-}
-
-async function getErpnextBaseUrl() {
-  const fromEnv = process.env.ERPNEXT_BASE_URL?.trim();
-  const fromSettings = (await getSystemSetting("erpnext_site_endpoint"))?.trim();
-  return (fromEnv || fromSettings || "").replace(/\/$/, "");
-}
-
-function getErpnextHeaders() {
-  if (!ERP_AUTH_HEADER) {
-    throw new Error("ERPNext auth configuration is missing. Set ERPNEXT_API_KEY and ERPNEXT_API_SECRET.");
-  }
-
-  return {
-    "Content-Type": "application/json",
-    Authorization: ERP_AUTH_HEADER,
-  };
 }
 
 export async function sendQuotationForCustomerApproval(proposalId: string) {
@@ -222,27 +191,6 @@ export async function sendQuotationForCustomerApproval(proposalId: string) {
   }
 }
 
-async function erpnextRequest(method: "PUT" | "POST", endpoint: string, body: ErpnextBody): Promise<ErpnextJson> {
-  const baseUrl = await getErpnextBaseUrl();
-  if (!baseUrl) {
-    throw new Error("ERPNext base URL is missing. Set ERPNEXT_BASE_URL or system setting erpnext_site_endpoint.");
-  }
-
-  const response = await fetch(`${baseUrl}${endpoint}`, {
-    method,
-    headers: getErpnextHeaders(),
-    body: JSON.stringify(body),
-    cache: "no-store",
-  });
-
-  const json = await response.json().catch(() => ({})) as ErpnextJson;
-  if (!response.ok) {
-    throw new Error(json.exception || json.message || `ERPNext responded with ${response.status}`);
-  }
-
-  return json;
-}
-
 export async function cancelErpnextQuotation(quotationId: string | null): Promise<ErpnextCancelResult> {
   if (!quotationId) {
     return {
@@ -254,11 +202,7 @@ export async function cancelErpnextQuotation(quotationId: string | null): Promis
   }
 
   try {
-    await erpnextRequest("PUT", `/api/resource/Quotation/${encodeURIComponent(quotationId)}`, {
-      data: {
-        docstatus: 2,
-      },
-    });
+    await erpNextCommercialService.cancelQuotation(quotationId);
 
     return {
       attempted: true,
@@ -290,9 +234,11 @@ async function markErpnextDocumentLost(
   }
 
   try {
-    await erpnextRequest("PUT", `/api/resource/${doctype}/${encodeURIComponent(documentId)}`, {
-      data: { status },
-    });
+    if (doctype === "Quotation") {
+      await erpNextCommercialService.updateQuotation(documentId, { status });
+    } else {
+      await erpNextCommercialService.updateLead(documentId, { status });
+    }
     return { attempted: true, success: true, documentId };
   } catch (error: unknown) {
     console.error(`[Quotation Lost][ERPNext ${doctype} update failed]`, { documentId, error });
@@ -703,12 +649,7 @@ async function approveErpnextQuotation(quotationId: string | null) {
   }
 
   try {
-    await erpnextRequest("PUT", `/api/resource/Quotation/${encodeURIComponent(quotationId)}`, {
-      data: {
-        status: "Approved",
-        workflow_state: "Approved",
-      },
-    });
+    await erpNextCommercialService.approveQuotation(quotationId);
 
     return { attempted: true, success: true };
   } catch (error: unknown) {

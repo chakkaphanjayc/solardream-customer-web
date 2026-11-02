@@ -39,7 +39,7 @@ export default function ComponentCard({ component }: ComponentCardProps) {
     >
       {isSelected && (
         <GsapReveal from="none" className="absolute -right-2 -top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-primary shadow-lg">
-          <Check className="h-4 w-4 text-white" />
+          <Check className="h-4 w-4 text-[#0B051D] stroke-[3]" />
         </GsapReveal>
       )}
 
@@ -67,12 +67,12 @@ export default function ComponentCard({ component }: ComponentCardProps) {
           {component.description}
         </p>
         <div className="pt-2 flex items-center justify-between">
-          <span className="text-xl font-black text-primary">
+          <span className="text-xl font-black text-foreground">
             {formatPrice(component.price)}
           </span>
           <span className={cn(
             "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md",
-            isSelected ? "bg-primary text-white" : "bg-secondary text-muted-foreground"
+            isSelected ? "bg-primary text-[#0B051D] font-bold shadow-xs" : "bg-secondary text-muted-foreground"
           )}>
             {isSelected ? t("selected") : t("select")}
           </span>

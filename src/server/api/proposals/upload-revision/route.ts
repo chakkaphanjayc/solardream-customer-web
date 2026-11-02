@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { proposals, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { createClient } from "@/utils/supabase/server";
+import { createProposalRevisionInTransaction } from "@/lib/proposal-revisions";
 import {
   isUploadContentLengthExceeded,
   validateUploadFile,
@@ -84,6 +85,13 @@ export async function POST(req: NextRequest) {
     const customerFolderId = await getOrCreateCustomerFolder(customerName, proposal.userId);
     const proposalFolderId = await getOrCreateProposalFolder(customerFolderId, proposalId);
     const uploaded: Array<{ url: string; fileName: string; uploadedAt: string }> = [];
+    let latestUpload: {
+      url: string;
+      driveUrl: string;
+      fileName: string;
+      uploadedAt: string;
+      sha256: string;
+    } | null = null;
 
     for (const file of files) {
       const validatedFile = await validateUploadFile({
@@ -96,46 +104,97 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(bytes);
       const fileName = `Revised_Quotation_${proposalId}_${Date.now()}.${validatedFile.extension}`;
       const driveUrl = await uploadFileToDrive(proposalFolderId, buffer, validatedFile.contentType, fileName);
-      uploaded.push({
+      latestUpload = {
         url: convertToEmbedPreviewUrl(driveUrl),
+        driveUrl,
         fileName,
         uploadedAt: new Date().toISOString(),
+        sha256: validatedFile.sha256,
+      };
+      uploaded.push({
+        url: latestUpload.url,
+        fileName,
+        uploadedAt: latestUpload.uploadedAt,
       });
     }
 
     const config = (proposal.configurationData as Record<string, unknown>) || {};
     const revisedQuoteVersions = Array.isArray(config.revisedQuoteVersions) ? config.revisedQuoteVersions : [];
-    const latest = uploaded[uploaded.length - 1];
-    const nextRevision = (proposal.revisionNumber || 1) + 1;
+    const latest = latestUpload;
+    if (!latest) {
+      return NextResponse.json(
+        { success: false, error: "A revised quotation PDF could not be prepared." },
+        { status: 400 },
+      );
+    }
+    const sentAt = new Date();
 
-    await db.update(proposals)
-      .set({
-        revisionNumber: nextRevision,
-        revisedPdfUrl: latest.url,
-        pdfUrl: latest.url,
-        signedDocumentDriveUrl: null,
-        signatureUrl: null,
-        signedAt: null,
-        verifiedAt: null,
-        verifiedByAdminId: null,
-        status: "AWAITING_CLIENT_SIGNATURE",
-        dispatchStatus: "DISPATCHED",
-        configurationData: {
-          ...config,
-          revisedQuoteVersions: [...revisedQuoteVersions, ...uploaded],
-          customerApproval: {
-            status: "PENDING",
-            revisionVersion: nextRevision,
-            replacedAt: new Date().toISOString(),
+    const sentRevision = await db.transaction(async (tx) => {
+      const nextConfiguration = {
+        ...config,
+        revisedQuoteVersions: [...revisedQuoteVersions, ...uploaded],
+        customerApproval: {
+          ...(config.customerApproval && typeof config.customerApproval === "object"
+            ? config.customerApproval as Record<string, unknown>
+            : {}),
+          status: "PENDING",
+          replacedAt: sentAt.toISOString(),
+        },
+      };
+      const revision = await createProposalRevisionInTransaction(tx, {
+        proposalId: proposal.id,
+        snapshots: {
+          pricing: {
+            totalPrice: proposal.totalPrice,
+            monthlySavings: proposal.monthlySavings,
+            paybackPeriod: proposal.paybackPeriod,
+          },
+          configuration: nextConfiguration,
+          terms: config.terms && typeof config.terms === "object"
+            ? config.terms as Record<string, unknown>
+            : {},
+          payment: {
+            paymentStatus: proposal.paymentStatus,
+            selectedFinancingId: proposal.selectedFinancingId,
           },
         },
-        updatedAt: new Date(),
-      })
-      .where(eq(proposals.id, proposalId));
+        erpQuotationReference: proposal.erpnextQuotationId,
+        sentDocument: {
+          sha256: latest.sha256,
+          pdfDocumentReference: latest.driveUrl,
+          sentAt,
+        },
+        createdByUserId: authUser.id,
+        creationSource: "STAFF_REVISION_PDF_UPLOAD",
+        creationMetadata: { fileName: latest.fileName },
+      });
+      const revisionConfiguration = {
+        ...nextConfiguration,
+        customerApproval: {
+          ...nextConfiguration.customerApproval,
+          revisionVersion: revision.revisionNumber,
+        },
+      };
+      await tx.update(proposals)
+        .set({
+          revisedPdfUrl: latest.url,
+          pdfUrl: latest.driveUrl,
+          signedDocumentDriveUrl: null,
+          signatureUrl: null,
+          signedAt: null,
+          verifiedAt: null,
+          verifiedByAdminId: null,
+          configurationData: revisionConfiguration,
+          updatedAt: sentAt,
+        })
+        .where(eq(proposals.id, proposalId));
+      return revision;
+    });
 
     return NextResponse.json({
       success: true,
       uploaded,
+      revisionNumber: sentRevision.revisionNumber,
     });
   } catch (error: unknown) {
     console.error("[Revision Upload]:", error);

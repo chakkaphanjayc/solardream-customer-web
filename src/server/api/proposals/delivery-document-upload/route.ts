@@ -9,6 +9,7 @@ import {
   quotationDeliveryDocumentAttachments,
   quotationDeliveryDocuments,
 } from "@/db/schema";
+import { createProposalRevisionInTransaction } from "@/lib/proposal-revisions";
 import {
   validateUploadContentLength,
   validateUploadFile,
@@ -166,6 +167,13 @@ export async function POST(request: NextRequest) {
             id: true,
             userId: true,
             magicTokenSlug: true,
+            erpnextQuotationId: true,
+            totalPrice: true,
+            monthlySavings: true,
+            paybackPeriod: true,
+            configurationData: true,
+            paymentStatus: true,
+            selectedFinancingId: true,
           },
         });
         if (!proposal) return { kind: "not_found" as const };
@@ -319,27 +327,63 @@ export async function POST(request: NextRequest) {
         }
 
         if (deliveryTypeRaw === "FINAL_QUOTATION") {
+          const proposalConfiguration = asRecord(proposal.configurationData);
+          const publishedConfiguration = {
+            ...proposalConfiguration,
+            ...deliveryDriveConfiguration,
+            customerApproval: {
+              ...asRecord(proposalConfiguration.customerApproval),
+              status: "PENDING",
+              revisionVersion: nextVersion,
+              replacedAt: uploadedAt.toISOString(),
+              replacedBy: staff.user.id,
+            },
+          };
+          const sentRevision = await createProposalRevisionInTransaction(tx, {
+            proposalId: proposal.id,
+            snapshots: {
+              pricing: {
+                totalPrice: proposal.totalPrice,
+                monthlySavings: proposal.monthlySavings,
+                paybackPeriod: proposal.paybackPeriod,
+              },
+              configuration: publishedConfiguration,
+              terms: asRecord(proposalConfiguration.terms),
+              payment: {
+                paymentStatus: proposal.paymentStatus,
+                selectedFinancingId: proposal.selectedFinancingId,
+              },
+            },
+            erpQuotationReference: proposal.erpnextQuotationId,
+            sentDocument: {
+              sha256: validatedFile.sha256,
+              pdfDocumentReference: driveFile.fileUrl,
+              sentAt: uploadedAt,
+            },
+            createdByUserId: staff.user.id,
+            creationSource: "STAFF_FINAL_QUOTATION_UPLOAD",
+            creationMetadata: {
+              deliveryDocumentId: upserted.id,
+              storageFileId: driveFile.fileId,
+              uploadVersion: nextVersion,
+            },
+          });
+          const revisionConfiguration = {
+            ...publishedConfiguration,
+            customerApproval: {
+              ...publishedConfiguration.customerApproval,
+              revisionVersion: sentRevision.revisionNumber,
+            },
+          };
           await tx.update(proposals)
             .set({
-              revisionNumber: nextVersion,
               pdfUrl: driveFile.fileUrl,
-              revisedPdfUrl: driveFile.fileUrl,
               signedDocumentDriveUrl: null,
               signatureUrl: null,
               signedAt: null,
               verifiedAt: null,
               verifiedByAdminId: null,
-              status: "AWAITING_CLIENT_SIGNATURE",
-              dispatchStatus: "DISPATCHED",
-              configurationData: sql`${proposals.configurationData} || ${JSON.stringify({
-                ...deliveryDriveConfiguration,
-                customerApproval: {
-                  status: "PENDING",
-                  revisionVersion: nextVersion,
-                  replacedAt: uploadedAt.toISOString(),
-                  replacedBy: staff.user.id,
-                },
-              })}::jsonb`,
+              configurationData: revisionConfiguration,
               updatedAt: uploadedAt,
             })
             .where(eq(proposals.id, proposal.id));

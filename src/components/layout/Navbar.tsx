@@ -5,6 +5,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 
+import { AnimatePresence, motion } from "motion/react";
+
 import FloatingNavbar from "@/components/home/floating-navbar";
 import styles from "@/components/home/solar-home.module.css";
 import { ShoppingCart } from "@/components/ui/icons";
@@ -39,6 +41,7 @@ export default function Navbar({ forumUrl, navigationItems }: NavbarProps) {
   const locale = useLocale();
   const pathname = usePathname();
   const t = useTranslations("Navbar");
+  const isHome = pathname === `/${locale}` || pathname === `/${locale}/`;
   const cartItemCount = useCartStore((state) =>
     state.items.reduce((total, item) => total + item.quantity, 0),
   );
@@ -55,6 +58,35 @@ export default function Navbar({ forumUrl, navigationItems }: NavbarProps) {
     locale,
     locale === "th" ? "en" : "th",
   );
+  const homeSectionLinks = isHome
+    ? [
+        {
+          id: "calculator",
+          label: locale === "th" ? "คำนวณค่าไฟ" : "Calculator",
+          href: `/${locale}#calculator`,
+        },
+        {
+          id: "showcase",
+          label: locale === "th" ? "ผลงานจริง" : "Showcase",
+          href: `/${locale}#showcase`,
+        },
+        {
+          id: "pillars",
+          label: locale === "th" ? "มาตรฐานวิศวกรรม" : "Engineering",
+          href: `/${locale}#pillars-heading`,
+        },
+        {
+          id: "journey",
+          label: locale === "th" ? "ขั้นตอนติดตั้ง" : "Process",
+          href: `/${locale}#journey`,
+        },
+        {
+          id: "faq",
+          label: locale === "th" ? "คำถามที่พบบ่อย" : "FAQs",
+          href: `/${locale}#faq`,
+        },
+      ]
+    : [];
   const extraActions = (
     <button
       type="button"
@@ -65,9 +97,20 @@ export default function Navbar({ forumUrl, navigationItems }: NavbarProps) {
       onClick={() => setCartOpen(true)}
     >
       <ShoppingCart aria-hidden="true" />
-      {cartItemCount > 0 ? (
-        <span className={styles.navUtilityBadge}>{cartItemCount}</span>
-      ) : null}
+      <AnimatePresence mode="popLayout">
+        {cartItemCount > 0 ? (
+          <motion.span
+            key={cartItemCount}
+            initial={{ scale: 1 }}
+            animate={{ scale: [1, 1.3, 1] }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className={styles.navUtilityBadge}
+          >
+            {cartItemCount}
+          </motion.span>
+        ) : null}
+      </AnimatePresence>
     </button>
   );
 
@@ -78,7 +121,8 @@ export default function Navbar({ forumUrl, navigationItems }: NavbarProps) {
         navigationItems={navigationItems}
         forumUrl={forumUrl}
         extraActions={extraActions}
-        includeHomeSections={false}
+        homeSectionLinks={homeSectionLinks}
+        includeHomeSections={isHome}
         languageHref={languageHref}
       />
       {cartOpen ? (

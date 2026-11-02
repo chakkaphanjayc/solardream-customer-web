@@ -803,7 +803,7 @@ export default function ConfiguratorClient({
     <div
       data-bagui="build-configurator"
       data-solar-motion="build"
-      className="solar-build relative min-h-dvh px-4 pb-32 pt-10 text-foreground md:px-8 md:pt-14 lg:pb-28"
+      className="solar-build relative min-h-dvh px-4 pb-32 pt-10 text-foreground md:px-8 md:pt-14 lg:pb-36"
     >
       <SofiaCapsule
         visible={isSubmittingLead}
@@ -849,7 +849,7 @@ export default function ConfiguratorClient({
           </DialogBody>
         </DialogContent>
       </Dialog>
-      <div className="mx-auto w-full max-w-[90rem] space-y-10">
+      <div className="mx-auto w-full max-w-[90rem] space-y-10 pb-[calc(11rem+env(safe-area-inset-bottom))]">
         <GsapReveal
           data-solar-reveal
           className="solar-build-header space-y-6"
@@ -1037,7 +1037,7 @@ export default function ConfiguratorClient({
                               className={cn(
                                 "rounded-full px-3 py-1 text-xs font-bold transition-all border cursor-pointer active:scale-95",
                                 customKwp === preset
-                                  ? "bg-[#B7D1EA] text-white border-[#7CA8D0] shadow-xs"
+                                  ? "bg-[#B7D1EA] text-[#0B051D] font-bold border-[#7CA8D0] shadow-xs"
                                   : "bg-[#F0EEE9] text-[#1C1C1A] border-[#8E8B83]/30 hover:bg-[#DCE8F5]/40",
                               )}
                             >
@@ -1791,7 +1791,7 @@ export default function ConfiguratorClient({
                     "solar-route-primary shrink-0 rounded-full px-7 py-4 text-sm font-bold active:scale-95 transition-all",
                     !canProceedToStep2
                       ? "cursor-not-allowed bg-[#F7F6F3] text-[#4E4B44] opacity-70"
-                      : "cursor-pointer bg-[#B7D1EA] text-white hover:bg-[#A5C2DE] shadow-md",
+                      : "cursor-pointer bg-[#B7D1EA] text-[#0B051D] font-bold hover:bg-[#A5C2DE] shadow-md",
                   )}
                 >
                   <span>
@@ -1818,7 +1818,7 @@ export default function ConfiguratorClient({
                     if (form) form.requestSubmit();
                   }}
                   disabled={isSubmittingLead}
-                  className="solar-route-primary rounded-full bg-[#B7D1EA] px-7 py-4 text-sm font-bold text-white hover:bg-[#A5C2DE] active:scale-95 shadow-md transition-all"
+                  className="solar-route-primary rounded-full bg-[#B7D1EA] px-7 py-4 text-sm font-bold text-[#0B051D] hover:bg-[#A5C2DE] active:scale-95 shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5089bf]"
                 >
                   <Send className="h-4 w-4" />
                   <span>
@@ -1901,7 +1901,7 @@ export default function ConfiguratorClient({
           "solar-route-primary rounded-full active:scale-95 transition-all",
           builderStep === "design" && !canProceedToStep2
             ? "cursor-not-allowed bg-[#F7F6F3] text-[#4E4B44] opacity-70"
-            : "bg-[#B7D1EA] text-white hover:bg-[#A5C2DE] shadow-md",
+            : "bg-[#B7D1EA] text-[#0B051D] font-bold hover:bg-[#A5C2DE] shadow-md",
         )}
       />
     </div>

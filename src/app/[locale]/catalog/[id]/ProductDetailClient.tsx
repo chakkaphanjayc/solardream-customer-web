@@ -418,7 +418,7 @@ export default function ProductDetailClient({
         <section
           aria-labelledby="product-hero-title"
           ref={heroRef}
-          className="solar-ui-panel relative mb-10 flex min-h-[58dvh] w-full flex-col items-center justify-center overflow-hidden rounded-[32px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-6 shadow-sm sm:mb-12 sm:rounded-[48px] sm:p-10 lg:min-h-[75dvh]"
+          className="solar-ui-panel relative mb-10 flex min-h-[58dvh] w-full flex-col items-center justify-center overflow-hidden rounded-3xl border border-[#8E8B83]/20 bg-[#E6E3DC] p-6 shadow-sm sm:mb-12 sm:p-10 lg:min-h-[75dvh]"
         >
           {/* Atmospheric ambient blur circles */}
           <div className="pointer-events-none absolute -left-16 -top-16 h-72 w-72 rounded-full bg-[#B7D1EA]/15 blur-3xl" />
@@ -465,7 +465,7 @@ export default function ProductDetailClient({
         </section>
 
         {/* Dynamic Split Screen View Layout */}
-        <div className="solar-ui-panel relative grid grid-cols-1 items-start gap-10 rounded-[32px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-6 shadow-sm md:p-10 lg:grid-cols-2">
+        <div className="solar-ui-panel relative grid grid-cols-1 items-start gap-10 rounded-3xl border border-[#8E8B83]/20 bg-[#E6E3DC] p-6 shadow-sm md:p-10 lg:grid-cols-2">
           {/* Left Column (Sticky Visuals) */}
           <div className="flex w-full flex-col justify-center gap-6 py-4 lg:sticky lg:top-24 lg:h-[75vh]">
             <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[28px] border border-[#8E8B83]/15 bg-[#F0EEE9] p-5 shadow-xs">

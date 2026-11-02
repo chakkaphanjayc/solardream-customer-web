@@ -69,15 +69,64 @@ export default function WizardClient({
       maximumFractionDigits: 0,
     },
   );
-  const { wizardAnswers, updateDynamicState, applyWizardToVisualizer } =
-    useConfiguratorStore();
+  const {
+    wizardAnswers,
+    updateDynamicState,
+    setWizardAnswers,
+    resetWizardState,
+    applyWizardToVisualizer,
+  } = useConfiguratorStore();
   const addonCatalog = getSolarAddonsForDisplay(buildConfig?.smartAddons);
+  const WIZARD_SESSION_KEY = "solardream_wizard_session_v1";
+
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>(() => {
-    const savedSelection = parseSolarAddonSelection(wizardAnswers.smartAddOns);
+    let savedSelection = parseSolarAddonSelection(wizardAnswers.smartAddOns);
+    if (savedSelection.length === 0 && typeof window !== "undefined") {
+      try {
+        const raw = sessionStorage.getItem("solardream_wizard_session_v1");
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data?.answers?.smartAddOns) {
+            savedSelection = parseSolarAddonSelection(data.answers.smartAddOns);
+          }
+        }
+      } catch {
+        // Ignore storage error
+      }
+    }
     return savedSelection.length > 0
       ? savedSelection
       : getRecommendedSolarAddonSelection(addonCatalog);
   });
+
+  // Hydrate answers from sessionStorage on initial mount
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(WIZARD_SESSION_KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (
+          data?.answers &&
+          typeof data.answers === "object" &&
+          Object.keys(data.answers).length > 0
+        ) {
+          setWizardAnswers(data.answers);
+        }
+        if (typeof data?.stepIndex === "number" && data.stepIndex > 0) {
+          window.setTimeout(() => {
+            const stepElement = document.getElementById(
+              `wizard-step-${data.stepIndex}`,
+            );
+            if (stepElement) {
+              gsapScrollTo(stepElement, { delay: 100 });
+            }
+          }, 350);
+        }
+      }
+    } catch {
+      // Ignore sessionStorage access errors
+    }
+  }, [setWizardAnswers, gsapScrollTo]);
 
   // Educational Tooltip Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -125,6 +174,8 @@ export default function WizardClient({
       });
     });
   }, [wizard, updateDynamicState]);
+
+
 
   // Check if a specific step is complete
   const isStepComplete = (stepIndex: number) => {
@@ -258,6 +309,35 @@ export default function WizardClient({
     firstIncompleteStepIndex === -1
       ? Math.max(0, wizard.steps.length - 1)
       : firstIncompleteStepIndex;
+
+  // Persist answers to sessionStorage whenever they change
+  useEffect(() => {
+    if (Object.keys(wizardAnswers).length > 0) {
+      try {
+        sessionStorage.setItem(
+          WIZARD_SESSION_KEY,
+          JSON.stringify({
+            answers: wizardAnswers,
+            stepIndex: activeStepIndex,
+          }),
+        );
+      } catch {
+        // Ignore quota errors
+      }
+    }
+  }, [wizardAnswers, activeStepIndex]);
+
+  const handleResetConfiguration = () => {
+    try {
+      sessionStorage.removeItem(WIZARD_SESSION_KEY);
+    } catch {
+      // Ignore errors
+    }
+    resetWizardState();
+    setSelectedAddonIds(getRecommendedSolarAddonSelection(addonCatalog));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const completionPercent = wizard.steps.length
     ? Math.round((completedStepCount / wizard.steps.length) * 100)
     : 0;
@@ -300,7 +380,7 @@ export default function WizardClient({
 
   return (
     <div
-      className="wizard-manga solar-wizard relative mx-auto flex w-full max-w-[90rem] flex-col justify-center px-4 py-10 text-[#1C1C1A] sm:px-6 sm:py-14 lg:py-16"
+      className="wizard-manga solar-wizard relative mx-auto flex w-full max-w-[90rem] flex-col justify-center px-4 pt-10 pb-[calc(10rem+env(safe-area-inset-bottom))] text-[var(--sd-ink)] sm:px-6 sm:pt-14 lg:pt-16"
       id="liquid-modal-bg-target"
       data-analytics-form="wizard"
       data-solar-motion="wizard"
@@ -355,6 +435,15 @@ export default function WizardClient({
                 <span className="inline-flex items-center rounded-full bg-[#E6E3DC] px-3 py-1.5 text-xs font-bold text-[#4E4B44] border border-[#8E8B83]/20">
                   {wizardJourneyCopy.time}
                 </span>
+                {Object.keys(wizardAnswers).length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleResetConfiguration}
+                    className="inline-flex items-center text-xs font-semibold text-[var(--muted-foreground)] hover:text-[var(--sd-ink)] underline transition-colors cursor-pointer ml-1"
+                  >
+                    {isThaiLocale ? "เริ่มประเมินใหม่" : "Reset configuration"}
+                  </button>
+                )}
               </div>
               <h1 className="font-sans max-w-[18ch] text-4xl font-bold leading-[1.05] tracking-tight text-[#1C1C1A] sm:text-5xl md:text-6xl">
                 {wizardTitle}
@@ -813,7 +902,11 @@ export default function WizardClient({
               : "solar-wizard-disabled cursor-not-allowed bg-slate-200 text-slate-500 shadow-none",
           )}
         >
-          {t("actions.generateRecommendation")}
+          {allQuestionsAnswered
+            ? isThaiLocale
+              ? "ดูข้อเสนอระบบโซลาร์ของฉัน →"
+              : "See My Solar Proposal →"
+            : t("actions.generateRecommendation")}
           <Icons.ArrowRight className="w-5 h-5 stroke-[3]" />
         </Button>
         {!allQuestionsAnswered && (
@@ -834,13 +927,13 @@ export default function WizardClient({
           <aside
             data-bagui="progress"
             aria-label={wizardJourneyCopy.progress}
-            className="solar-wizard-progress rounded-[28px] border border-[#8E8B83]/20 bg-[#E6E3DC] p-5 shadow-sm"
+            className="solar-wizard-progress rounded-[28px] border border-[var(--border)] bg-[var(--sd-card)] p-5 shadow-sm"
           >
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#4F7FA8]">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-[var(--primary-foreground)]">
               {wizardJourneyCopy.progress}
             </p>
-            <p className="text-sm font-black text-[#1C1C1A]">
+            <p className="text-sm font-black text-[var(--sd-ink)]">
               {allQuestionsAnswered
                 ? wizardJourneyCopy.ready
                 : `${completedStepCount}/${wizard.steps.length}`}
@@ -852,15 +945,35 @@ export default function WizardClient({
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={completionPercent}
-            className="mt-3 h-2 overflow-hidden rounded-full bg-[#F7F6F3]"
+            className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--muted)]"
           >
             <span
-              className="block h-full origin-left scale-x-0 rounded-full bg-[#B7D1EA] transition-transform duration-500 ease-expo"
+              className="block h-full origin-left scale-x-0 rounded-full bg-[var(--primary)] transition-transform duration-500 ease-expo"
               style={{ transform: `scaleX(${completionPercent / 100})` }}
             />
           </div>
+          <div className="mb-2 mt-4 flex items-center justify-between">
+            <span className="text-xs font-bold text-[var(--accent-foreground)]">
+              {isThaiLocale
+                ? `ขั้นตอนที่ ${activeStepIndex + 1} จาก ${wizard.steps.length}: ${
+                    t.has(`questions.steps.${wizard.steps[activeStepIndex]?.id}.title`)
+                      ? t(`questions.steps.${wizard.steps[activeStepIndex]?.id}.title`)
+                      : wizard.steps[activeStepIndex]?.title || ""
+                  }`
+                : `Step ${activeStepIndex + 1} of ${wizard.steps.length}: ${
+                    wizard.steps[activeStepIndex]?.title || ""
+                  }`}
+            </span>
+            <button
+              type="button"
+              onClick={handleResetConfiguration}
+              className="text-[11px] font-semibold text-[var(--muted-foreground)] hover:text-[var(--sd-ink)] underline transition-colors cursor-pointer"
+            >
+              {isThaiLocale ? "เริ่มประเมินใหม่" : "Reset"}
+            </button>
+          </div>
           <SolarProgressStepper
-            className="mt-4"
+            className="mt-2"
             ariaLabel={wizardJourneyCopy.progress}
             items={wizard.steps.map((step, stepIndex) => ({
               id: String(stepIndex),
@@ -887,8 +1000,8 @@ export default function WizardClient({
               }
             }}
           />
-          <div className="solar-wizard-progress-note mt-5 flex items-start gap-2.5 rounded-2xl border border-[#7CA8D0]/30 bg-[#DCE8F5] px-3.5 py-3 text-xs font-semibold leading-5 text-[#2E2C27]">
-            <Icons.Info className="mt-0.5 size-4 shrink-0 text-[#4F7FA8]" aria-hidden="true" />
+          <div className="solar-wizard-progress-note mt-5 flex items-start gap-2.5 rounded-2xl border border-[var(--primary-foreground)]/25 bg-[var(--primary)]/20 px-3.5 py-3 text-xs font-semibold leading-5 text-[var(--accent-foreground)]">
+            <Icons.Info className="mt-0.5 size-4 shrink-0 text-[var(--primary-foreground)]" aria-hidden="true" />
             <span>
               {isThaiLocale
                 ? "คำตอบของคุณจะช่วยให้เราแนะนำขนาดระบบและรูปแบบติดตั้งที่เหมาะสม"
@@ -918,11 +1031,11 @@ export default function WizardClient({
         tone="light"
         ariaLabel={modalData.title}
         closeLabel={t("actions.close")}
-        className="rounded-[28px] border border-[#8E8B83]/20 bg-[#F0EEE9]"
+        className="rounded-[28px] border border-[var(--border)] bg-[var(--background)]"
       >
         <DialogContent>
-          <DialogHeader className="border-b border-[#8E8B83]/20 bg-[#E6E3DC]">
-            <DialogTitle className="text-xl font-bold text-[#1C1C1A] md:text-2xl">
+          <DialogHeader className="border-b border-[var(--border)] bg-[var(--sd-card-tinted)]">
+            <DialogTitle className="text-xl font-bold text-[var(--sd-ink)] md:text-2xl">
               {modalData.title}
             </DialogTitle>
             <DialogDescription className="sr-only">
@@ -930,7 +1043,7 @@ export default function WizardClient({
             </DialogDescription>
           </DialogHeader>
 
-          <DialogBody className="bg-[#F0EEE9]">
+          <DialogBody className="bg-[var(--background)]">
             <div
               className={cn(
                 "grid grid-cols-1 gap-6",
@@ -939,12 +1052,12 @@ export default function WizardClient({
                   : "grid-cols-1",
               )}
             >
-              <p className="whitespace-pre-line text-sm leading-7 text-[#4E4B44] md:text-base">
+              <p className="whitespace-pre-line text-sm leading-7 text-[var(--sd-text-secondary)] md:text-base">
                 {modalData.tooltipText || t("tooltip.empty")}
               </p>
 
               {modalData.tooltipImageUrl?.trim() ? (
-                <div className="relative min-h-48 w-full overflow-hidden rounded-[20px] border border-[#8E8B83]/20 bg-[#E6E3DC]">
+                <div className="relative min-h-48 w-full overflow-hidden rounded-[20px] border border-[var(--border)] bg-[var(--sd-card-tinted)]">
                   <ProgressiveImage
                     src={modalData.tooltipImageUrl}
                     alt={modalData.title}
@@ -957,7 +1070,7 @@ export default function WizardClient({
             </div>
           </DialogBody>
 
-          <DialogFooter className="border-t border-[#8E8B83]/20 bg-[#E6E3DC]">
+          <DialogFooter className="border-t border-[var(--border)] bg-[var(--sd-card-tinted)]">
             <DialogCloseButton className="wizard-ui-primary w-full rounded-full sm:w-auto active:scale-95">
               {t("actions.close")}
             </DialogCloseButton>

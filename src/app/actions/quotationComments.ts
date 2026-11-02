@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { quotationComments, userNotifications, proposals } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { ensureUserExists } from "@/app/actions/auth";
+import { recordQuotationNegotiationEvent } from "@/server/services/sales/quotation-negotiation-service";
 
 export interface QuotationComment {
   id: string;
@@ -313,6 +314,15 @@ export async function requestQuotationChanges(
         action: "REVISION_REQUIRED",
         description: `Customer requested changes: ${truncatedMsg}`,
         userId: dbUser.id,
+      });
+      await recordQuotationNegotiationEvent(tx, {
+        proposalId: quotationId,
+        actorUserId: dbUser.id,
+        eventType: "CUSTOMER_CHANGE_REQUEST",
+        source: "AUTHENTICATED_PORTAL",
+        visibility: "CUSTOMER",
+        message: trimmedMessage,
+        idempotencyKey: `customer-change-request:${quotationId}:${Date.now()}`,
       });
 
       // 4. Push notifications to all admin/staff

@@ -80,11 +80,13 @@ export type PortfolioProjectListItem = Pick<
   "id" | "title" | "location" | "province" | "category" | "solarSizeKw" | "monthlySavingsThb" | "completionYear" | "heroImage" | "showFinancials"
 > & {
   galleryImageCount: number;
+  isFeatured?: boolean;
 };
 
 export function toPortfolioProjectListItem(project: ProjectCaseStudy): PortfolioProjectListItem {
   return {
     id: project.id,
+    isFeatured: Boolean(project.isFeatured),
     title: project.title,
     location: project.location,
     province: project.province,
@@ -118,18 +120,18 @@ export function createDefaultProjectDraft(id = ""): ProjectCaseStudy {
   const currentYear = new Date().getFullYear().toString();
   return {
     id: id.trim() || `proj-${Date.now().toString(36)}`,
-    showFinancials: true,
+    showFinancials: false,
     title: "",
     clientName: "",
     location: "",
     province: "bangkok",
     category: "residential",
-    solarSizeKw: 5.0,
-    panelCount: 10,
-    inverterModel: "Huawei SUN2000-5KTL-L1",
+    solarSizeKw: 0,
+    panelCount: 0,
+    inverterModel: "",
     batteryBackup: undefined,
-    monthlySavingsThb: 3000,
-    annualCo2SavedTons: 3.5,
+    monthlySavingsThb: 0,
+    annualCo2SavedTons: 0,
     completionYear: currentYear,
     heroImage: "",
     galleryImages: [
@@ -138,13 +140,13 @@ export function createDefaultProjectDraft(id = ""): ProjectCaseStudy {
         caption: "Installation rooftop view",
       },
     ],
-    tags: ["5.0 kW", "Residential", "Solar Rooftop"],
+    tags: [],
     summary: "",
     quote: undefined,
     beforeAfter: {
-      beforeBillThb: 4500,
-      afterBillThb: 1500,
-      paybackYears: 4.5,
+      beforeBillThb: 0,
+      afterBillThb: 0,
+      paybackYears: 0,
     },
   };
 }

@@ -10,6 +10,7 @@ interface ProposalBentoHeroProps {
   customerName: string;
   trackRequestNumber: string;
   isSigned: boolean;
+  hasPublishedQuotation: boolean;
 }
 
 export function ProposalBentoHero({
@@ -17,6 +18,7 @@ export function ProposalBentoHero({
   customerName,
   trackRequestNumber,
   isSigned,
+  hasPublishedQuotation,
 }: ProposalBentoHeroProps) {
   const t = useTranslations("ProposalHero");
   const quotationId = proposal.erpnextQuotationId || `SD-QT-${proposal.id.slice(0, 8).toUpperCase()}`;
@@ -41,10 +43,12 @@ export function ProposalBentoHero({
           </div>
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--sd-blue-600)] px-3.5 py-1 text-[11px] font-bold uppercase text-white shadow-[var(--sd-shadow-1)]">
-                <Sparkles className="h-3.5 w-3.5 text-white stroke-[2.5]" />
-                {t("officialQuotation")}
-              </span>
+              {hasPublishedQuotation ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--sd-blue-600)] px-3.5 py-1 text-[11px] font-bold uppercase text-white shadow-[var(--sd-shadow-1)]">
+                  <Sparkles className="h-3.5 w-3.5 text-white stroke-[2.5]" />
+                  {t("officialQuotation")}
+                </span>
+              ) : null}
               {isSigned && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-3.5 py-1 text-[11px] font-bold uppercase text-emerald-800 shadow-[var(--sd-shadow-1)]">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-800 stroke-[2.5]" />
@@ -56,30 +60,38 @@ export function ProposalBentoHero({
               {customerName}
             </h1>
             <p className="max-w-2xl text-xs font-medium leading-5 text-[var(--sd-muted)]">
-              {t("soliaLabel")}: {isSigned ? t("signedGreeting") : t("unsignedGreeting")}
+              {t("soliaLabel")}: {isSigned
+                ? t("signedGreeting")
+                : hasPublishedQuotation
+                  ? t("unsignedGreeting")
+                  : t("preparingGreeting")}
             </p>
           </div>
         </div>
 
         {/* Right: Quick Stats Strip */}
         <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-          <div className="flex flex-col justify-center rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] px-4 py-2.5 shadow-[var(--sd-shadow-1)]">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--sd-muted)]">{t("quotationId")}</span>
-            <span className="font-mono text-sm font-bold text-[var(--sd-ink)]">{quotationId}</span>
-          </div>
+          {hasPublishedQuotation ? (
+            <div className="flex flex-col justify-center rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] px-4 py-2.5 shadow-[var(--sd-shadow-1)]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--sd-muted)]">{t("quotationId")}</span>
+              <span className="font-mono text-sm font-bold text-[var(--sd-ink)]">{quotationId}</span>
+            </div>
+          ) : null}
 
           <div className="flex flex-col justify-center rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] px-4 py-2.5 shadow-[var(--sd-shadow-1)]">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--sd-muted)]">{t("trackRef")}</span>
             <span className="font-mono text-sm font-bold text-[var(--sd-ink)]">{trackRequestNumber}</span>
           </div>
 
-          <div className="flex flex-col justify-center rounded-[var(--sd-radius-md)] border border-[var(--sd-blue-600)]/20 bg-[var(--sd-selected)] px-4 py-2.5 shadow-[var(--sd-shadow-1)]">
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[var(--sd-ink)]">
-              <Zap className="h-3.5 w-3.5 text-[var(--sd-blue-600)] stroke-[2.5]" />
-              {t("systemCapacity")}
-            </span>
-            <span className="text-sm font-bold text-[var(--sd-ink)]">{proposal.systemSizeKwp.toFixed(2)} kWp</span>
-          </div>
+          {hasPublishedQuotation ? (
+            <div className="flex flex-col justify-center rounded-[var(--sd-radius-md)] border border-[var(--sd-blue-600)]/20 bg-[var(--sd-selected)] px-4 py-2.5 shadow-[var(--sd-shadow-1)]">
+              <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[var(--sd-ink)]">
+                <Zap className="h-3.5 w-3.5 text-[var(--sd-blue-600)] stroke-[2.5]" />
+                {t("systemCapacity")}
+              </span>
+              <span className="text-sm font-bold text-[var(--sd-ink)]">{proposal.systemSizeKwp.toFixed(2)} kWp</span>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>

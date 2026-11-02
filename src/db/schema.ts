@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   doublePrecision,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -25,6 +26,11 @@ import type {
 } from "@/lib/lineAutomationEngine";
 import type { Locale } from "@/i18n/locales";
 import type { AuditMetadata } from "@/types/audit";
+import type {
+  ProposalQuotationLineItemDto,
+  ProposalQuotationPaymentTermDto,
+  ProposalQuotationTaxDto,
+} from "@/types/proposals";
 
 const idDefault = sql`gen_random_uuid()::text`;
 const emptyJson = sql`'{}'::jsonb`;
@@ -101,6 +107,12 @@ export const signatureEnvelopeStatusEnum = pgEnum("signature_envelope_status", [
   "PENDING",
   "SIGNED",
   "VOID",
+]);
+export const quotationAcceptanceStatusEnum = pgEnum("quotation_acceptance_status", [
+  "RECORDED",
+  "ORDER_PENDING",
+  "ORDER_CREATED",
+  "ORDER_FAILED",
 ]);
 export const quotationDocumentRequestStatusEnum = pgEnum("quotation_document_request_status", [
   "PENDING",
@@ -1478,6 +1490,44 @@ export const proposalRevisions = pgTable("proposal_revisions", {
   check("proposal_revisions_hash_format", sql`${table.documentHash} IS NULL OR ${table.documentHash} ~ '^[0-9a-f]{64}$'`),
 ]);
 
+/**
+ * Provider-backed, customer-safe quotation projection. This is deliberately
+ * separate from the proposal aggregate and its immutable revisions: ERPNext
+ * remains the commercial source while the portal reads a local snapshot.
+ */
+export const quotationReadModels = pgTable("quotation_read_models", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  proposalId: text("proposal_id").notNull().references(() => proposals.id, { onDelete: "cascade", onUpdate: "cascade" }),
+  revisionId: uuid("revision_id").references(() => proposalRevisions.id, { onDelete: "set null", onUpdate: "cascade" }),
+  revisionNumber: integer("revision_number").notNull(),
+  erpnextQuotationId: text("erpnext_quotation_id").notNull(),
+  status: text("status").notNull(),
+  customerName: text("customer_name"),
+  currency: text("currency").default("THB").notNull(),
+  quotationDate: text("quotation_date"),
+  validUntil: text("valid_until"),
+  subtotal: numeric("subtotal", { precision: 18, scale: 2 }).default("0").notNull(),
+  discountAmount: numeric("discount_amount", { precision: 18, scale: 2 }).default("0").notNull(),
+  taxAmount: numeric("tax_amount", { precision: 18, scale: 2 }).default("0").notNull(),
+  grandTotal: numeric("grand_total", { precision: 18, scale: 2 }).default("0").notNull(),
+  itemsSnapshot: jsonb("items_snapshot").$type<ProposalQuotationLineItemDto[]>().default(sql`'[]'::jsonb`).notNull(),
+  taxesSnapshot: jsonb("taxes_snapshot").$type<ProposalQuotationTaxDto[]>().default(sql`'[]'::jsonb`).notNull(),
+  paymentTermsSnapshot: jsonb("payment_terms_snapshot").$type<ProposalQuotationPaymentTermDto[]>().default(sql`'[]'::jsonb`).notNull(),
+  terms: text("terms"),
+  contentHash: text("content_hash").notNull(),
+  providerModifiedAt: text("provider_modified_at"),
+  publishedAt: timestamp("published_at", { withTimezone: true, mode: "date" }),
+  supersededAt: timestamp("superseded_at", { withTimezone: true, mode: "date" }),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("quotation_read_models_proposal_revision_key").on(table.proposalId, table.revisionNumber),
+  index("quotation_read_models_provider_idx").on(table.erpnextQuotationId),
+  index("quotation_read_models_published_idx").on(table.proposalId, table.publishedAt),
+  check("quotation_read_models_revision_positive", sql`${table.revisionNumber} > 0`),
+  check("quotation_read_models_hash_format", sql`${table.contentHash} ~ '^[0-9a-f]{64}$'`),
+]);
+
 export const proposalRevisionItems = pgTable("proposal_revision_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   revisionId: uuid("revision_id").notNull().references(() => proposalRevisions.id, { onDelete: "cascade", onUpdate: "cascade" }),
@@ -1507,8 +1557,43 @@ export const signatureEnvelopes = pgTable("signature_envelopes", {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
 }, (table) => [
   index("signature_envelopes_revision_idx").on(table.revisionId),
+  uniqueIndex("signature_envelopes_id_revision_key").on(table.id, table.revisionId),
   uniqueIndex("signature_envelopes_signed_revision_key").on(table.revisionId).where(sql`${table.status} = 'SIGNED'`),
   check("signature_envelopes_hash_format", sql`${table.documentHash} ~ '^[0-9a-f]{64}$'`),
+]);
+
+export const quotationAcceptances = pgTable("quotation_acceptances", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  proposalId: text("proposal_id").notNull().references(() => proposals.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  revisionId: uuid("revision_id").notNull().references(() => proposalRevisions.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  signatureEnvelopeId: uuid("signature_envelope_id").notNull().references(() => signatureEnvelopes.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  revisionNumber: integer("revision_number").notNull(),
+  erpnextQuotationId: text("erpnext_quotation_id").notNull(),
+  sourceDocumentHash: text("source_document_hash").notNull(),
+  signedDocumentHash: text("signed_document_hash").notNull(),
+  signerName: text("signer_name").notNull(),
+  signerUserId: text("signer_user_id").references(() => users.id, { onDelete: "set null", onUpdate: "cascade" }),
+  verificationMethod: text("verification_method").notNull(),
+  verificationUrl: text("verification_url").notNull(),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true, mode: "date" }).notNull(),
+  status: quotationAcceptanceStatusEnum("status").default("RECORDED").notNull(),
+  providerSalesOrderId: text("provider_sales_order_id"),
+  failureReason: text("failure_reason"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("quotation_acceptances_revision_key").on(table.revisionId),
+  uniqueIndex("quotation_acceptances_signature_envelope_key").on(table.signatureEnvelopeId),
+  index("quotation_acceptances_proposal_status_idx").on(table.proposalId, table.status),
+  index("quotation_acceptances_provider_order_idx").on(table.providerSalesOrderId),
+  foreignKey({
+    columns: [table.signatureEnvelopeId, table.revisionId],
+    foreignColumns: [signatureEnvelopes.id, signatureEnvelopes.revisionId],
+    name: "quotation_acceptances_envelope_revision_fk",
+  }),
+  check("quotation_acceptances_revision_positive", sql`${table.revisionNumber} > 0`),
+  check("quotation_acceptances_source_hash_format", sql`${table.sourceDocumentHash} ~ '^[0-9a-f]{64}$'`),
+  check("quotation_acceptances_signed_hash_format", sql`${table.signedDocumentHash} ~ '^[0-9a-f]{64}$'`),
 ]);
 
 /** Authoritative, server-enforced state for the quotation-to-warranty lifecycle. */
@@ -1650,6 +1735,25 @@ export const integrationOutbox = pgTable("integration_outbox", {
   index("integration_outbox_aggregate_idx").on(table.aggregateType, table.aggregateId),
   index("integration_outbox_aggregate_order_idx").on(table.aggregateId, table.createdAt, table.id),
   index("integration_outbox_correlation_idx").on(table.correlationId),
+]);
+
+/**
+ * Durable ingress claims for provider webhooks. A PROCESSING claim
+ * can be reclaimed after a bounded lease, which covers a worker crash between
+ * the business transaction and the provider acknowledgement.
+ */
+export const integrationWebhookEvents = pgTable("integration_webhook_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  provider: text("provider").notNull(),
+  eventId: text("event_id").notNull(),
+  bodySha256: text("body_sha256").notNull(),
+  status: text("status").default("PROCESSING").notNull(),
+  receivedAt: timestamp("received_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  processedAt: timestamp("processed_at", { withTimezone: true, mode: "date" }),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("integration_webhook_events_provider_event_key").on(table.provider, table.eventId),
+  index("integration_webhook_events_status_updated_idx").on(table.status, table.updatedAt),
 ]);
 
 export const installationWorkflowProjects = pgTable("installation_projects", {
@@ -2661,6 +2765,34 @@ export const quotationComments = pgTable(
   ],
 );
 
+/** Structured, append-only negotiation history; comments remain a compatibility view. */
+export const quotationNegotiationEvents = pgTable(
+  "quotation_negotiation_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    proposalId: text("proposal_id")
+      .notNull()
+      .references(() => proposals.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    revisionId: uuid("revision_id").references(() => proposalRevisions.id, { onDelete: "set null", onUpdate: "cascade" }),
+    actorUserId: text("actor_user_id").references(() => users.id, { onDelete: "set null", onUpdate: "cascade" }),
+    eventType: text("event_type").notNull(),
+    source: text("source").default("PORTAL").notNull(),
+    visibility: text("visibility").default("CUSTOMER").notNull(),
+    message: text("message").notNull(),
+    pricingSnapshot: jsonb("pricing_snapshot").$type<Record<string, unknown>>().default(emptyJson).notNull(),
+    termsSnapshot: jsonb("terms_snapshot").$type<Record<string, unknown>>().default(emptyJson).notNull(),
+    idempotencyKey: text("idempotency_key"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("quotation_negotiation_events_proposal_created_idx").on(table.proposalId, table.createdAt),
+    index("quotation_negotiation_events_revision_idx").on(table.revisionId),
+    uniqueIndex("quotation_negotiation_events_idempotency_partial_key").on(table.proposalId, table.idempotencyKey).where(sql`${table.idempotencyKey} IS NOT NULL`),
+    check("quotation_negotiation_events_type_check", sql`${table.eventType} IN ('CUSTOMER_CHANGE_REQUEST','CUSTOMER_MESSAGE','STAFF_MESSAGE','STAFF_COUNTER_OFFER','REVISION_ISSUED','ACCEPTANCE_RECORDED')`),
+    check("quotation_negotiation_events_visibility_check", sql`${table.visibility} IN ('CUSTOMER','INTERNAL')`),
+  ],
+);
+
 export const operationsTickets = pgTable(
   "operations_tickets",
   {
@@ -3019,6 +3151,7 @@ export const proposalRevisionsRelations = relations(proposalRevisions, ({ one, m
   createdBy: one(users, { fields: [proposalRevisions.createdByUserId], references: [users.id] }),
   items: many(proposalRevisionItems),
   signatureEnvelopes: many(signatureEnvelopes),
+  quotationAcceptances: many(quotationAcceptances),
 }));
 
 export const proposalRevisionItemsRelations = relations(proposalRevisionItems, ({ one }) => ({
@@ -3027,6 +3160,13 @@ export const proposalRevisionItemsRelations = relations(proposalRevisionItems, (
 
 export const signatureEnvelopesRelations = relations(signatureEnvelopes, ({ one }) => ({
   revision: one(proposalRevisions, { fields: [signatureEnvelopes.revisionId], references: [proposalRevisions.id] }),
+}));
+
+export const quotationAcceptancesRelations = relations(quotationAcceptances, ({ one }) => ({
+  proposal: one(proposals, { fields: [quotationAcceptances.proposalId], references: [proposals.id] }),
+  revision: one(proposalRevisions, { fields: [quotationAcceptances.revisionId], references: [proposalRevisions.id] }),
+  signatureEnvelope: one(signatureEnvelopes, { fields: [quotationAcceptances.signatureEnvelopeId], references: [signatureEnvelopes.id] }),
+  signer: one(users, { fields: [quotationAcceptances.signerUserId], references: [users.id] }),
 }));
 
 export const savedConfigurationsRelations = relations(savedConfigurations, ({ one, many }) => ({
@@ -3187,6 +3327,7 @@ export const proposalsRelations = relations(proposals, ({ one, many }) => ({
   projectProgression: one(projectProgressions),
   operationsTickets: many(operationsTickets),
   comments: many(quotationComments),
+  quotationAcceptances: many(quotationAcceptances),
   verifiedSlips: many(verifiedSlips),
   paymentMilestones: many(paymentMilestones),
   paymentTransactions: many(paymentTransactions),
@@ -3625,13 +3766,18 @@ export const inboundRequests = pgTable("inbound_requests", {
   quotationId: text("quotation_id"),
   consultationLeadId: text("consultation_lead_id"),
   erpnextLeadId: text("erpnext_lead_id"),
+  idempotencyKey: text("idempotency_key"),
+  idempotencyHash: text("idempotency_hash"),
   erpnextSyncStatus: text("erpnext_sync_status").default("PENDING").notNull(),
   erpnextSyncError: text("erpnext_sync_error"),
   erpnextLastSyncedAt: timestamp("erpnext_last_synced_at", { withTimezone: true, mode: "date" }),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).defaultNow().notNull().$onUpdate(() => new Date()),
   salesDealId: uuid("sales_deal_id"),
-});
+}, (table) => [
+  uniqueIndex("inbound_requests_idempotency_key").on(table.idempotencyKey).where(sql`${table.idempotencyKey} IS NOT NULL`),
+  index("inbound_requests_sales_deal_id_idx").on(table.salesDealId),
+]);
 
 /** A commercial opportunity with canonical and legacy-compatible customer references. */
 export const salesDeals = pgTable(

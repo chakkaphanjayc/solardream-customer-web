@@ -632,7 +632,7 @@
 .timelineItemCompleted .timelineStatus {
   border-color: rgba(67, 137, 105, 0.22);
   background: rgba(112, 162, 134, 0.14);
-  color: #2d7658;
+  color: #1f513d;
 }
 
 .timelineItemActive .timelineStatus {

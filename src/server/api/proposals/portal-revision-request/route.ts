@@ -1,16 +1,23 @@
 import { revalidatePath } from "next/cache";
 import { NextRequest } from "next/server";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
 import { db } from "@/db";
-import { activityLogs, paymentRequests, proposals, userNotifications, users } from "@/db/schema";
+import { activityLogs, paymentRequests, proposalRevisions, proposals, quotationAcceptances, userNotifications, users } from "@/db/schema";
 import { sendDiscordQuotationNegotiationAlert } from "@/lib/discord";
 import { getQuotationDocumentNo } from "@/lib/erpnext";
 import { isRequestContentLengthExceeded } from "@/lib/requestSize";
 import { portalJson, resolvePortalAccess } from "@/lib/portalAccess";
 import { publishPortalStateChanged } from "@/lib/portalEvents";
+import { recordQuotationNegotiationEvent } from "@/server/services/sales/quotation-negotiation-service";
+import {
+  canRequestProposalRevision,
+  quotationRevisionLockKey,
+} from "@/server/services/sales/domain/quotation-revision-state";
 
 const MAX_REVISION_REQUEST_BODY_BYTES = 64 * 1024;
+
+class ProposalRevisionRequestConflictError extends Error {}
 
 type RevisionRequestBody = {
   proposalId?: unknown;
@@ -126,10 +133,6 @@ export async function POST(request: NextRequest) {
     }
 
     const requestedAt = new Date().toISOString();
-    const currentConfig = asRecord(proposal.configurationData);
-    const revisionRequests = Array.isArray(currentConfig.revisionRequests)
-      ? currentConfig.revisionRequests
-      : [];
     const customerName =
       proposal.user?.fullName ||
       proposal.user?.name ||
@@ -138,22 +141,54 @@ export async function POST(request: NextRequest) {
     const documentNo = proposal.erpnextQuotationId || getQuotationDocumentNo(proposal.id);
 
     const [updatedProposal] = await db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${quotationRevisionLockKey(proposal.id)}))`);
+      const lockedProposal = await tx.query.proposals.findFirst({
+        where: eq(proposals.id, proposal.id),
+      });
+      if (!lockedProposal) throw new Error("Proposal not found.");
+      const lockedRevision = await tx.query.proposalRevisions.findFirst({
+        where: eq(proposalRevisions.proposalId, proposal.id),
+        orderBy: [desc(proposalRevisions.revisionNumber)],
+      });
+      const recordedAcceptance = await tx.query.quotationAcceptances.findFirst({
+        where: eq(quotationAcceptances.proposalId, proposal.id),
+        columns: { id: true },
+      });
+      if (!canRequestProposalRevision({
+        latestRevisionStatus: lockedRevision?.status ?? null,
+        hasRecordedAcceptance: Boolean(recordedAcceptance),
+      })) {
+        throw new ProposalRevisionRequestConflictError(
+          "An accepted quotation cannot be changed through a revision request.",
+        );
+      }
+
+      const canSupersede = lockedRevision && (lockedRevision.status === "SENT" || lockedRevision.status === "VIEWED");
+      const lockedConfiguration = asRecord(lockedProposal.configurationData);
+      const lockedRevisionRequests = Array.isArray(lockedConfiguration.revisionRequests)
+        ? lockedConfiguration.revisionRequests
+        : [];
+      if (canSupersede) {
+        await tx.update(proposalRevisions)
+          .set({ status: "SUPERSEDED" })
+          .where(and(eq(proposalRevisions.id, lockedRevision.id), inArray(proposalRevisions.status, ["SENT", "VIEWED"])));
+      }
       const [updated] = await tx.update(proposals)
         .set({
-          status: "REVISION_REQUESTED",
+          status: canSupersede ? "REVISION_REQUIRED" : "REVISION_REQUESTED",
           dispatchStatus: "PENDING_DISPATCH",
           signatureUrl: null,
           signedAt: null,
           signedDocumentDriveUrl: null,
           configurationData: {
-            ...currentConfig,
+            ...lockedConfiguration,
             customerApproval: {
               status: "REVISION_REQUESTED",
               requestedAt,
               source: access.mode === "guest" ? "guest-proposal-portal" : "customer-proposal-portal",
             },
             revisionRequests: [
-              ...revisionRequests,
+              ...lockedRevisionRequests,
               {
                 message,
                 requestedAt,
@@ -163,8 +198,17 @@ export async function POST(request: NextRequest) {
           },
           updatedAt: new Date(),
         })
-        .where(eq(proposals.id, proposal.id))
+        .where(and(
+          eq(proposals.id, proposal.id),
+          eq(proposals.status, lockedProposal.status),
+          eq(proposals.updatedAt, lockedProposal.updatedAt),
+        ))
         .returning();
+      if (!updated) {
+        throw new ProposalRevisionRequestConflictError(
+          "This quotation changed before the revision request could be saved. Reload and try again.",
+        );
+      }
 
       await tx.insert(activityLogs).values({
         entityId: proposal.id,
@@ -172,6 +216,16 @@ export async function POST(request: NextRequest) {
         action: "REVISION_REQUESTED",
         description: `${customerName} requested quotation revision for ${documentNo}: ${message}`,
         userId: access.actorUserId,
+      });
+      await recordQuotationNegotiationEvent(tx, {
+        proposalId: proposal.id,
+        revisionId: lockedRevision?.id,
+        actorUserId: access.actorUserId,
+        eventType: "CUSTOMER_CHANGE_REQUEST",
+        source: access.mode === "guest" ? "GUEST_PORTAL" : "CUSTOMER_PORTAL",
+        visibility: "CUSTOMER",
+        message,
+        idempotencyKey: `customer-change-request:${proposal.id}:${requestedAt}`,
       });
 
       return [updated];
@@ -198,6 +252,12 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof ProposalRevisionRequestConflictError) {
+      return portalJson(
+        { success: false, error: error.message },
+        { status: 409 },
+      );
+    }
     console.error("[Portal Revision Request]:", error);
     return portalJson(
       { success: false, error: "Failed to submit revision request." },

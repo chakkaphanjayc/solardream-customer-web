@@ -7,9 +7,14 @@ import { verifyWebhook } from "../../integrations/webhook-verifier";
 import { createCommercialDocument, type CommercialOperation } from "../commercial-orchestration-service";
 import { matchDuplicateCustomer } from "../duplicate-matcher";
 import { ingestInboundDeal, InboundIdempotencyConflict, type StoredInboundDeal } from "../inbound-deal-service";
+import { inboundRequestFingerprint } from "../inbound-request-canonicalization";
 import { validateSignatureEvidence } from "../signature-evidence-service";
 import { evaluateHandoffReadiness } from "../handoff-readiness";
 import { validateSalesHandoff } from "../sales-handoff";
+import {
+  canTransitionProposalRevision,
+  projectLegacyProposalFromRevision,
+} from "../domain/quotation-revision-state";
 
 async function main() {
 let assertions = 0;
@@ -42,6 +47,38 @@ const concurrentRepo = {
 };
 const concurrent = await Promise.all([ingestInboundDeal(concurrentRepo, inbound), ingestInboundDeal(concurrentRepo, inbound)]);
 assert.deepEqual(new Set(concurrent.map(({ dealId }) => dealId)), new Set(["deal-concurrent"])); assertions += 1;
+
+const requestFingerprint = inboundRequestFingerprint({ customerName: "Ada", phone: "081-111-1111", email: "ADA@EXAMPLE.COM", requestType: "WIZARD", source: "web", payload: { watts: 5000, customer: "Ada" }, leadProfile: { territory: "Thailand" } });
+assert.equal(requestFingerprint, inboundRequestFingerprint({ customerName: "Ada", phone: "+66811111111", email: "ada@example.com", requestType: "WIZARD", source: "web", payload: { customer: "Ada", watts: 5000 }, leadProfile: { territory: "Thailand" } })); assertions += 1;
+assert.notEqual(requestFingerprint, inboundRequestFingerprint({ customerName: "Ada", phone: "+66811111111", email: "ada@example.com", requestType: "WIZARD", source: "web", payload: { customer: "Ada", watts: 6000 }, leadProfile: { territory: "Thailand" } })); assertions += 1;
+
+const revisionStates = ["DRAFT", "SENT", "VIEWED", "ACCEPTED", "SUPERSEDED", "VOID"] as const;
+const legalRevisionTransitions: Record<(typeof revisionStates)[number], readonly string[]> = {
+  DRAFT: ["DRAFT", "SENT", "VOID"],
+  SENT: ["SENT", "VIEWED", "ACCEPTED", "SUPERSEDED", "VOID"],
+  VIEWED: ["VIEWED", "ACCEPTED", "SUPERSEDED", "VOID"],
+  ACCEPTED: ["ACCEPTED"],
+  SUPERSEDED: ["SUPERSEDED"],
+  VOID: ["VOID"],
+};
+for (const from of revisionStates) {
+  for (const to of revisionStates) {
+    assert.equal(
+      canTransitionProposalRevision(from, to),
+      legalRevisionTransitions[from].includes(to),
+      `unexpected quotation revision transition ${from} -> ${to}`,
+    );
+    assertions += 1;
+  }
+}
+assert.deepEqual(projectLegacyProposalFromRevision("DRAFT"), { status: "DRAFT", dispatchStatus: "PENDING_DISPATCH" }); assertions += 1;
+assert.deepEqual(projectLegacyProposalFromRevision("SENT"), { status: "AWAITING_CLIENT_SIGNATURE", dispatchStatus: "DISPATCHED" }); assertions += 1;
+assert.deepEqual(projectLegacyProposalFromRevision("ACCEPTED"), { status: "CLIENT_SIGNED_PENDING_REVIEW", dispatchStatus: "SIGNED" }); assertions += 1;
+const quotationRouteContract = await readFile("src/server/api/quotations/[id]/route.ts", "utf8");
+check(quotationRouteContract.includes("QuotationCommandSchema"));
+check(!quotationRouteContract.includes("status: z.string().min(1)"));
+const revisionRepository = await readFile("src/lib/proposal-revisions.ts", "utf8");
+check(revisionRepository.includes("pg_advisory_xact_lock"));
 
 const hash = "a".repeat(64);
 check(validateSignatureEvidence({ signerIdentity: { id: "u1" }, verifiedContact: { email: "a@example.com" }, consentVersion: "v1", signedAt: "2026-01-01T00:00:00.000Z", signatureStorageReference: "sig/1", documentHash: hash, auditReference: "audit/1" }, hash, new Date("2026-01-02")).documentHash === hash);
@@ -83,6 +120,12 @@ check(revisionMigration.includes("guard_proposal_revision_immutability"));
 check(revisionMigration.includes("guard_proposal_revision_item_immutability"));
 check(revisionMigration.includes("guard_signature_evidence_immutability"));
 check(revisionMigration.includes("ON CONFLICT (proposal_id, revision_number) DO NOTHING"));
+const acceptanceMigration = await readFile("drizzle/0119_quotation_acceptance_revision_envelope_fk.sql", "utf8");
+check(acceptanceMigration.includes("FOREIGN KEY (signature_envelope_id, revision_id)"));
+check(acceptanceMigration.includes("REFERENCES public.signature_envelopes(id, revision_id)"));
+const acceptanceService = await readFile("src/server/services/sales/quotation-acceptance-service.ts", "utf8");
+check(acceptanceService.includes("eq(signatureEnvelopes.id, acceptance.signatureEnvelopeId)"));
+check(acceptanceService.includes("eq(signatureEnvelopes.revisionId, acceptance.revisionId)"));
 
 class FakeERPNext {
   calls: CommercialOperation[] = [];

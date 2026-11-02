@@ -198,7 +198,7 @@ export function UploadedFilesLedger(props: UploadedFilesLedgerProps) {
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-[#B7D1EA] px-4 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#A5C2DE] active:scale-95"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-[#B7D1EA] px-4 py-1.5 text-xs font-bold text-[#0F172A] shadow-sm transition hover:bg-[#A5C2DE] active:scale-95"
                     >
                       เปิดไฟล์
                       <ExternalLink className="h-3.5 w-3.5" />
@@ -208,7 +208,7 @@ export function UploadedFilesLedger(props: UploadedFilesLedgerProps) {
                         href={driveFileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[#CBC7BE] bg-[#F0EEE9] px-4 py-1.5 text-xs font-bold text-[#2E2C27] shadow-sm transition hover:bg-[#DCE8F5] active:scale-95"
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[#CBC7BE] bg-[#F0EEE9] px-4 py-1.5 text-xs font-bold text-[#2E2C27] shadow-sm transition hover:bg-[#DCE8F5] active:scale-95"
                       >
                         Google Drive
                         <ExternalLink className="h-3.5 w-3.5" />
@@ -219,7 +219,7 @@ export function UploadedFilesLedger(props: UploadedFilesLedgerProps) {
                         href={item.fallbackUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[#CBC7BE] bg-[#F0EEE9] px-4 py-1.5 text-xs font-bold text-[#2E2C27] shadow-sm transition hover:bg-[#DCE8F5] active:scale-95"
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[#CBC7BE] bg-[#F0EEE9] px-4 py-1.5 text-xs font-bold text-[#2E2C27] shadow-sm transition hover:bg-[#DCE8F5] active:scale-95"
                       >
                         สำเนา SolarDream
                         <ExternalLink className="h-3.5 w-3.5" />

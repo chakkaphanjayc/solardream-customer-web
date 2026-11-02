@@ -71,7 +71,7 @@ function ProposalEmbeddedPdfViewerClientContent({
             href={pdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border-2 border-[#000000] bg-white px-3.5 py-1.5 text-xs font-black text-slate-700 transition-all hover:bg-[#F0EEE9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F7FA8] focus-visible:ring-offset-2"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border-2 border-[#000000] bg-white px-3.5 py-1.5 text-xs font-black text-slate-700 transition-all hover:bg-[#F0EEE9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F7FA8] focus-visible:ring-offset-2"
           >
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             Open
@@ -85,7 +85,7 @@ function ProposalEmbeddedPdfViewerClientContent({
                 document_version: normalizedVersion,
               });
             }}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border-2 border-[#000000] bg-white px-3.5 py-1.5 text-xs font-black text-slate-700 transition-all hover:bg-[#F0EEE9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F7FA8] focus-visible:ring-offset-2"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border-2 border-[#000000] bg-white px-3.5 py-1.5 text-xs font-black text-slate-700 transition-all hover:bg-[#F0EEE9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F7FA8] focus-visible:ring-offset-2"
           >
             <Download className="h-3.5 w-3.5" aria-hidden="true" />
             {t("download")}

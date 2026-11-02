@@ -38,6 +38,7 @@ export async function POST(request: Request) {
       payload,
       notes,
     } = body;
+    const idempotencyKey = request.headers.get("idempotency-key")?.trim() || null;
 
     const finalName = (first_name || customer_name || customerName || "").trim();
     const finalPhone = (mobile_no || phone || "").trim();
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
       requestType: finalRequestType as "WIZARD" | "BUILD" | "SERVICE",
       payload: typeof finalPayload === "object" ? finalPayload : { notes: finalPayload },
       source: finalSource,
+      idempotencyKey,
     });
 
     if (!localResult.success) {
@@ -73,6 +75,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
+      replayed: localResult.replayed ?? false,
       erpnextLeadId: localResult.request.erpnextLeadId || null,
       request: localResult.request,
     });

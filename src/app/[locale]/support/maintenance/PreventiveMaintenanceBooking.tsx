@@ -28,6 +28,27 @@ import type {
 
 export type { PublicOffering } from "@/types/support";
 
+type MaintenanceRequiredField =
+  | "asset"
+  | "systemSize"
+  | "inverter"
+  | "roof"
+  | "appointmentDate"
+  | "contactName"
+  | "contactPhone"
+  | "contactEmail";
+
+const requiredFieldIds: Record<MaintenanceRequiredField, string> = {
+  asset: "support-asset",
+  systemSize: "support-system-size",
+  inverter: "support-inverter",
+  roof: "support-roof",
+  appointmentDate: "support-appointment-date",
+  contactName: "support-contact-name",
+  contactPhone: "support-contact-phone",
+  contactEmail: "support-contact-email",
+};
+
 export default function PreventiveMaintenanceBooking({
   locale,
   assets,
@@ -50,6 +71,7 @@ export default function PreventiveMaintenanceBooking({
   const [contact, setContact] = useState({ name: "", phone: "", email: "" });
   const [notes, setNotes] = useState("");
   const [error, setError] = useState(initialError);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<MaintenanceRequiredField, boolean>>>({});
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   const selectedOffering = offerings.find((offering) => offering.slug === offeringSlug);
@@ -68,20 +90,41 @@ export default function PreventiveMaintenanceBooking({
       router.push(`/${locale}/login?next=${encodeURIComponent(`/${locale}/support/maintenance`)}`);
       return;
     }
-    if (!selectedOffering || !appointmentDate || !contact.name || !contact.phone || !contact.email) {
-      setError(t("errors.required"));
-      return;
-    }
-    if (systemSource === "SOLARDREAM" && !assetId) {
-      setError(t("errors.asset"));
-      return;
-    }
-    if (systemSource === "EXTERNAL" && (!systemSizeKw || !inverterBrand || !roofType)) {
-      setError(t("errors.external"));
+    const missingFields: Partial<Record<MaintenanceRequiredField, boolean>> = {
+      appointmentDate: !appointmentDate.trim(),
+      contactName: !contact.name.trim(),
+      contactPhone: !contact.phone.trim(),
+      contactEmail: !contact.email.trim(),
+      ...(systemSource === "SOLARDREAM"
+        ? { asset: !assetId.trim() }
+        : {
+            systemSize: !systemSizeKw.trim(),
+            inverter: !inverterBrand.trim(),
+            roof: !roofType.trim(),
+          }),
+    };
+    setFieldErrors(missingFields);
+
+    if (!selectedOffering || Object.values(missingFields).some(Boolean)) {
+      setError(
+        missingFields.asset
+          ? t("errors.asset")
+          : missingFields.systemSize || missingFields.inverter || missingFields.roof
+            ? t("errors.external")
+            : t("errors.required"),
+      );
+      const firstMissingField = (Object.keys(requiredFieldIds) as MaintenanceRequiredField[])
+        .find((field) => missingFields[field]);
+      if (firstMissingField) {
+        window.requestAnimationFrame(() => {
+          document.getElementById(requiredFieldIds[firstMissingField])?.focus();
+        });
+      }
       return;
     }
 
     setError("");
+    setFieldErrors({});
     startTransition(async () => {
       const common = {
         idempotencyKey,
@@ -220,13 +263,21 @@ export default function PreventiveMaintenanceBooking({
                       <SourceButton
                         active={systemSource === "SOLARDREAM"}
                         disabled={!assets.length}
-                        onClick={() => setSystemSource("SOLARDREAM")}
+                        onClick={() => {
+                          setSystemSource("SOLARDREAM");
+                          setFieldErrors({});
+                          setError("");
+                        }}
                       >
                         {t("owned")}
                       </SourceButton>
                       <SourceButton
                         active={systemSource === "EXTERNAL"}
-                        onClick={() => setSystemSource("EXTERNAL")}
+                        onClick={() => {
+                          setSystemSource("EXTERNAL");
+                          setFieldErrors({});
+                          setError("");
+                        }}
                       >
                         {t("external")}
                       </SourceButton>
@@ -234,11 +285,16 @@ export default function PreventiveMaintenanceBooking({
                   </fieldset>
 
                   {systemSource === "SOLARDREAM" ? (
-                    <Field id="support-asset" label={t("asset")}>
+                    <Field id="support-asset" label={t("asset")} error={fieldErrors.asset ? t("errors.fieldRequired") : undefined}>
                       <select
                         id="support-asset"
+                        aria-invalid={fieldErrors.asset || undefined}
+                        aria-describedby={fieldErrors.asset ? "support-asset-error" : undefined}
                         value={assetId}
-                        onChange={(event) => setAssetId(event.target.value)}
+                        onChange={(event) => {
+                          setAssetId(event.target.value);
+                          setFieldErrors((current) => ({ ...current, asset: false }));
+                        }}
                         className={inputClass}
                       >
                         <option value="">{t("selectAsset")}</option>
@@ -251,76 +307,111 @@ export default function PreventiveMaintenanceBooking({
                     </Field>
                   ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                      <Field id="support-system-size" label={t("size")}>
+                      <Field id="support-system-size" label={t("size")} error={fieldErrors.systemSize ? t("errors.fieldRequired") : undefined}>
                         <Input
                           id="support-system-size"
+                          aria-invalid={fieldErrors.systemSize || undefined}
+                          aria-describedby={fieldErrors.systemSize ? "support-system-size-error" : undefined}
                           type="number"
                           min="0.1"
                           step="0.1"
                           inputMode="decimal"
                           value={systemSizeKw}
-                          onChange={(event) => setSystemSizeKw(event.target.value)}
+                          onChange={(event) => {
+                            setSystemSizeKw(event.target.value);
+                            setFieldErrors((current) => ({ ...current, systemSize: false }));
+                          }}
                           className="min-h-12 bg-white"
                         />
                       </Field>
-                      <Field id="support-inverter" label={t("inverter")}>
+                      <Field id="support-inverter" label={t("inverter")} error={fieldErrors.inverter ? t("errors.fieldRequired") : undefined}>
                         <Input
                           id="support-inverter"
+                          aria-invalid={fieldErrors.inverter || undefined}
+                          aria-describedby={fieldErrors.inverter ? "support-inverter-error" : undefined}
                           value={inverterBrand}
-                          onChange={(event) => setInverterBrand(event.target.value)}
+                          onChange={(event) => {
+                            setInverterBrand(event.target.value);
+                            setFieldErrors((current) => ({ ...current, inverter: false }));
+                          }}
                           className="min-h-12 bg-white"
                         />
                       </Field>
-                      <Field id="support-roof" label={t("roof")}>
+                      <Field id="support-roof" label={t("roof")} error={fieldErrors.roof ? t("errors.fieldRequired") : undefined}>
                         <Input
                           id="support-roof"
+                          aria-invalid={fieldErrors.roof || undefined}
+                          aria-describedby={fieldErrors.roof ? "support-roof-error" : undefined}
                           value={roofType}
-                          onChange={(event) => setRoofType(event.target.value)}
+                          onChange={(event) => {
+                            setRoofType(event.target.value);
+                            setFieldErrors((current) => ({ ...current, roof: false }));
+                          }}
                           className="min-h-12 bg-white"
                         />
                       </Field>
                     </div>
                   )}
 
-                  <Field id="support-appointment-date" label={t("date")}>
+                  <Field id="support-appointment-date" label={t("date")} error={fieldErrors.appointmentDate ? t("errors.fieldRequired") : undefined}>
                     <Input
                       id="support-appointment-date"
+                      aria-invalid={fieldErrors.appointmentDate || undefined}
+                      aria-describedby={fieldErrors.appointmentDate ? "support-appointment-date-error" : undefined}
                       type="date"
                       value={appointmentDate}
-                      onChange={(event) => setAppointmentDate(event.target.value)}
+                      onChange={(event) => {
+                        setAppointmentDate(event.target.value);
+                        setFieldErrors((current) => ({ ...current, appointmentDate: false }));
+                      }}
                       className="min-h-12 bg-white"
                     />
                   </Field>
                 </div>
 
                 <div className="space-y-5">
-                  <Field id="support-contact-name" label={t("contactName")}>
+                  <Field id="support-contact-name" label={t("contactName")} error={fieldErrors.contactName ? t("errors.fieldRequired") : undefined}>
                     <Input
                       id="support-contact-name"
+                      aria-invalid={fieldErrors.contactName || undefined}
+                      aria-describedby={fieldErrors.contactName ? "support-contact-name-error" : undefined}
                       autoComplete="name"
                       value={contact.name}
-                      onChange={(event) => setContact((current) => ({ ...current, name: event.target.value }))}
+                      onChange={(event) => {
+                        setContact((current) => ({ ...current, name: event.target.value }));
+                        setFieldErrors((current) => ({ ...current, contactName: false }));
+                      }}
                       className="min-h-12 bg-white"
                     />
                   </Field>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <Field id="support-contact-phone" label={t("phone")}>
+                    <Field id="support-contact-phone" label={t("phone")} error={fieldErrors.contactPhone ? t("errors.fieldRequired") : undefined}>
                       <Input
                         id="support-contact-phone"
+                        aria-invalid={fieldErrors.contactPhone || undefined}
+                        aria-describedby={fieldErrors.contactPhone ? "support-contact-phone-error" : undefined}
                         type="tel"
                         autoComplete="tel"
                         value={contact.phone}
-                        onChange={(event) => setContact((current) => ({ ...current, phone: event.target.value }))}
+                        onChange={(event) => {
+                          setContact((current) => ({ ...current, phone: event.target.value }));
+                          setFieldErrors((current) => ({ ...current, contactPhone: false }));
+                        }}
                         className="min-h-12 bg-white"
                       />
                     </Field>
-                    <Field id="support-contact-email" label={t("email")}>
+                    <Field id="support-contact-email" label={t("email")} error={fieldErrors.contactEmail ? t("errors.fieldRequired") : undefined}>
                       <Input
                         id="support-contact-email"
+                        aria-invalid={fieldErrors.contactEmail || undefined}
+                        aria-describedby={fieldErrors.contactEmail ? "support-contact-email-error" : undefined}
                         type="email"
                         autoComplete="email"
                         value={contact.email}
-                        onChange={(event) => setContact((current) => ({ ...current, email: event.target.value }))}
+                        onChange={(event) => {
+                          setContact((current) => ({ ...current, email: event.target.value }));
+                          setFieldErrors((current) => ({ ...current, contactEmail: false }));
+                        }}
                         className="min-h-12 bg-white"
                       />
                     </Field>
@@ -364,11 +455,26 @@ export default function PreventiveMaintenanceBooking({
 const inputClass =
   "min-h-12 w-full rounded-lg border border-input bg-white px-3.5 py-2.5 text-base text-foreground outline-none transition-[border-color,box-shadow] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/35";
 
-function Field({ id, label, children }: { id: string; label: string; children: ReactNode }) {
+function Field({
+  id,
+  label,
+  error,
+  children,
+}: {
+  id: string;
+  label: string;
+  error?: string;
+  children: ReactNode;
+}) {
   return (
     <div className="grid grid-cols-1 gap-2">
       <Label htmlFor={id}>{label}</Label>
       {children}
+      {error ? (
+        <p id={`${id}-error`} className="text-xs font-semibold text-rose-700">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

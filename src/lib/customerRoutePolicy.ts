@@ -97,7 +97,7 @@ export function getCustomerRoutePolicy(pathname: string): CustomerRoutePolicy {
     isVisualizer ||
     isTechPortal;
   const showNavigation = !suppressCustomerChrome;
-  const showFooter = showNavigation && !isHome && !isImmersive;
+  const showFooter = showNavigation && !isImmersive;
 
   return {
     pathname: normalizedPathname,

@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { proposals as proposalsTable } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { PageShell } from "@/components/ui/page-shell";
+import { getLoginRedirect } from "@/lib/authNavigation";
 
 
 type ProposalsPageProps = Readonly<{
@@ -23,7 +24,7 @@ export default async function ProposalsPage({ params }: ProposalsPageProps) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/${locale}/login`);
+    redirect(getLoginRedirect(locale, "proposals"));
   }
 
   const result = await getUserProposals();

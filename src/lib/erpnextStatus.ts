@@ -6,5 +6,5 @@ export function mapErpnextQuotationStatus(status: unknown) {
   if (["completed", "delivered", "closed"].includes(normalized)) return "COMPLETED";
   if (["lost", "cancelled", "canceled"].includes(normalized)) return "DEACTIVATED";
 
-  return "SENT";
+  return null;
 }

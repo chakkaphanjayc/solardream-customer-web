@@ -3,7 +3,6 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 
 import { getSystemSetting } from "@/app/actions/systemSettings";
-import { PORTFOLIO_PROJECTS } from "@/data/portfolioData";
 import {
   createDefaultProjectDraft,
   MAX_PORTFOLIO_SHOWCASE_PROJECTS,
@@ -147,18 +146,14 @@ export function getDefaultPortfolioShowcaseConfig(): PortfolioShowcaseConfig {
   return {
     version: 1,
     isEnabled: true,
-    items: PORTFOLIO_PROJECTS.map((project, index) => ({
-      projectId: project.id,
-      isFeatured: project.isFeatured === true,
-      sortOrder: project.sortOrder ?? index,
-    })),
+    items: [],
   };
 }
 
 export function getDefaultPortfolioProjectContentConfig(): PortfolioProjectContentConfig {
   return {
     version: 1,
-    projects: PORTFOLIO_PROJECTS.map(cloneProject),
+    projects: [],
     removedProjectIds: [],
   };
 }
@@ -313,7 +308,7 @@ function normalizeLimit(limit: number) {
 export function applyPortfolioShowcaseConfig(
   config: PortfolioShowcaseConfig,
   limit = MAX_PORTFOLIO_SHOWCASE_PROJECTS,
-  projects: readonly ProjectCaseStudy[] = PORTFOLIO_PROJECTS,
+  projects: readonly ProjectCaseStudy[] = [],
 ): ProjectCaseStudy[] {
   if (!config.isEnabled) return [];
 

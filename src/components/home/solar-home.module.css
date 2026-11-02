@@ -721,10 +721,12 @@
   min-width: 15rem;
   gap: 0.25rem;
   padding: 0.65rem;
-  border: 1px solid rgba(142, 139, 131, 0.2);
+  border: 1px solid rgba(80, 137, 191, 0.22);
   border-radius: 1.5rem;
-  background: #E6E3DC;
-  box-shadow: 0 16px 40px -12px rgba(183, 209, 234, 0.18), 0 4px 12px -2px rgba(183, 209, 234, 0.08);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 16px 40px -12px rgba(11, 5, 29, 0.16), 0 4px 16px -2px rgba(80, 137, 191, 0.18);
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, 0.45rem) scale(0.98);
@@ -803,6 +805,70 @@
 .languageLink svg {
   width: 0.9rem;
   height: 0.9rem;
+}
+
+.languageSwitcher {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(80, 137, 191, 0.22);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 2px 6px -1px rgba(80, 137, 191, 0.12);
+  gap: 0.15rem;
+}
+
+.languageSwitcherBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.85rem;
+  height: 1.75rem;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 750;
+  color: var(--sd-ink);
+  text-decoration: none;
+  transition: all 180ms ease;
+}
+
+.languageSwitcherBtn:hover {
+  background: rgba(183, 209, 234, 0.2);
+  color: var(--primary-foreground);
+}
+
+.languageSwitcherBtnActive {
+  background: var(--primary) !important;
+  color: var(--sd-ink) !important;
+  font-weight: 850;
+  box-shadow: 0 1px 3px rgba(11, 5, 29, 0.1);
+}
+
+.languageSwitcherDivider {
+  color: rgba(60, 86, 122, 0.35);
+  font-size: 0.68rem;
+  user-select: none;
+}
+
+.navLinkActive {
+  background: var(--primary) !important;
+  color: var(--sd-ink) !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px -1px rgba(80, 137, 191, 0.25);
+}
+
+.navMenuTriggerRowActive {
+  background: rgba(183, 209, 234, 0.18);
+}
+
+.navSubmenuItemActive {
+  background: var(--primary) !important;
+  color: var(--sd-ink) !important;
+  font-weight: 800;
 }
 
 .navTrackButton {
@@ -4043,6 +4109,49 @@
   }
 }
 
+@media (min-width: 75.01rem) {
+  :global(.sd-site-shell[data-customer-design="klarna"]) .mobileMenuButton {
+    display: none !important;
+  }
+}
+
+@media (max-width: 90rem) and (min-width: 75.01rem) {
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navLinks {
+    gap: 0.15rem !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) :is(.navLink, .navMenuTrigger, .navMenuLink) {
+    padding-inline: 0.4rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navActions {
+    gap: 0.3rem !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navTrackButton {
+    width: 2.75rem !important;
+    padding-inline: 0 !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navTrackButton span,
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navAuthButton :global(.authSignInLabel) {
+    display: none !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navAuthButton {
+    width: 2.75rem !important;
+    justify-content: center !important;
+    padding-inline: 0 !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navCta {
+    padding-inline: 0.8rem !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+  }
+}
+
 @media (max-width: 26rem) {
   .wordmarkText {
     display: none;
@@ -4086,6 +4195,529 @@
   .navUtilityButton,
   .navUtilityItem {
     transition: none;
+  }
+}
+
+/* Klarna-inspired customer chrome -----------------------------------------
+   The navigation keeps the existing menu, cart, auth, tracking, and locale
+   behavior. Only its visual contract changes: static, light, and editorial. */
+
+.nav {
+  position: relative;
+  top: auto;
+  right: auto;
+  left: auto;
+  width: 100%;
+  margin-inline: 0;
+  border: 0;
+  border-bottom: 1px solid #e2e2e7;
+  border-radius: 0;
+  background: #ffffff;
+  box-shadow: none;
+  color: #0b051d;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: none;
+}
+
+.navScrolled,
+.navCompact {
+  border-color: #e2e2e7;
+  background: #ffffff;
+  box-shadow: none;
+  transform: none;
+}
+
+.navInner {
+  min-height: 72px;
+  width: min(100%, 100rem);
+  margin-inline: auto;
+  padding: 0.5rem clamp(1rem, 5vw, 5rem);
+}
+
+.navDepth {
+  width: 100%;
+}
+
+.wordmarkMark {
+  background: #b7d1ea;
+}
+
+.wordmarkTextImage {
+  filter: grayscale(1) brightness(0);
+  opacity: 0.88;
+}
+
+.navLink,
+.navMenuTrigger,
+.navMenuLink,
+.languageLink {
+  color: #373544;
+  font-weight: 500;
+}
+
+.navLink:hover,
+.navLink:focus-visible,
+.navMenuTrigger:hover,
+.navMenuTrigger:focus-visible,
+.navMenuLink:hover,
+.navMenuLink:focus-visible,
+.languageLink:hover,
+.languageLink:focus-visible,
+.navMenuOpen > .navMenuTrigger,
+.navMenuOpen > .navMenuTriggerRow {
+  background: #b7d1ea;
+  color: #0b051d;
+}
+
+.navSubmenu {
+  border: 1px solid rgba(80, 137, 191, 0.22);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 20px 48px -10px rgba(11, 5, 29, 0.18), 0 8px 24px -4px rgba(80, 137, 191, 0.22);
+}
+
+.navSubmenuEyebrow {
+  color: #615f6d;
+}
+
+.navSubmenuItem {
+  color: #0b051d;
+}
+
+.navSubmenuItem:hover,
+.navSubmenuItem:focus-visible {
+  background: #efecff;
+  color: #0b051d;
+}
+
+.navTrackButton {
+  border-color: #e2e2e7;
+  background: #ffffff;
+  color: #282636;
+}
+
+.navTrackButton:hover,
+.navTrackButton:focus-visible {
+  border-color: #b7d1ea;
+  background: #efecff;
+  color: #0b051d;
+}
+
+.navCta {
+  background: #0b051d;
+  color: #ffffff;
+}
+
+.navCta:hover,
+.navCta:focus-visible {
+  background: #282636;
+}
+
+.navUtilityButton {
+  border-color: #b7d1ea;
+  background: #b7d1ea;
+  color: #0b051d;
+  box-shadow: none;
+}
+
+.navUtilityButton:hover,
+.navUtilityButton:focus-visible {
+  border-color: #5089bf;
+  background: #cbe0f0;
+  box-shadow: none;
+}
+
+.navUtilityBadge {
+  border-color: #ffffff;
+  background: #0b051d;
+  color: #ffffff;
+}
+
+.mobileMenuButton {
+  background: #b7d1ea;
+  color: #0b051d;
+}
+
+.mobileMenu {
+  border-top-color: #e2e2e7;
+  background: #ffffff;
+}
+
+.mobileNavLink,
+.mobileNavGroupTrigger {
+  color: #0b051d;
+}
+
+.mobileNavTrackLink,
+.mobileNavGroupTrigger:hover,
+.mobileNavGroupTrigger:focus-visible,
+.mobileNavGroupTriggerOpen {
+  border-color: #e2e2e7;
+  background: #efecff;
+}
+
+.mobileNavChildren {
+  border-left-color: #b7d1ea;
+}
+
+.mobileNavChild {
+  color: #615f6d;
+}
+
+/* Customer navigation v2 --------------------------------------------------
+   The customer shell uses the same quiet editorial system as the redesigned
+   home: static white canvas, deliberate center navigation, and one clear
+   action group. The interaction model above remains unchanged. */
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .nav {
+  position: relative !important;
+  top: 0.65rem !important;
+  right: 0 !important;
+  left: 0 !important;
+  width: min(calc(100% - 1.5rem), 82rem) !important;
+  margin-inline: auto !important;
+  border: 1px solid rgba(60, 86, 122, 0.14) !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  box-shadow: 0 4px 20px -2px rgba(11, 5, 29, 0.06) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  isolation: isolate !important;
+  transition: all 240ms cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .nav.navScrolled {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(60, 86, 122, 0.22) !important;
+  box-shadow: 0 10px 32px -4px rgba(11, 5, 29, 0.1) !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .nav.navOpen {
+  border-radius: 28px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 18px 44px rgba(11, 5, 29, 0.14) !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .navInner {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  min-height: 4rem !important;
+  margin-inline: auto !important;
+  gap: 0.85rem !important;
+  padding: 0.45rem 0.85rem 0.45rem 1.15rem !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .wordmark {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.65rem !important;
+  color: #0b051d !important;
+  text-decoration: none !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .wordmarkMark {
+  width: 2.35rem !important;
+  height: 2.35rem !important;
+  border: 1px solid rgba(60, 86, 122, 0.16) !important;
+  background: #b7d1ea !important;
+  border-radius: 9999px !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .wordmarkLogo {
+  transform: scale(1.12) !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .wordmarkText {
+  display: grid !important;
+  width: auto !important;
+  aspect-ratio: auto !important;
+  gap: 0.1rem !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .wordmarkName {
+  color: #0b051d !important;
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1 !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .wordmarkDescriptor {
+  color: #5089bf !important;
+  font-size: 0.6rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1.2 !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .navLinks {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.35rem !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) :is(.navLink, .navMenuTrigger, .navMenuLink) {
+  min-height: 2.35rem !important;
+  padding: 0 0.85rem !important;
+  border-radius: 999px !important;
+  color: #282636 !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  transition: all 180ms ease !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) :is(.navLink, .navMenuTrigger, .navMenuLink):hover,
+:global(.sd-site-shell[data-customer-design="klarna"]) :is(.navLink, .navMenuTrigger, .navMenuLink):focus-visible,
+:global(.sd-site-shell[data-customer-design="klarna"]) .navMenuOpen > :is(.navMenuTrigger, .navMenuTriggerRow) {
+  background: rgba(183, 209, 234, 0.25) !important;
+  color: #0b051d !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .navLinkActive {
+  background: #B7D1EA !important;
+  color: #0B051D !important;
+  font-weight: 700 !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .navActions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .languageSwitcher {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0.2rem !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(60, 86, 122, 0.16) !important;
+  background: rgba(240, 238, 233, 0.7) !important;
+  gap: 0.15rem !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .languageSwitcherBtn {
+  min-height: 1.85rem !important;
+  padding: 0.2rem 0.55rem !important;
+  border-radius: 999px !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  color: #615f6d !important;
+  text-decoration: none !important;
+  transition: all 160ms ease !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .languageSwitcherBtnActive {
+  background: #ffffff !important;
+  color: #0B051D !important;
+  box-shadow: 0 1px 4px rgba(11, 5, 29, 0.08) !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .languageSwitcherDivider {
+  display: none !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .navTrackButton {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  min-height: 2.35rem !important;
+  padding-inline: 0.85rem !important;
+  border: 1px solid rgba(60, 86, 122, 0.16) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: #282636 !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  transition: all 180ms ease !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .navTrackButton:hover,
+:global(.sd-site-shell[data-customer-design="klarna"]) .navTrackButton:focus-visible {
+  border-color: #5089bf !important;
+  background: #ffffff !important;
+  color: #0B051D !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .navCta {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  min-height: 2.5rem !important;
+  padding-inline: 1.25rem !important;
+  border-radius: 999px !important;
+  background: #B7D1EA !important;
+  color: #0B051D !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  box-shadow: 0 2px 8px rgba(183, 209, 234, 0.4) !important;
+  transition: all 200ms ease !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .navCta:hover,
+:global(.sd-site-shell[data-customer-design="klarna"]) .navCta:focus-visible {
+  background: #a2c3e2 !important;
+  color: #0B051D !important;
+  box-shadow: 0 4px 14px rgba(183, 209, 234, 0.6) !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .navUtilityButton {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 2.35rem !important;
+  min-height: 2.35rem !important;
+  border: 1px solid rgba(60, 86, 122, 0.16) !important;
+  background: #ffffff !important;
+  color: #0B051D !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  transition: all 180ms ease !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .navUtilityButton:hover,
+:global(.sd-site-shell[data-customer-design="klarna"]) .navUtilityButton:focus-visible {
+  border-color: #5089bf !important;
+  background: rgba(183, 209, 234, 0.2) !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .navAuthButton {
+  min-height: 2.35rem !important;
+  border: 1px solid rgba(60, 86, 122, 0.16) !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  color: #0b051d !important;
+  box-shadow: none !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .mobileMenuButton {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 2.35rem !important;
+  height: 2.35rem !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(60, 86, 122, 0.18) !important;
+  color: #0B051D !important;
+  cursor: pointer !important;
+  transition: all 180ms ease !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .mobileMenuButton:hover,
+:global(.sd-site-shell[data-customer-design="klarna"]) .mobileMenuButton:focus-visible {
+  background: rgba(183, 209, 234, 0.2) !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .mobileMenu {
+  margin-top: 0.65rem !important;
+  border: 1px solid rgba(60, 86, 122, 0.16) !important;
+  border-radius: 28px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 20px 48px rgba(11, 5, 29, 0.14) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  padding: 1rem !important;
+  gap: 0.45rem !important;
+}
+
+:global(.sd-site-shell[data-customer-design="klarna"]) .partnerMark svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+@media (max-width: 60rem) {
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navInner {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navActions {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 44rem) {
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navInner {
+    padding-inline: 1rem;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .wordmarkMark {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .wordmarkDescriptor {
+    display: none;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .wordmarkName {
+    font-size: 0.95rem;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navTrackButton {
+    display: none;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navAuthButton {
+    width: 2.5rem;
+    justify-content: center;
+    padding-inline: 0 !important;
+  }
+}
+
+@media (max-width: 26rem) {
+  :global(.sd-site-shell[data-customer-design="klarna"]) .wordmarkText {
+    display: grid;
+  }
+}
+
+@media (max-width: 75rem) and (min-width: 60.01rem) {
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navInner {
+    display: flex !important;
+    gap: 0.75rem;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navLinks {
+    gap: 0.2rem;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) :is(.navLink, .navMenuTrigger, .navMenuLink) {
+    padding-inline: 0.3rem;
+    font-size: 0.78rem;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navActions {
+    gap: 0.3rem;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navTrackButton {
+    width: 2.5rem;
+    padding-inline: 0;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navTrackButton span,
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navAuthButton :global(.authSignInLabel) {
+    display: none;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navAuthButton {
+    width: 2.5rem;
+    justify-content: center;
+    padding-inline: 0 !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="klarna"]) .navCta {
+    padding-inline: 0.75rem;
   }
 }
 
@@ -4370,6 +5002,16 @@
 }
 
 @media (max-width: 44rem) {
+  :global(.sd-site-shell[data-customer-design="solar-atelier"])
+    :is(.navUtilityButton, .navTrackButton, .navAuthButton, .languageSwitcherBtn, .mobileMenuButton) {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .languageSwitcherBtn {
+    height: 44px !important;
+  }
+
   :global(.sd-site-shell[data-customer-design="solar-atelier"]) .nav {
     top: 0.5rem !important;
     width: calc(100% - 1rem) !important;
@@ -4400,6 +5042,25 @@
     min-height: 2.5rem !important;
     padding-inline: 0.75rem !important;
     font-size: 0.72rem !important;
+  }
+}
+
+@media (max-width: 22rem) {
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .nav {
+    width: calc(100% - 0.5rem) !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navInner {
+    padding-inline: 0.35rem !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .navActions {
+    gap: 0.15rem !important;
+  }
+
+  :global(.sd-site-shell[data-customer-design="solar-atelier"]) .languageSwitcher {
+    gap: 0 !important;
+    padding: 0 !important;
   }
 }
 

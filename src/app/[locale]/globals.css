@@ -1,6 +1,50 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+:root {
+  /* Core Brand Palette (Locked) */
+  --background: #F0EEE9;          /* Warm Linen page canvas */
+  --primary: #B7D1EA;             /* Nantucket Breeze soft sky surface/tint */
+  --primary-foreground: #5089bf;  /* Steel Blue brand accent / headline highlight */
+  --secondary-foreground: #FFFFFF;/* Crisp White card & surface contrast */
+  --accent: #E6DCCD;              /* Warm Sand secondary container / bundle tint */
+  --accent-foreground: #3c567a;   /* Deep Slate Navy for high-contrast text & badges */
+  --muted: #F0EBE5;               /* Soft Alabaster for subtle cards, inputs & skeletons */
+  --muted-foreground: #608ac4;    /* Muted Azure for secondary labels & metadata */
+
+  /* Editorial & Accessibility Ink Tokens (from DESIGN.md for WCAG AA 4.5:1 compliance) */
+  --sd-ink: #0B051D;              /* Near-black editorial display text & primary pill CTA surface */
+  --sd-ink-alt: #0E0E0F;
+  --sd-text-secondary: #282636;
+  --sd-text-tertiary: #373544;
+  --sd-card: #FFFFFF;             /* Elevated crisp card surface on #F0EEE9 canvas */
+  --sd-card-tinted: #E6DCCD;      /* Warm Sand container */
+  --sd-line-oa: #06C755;          /* Official LINE OA Green */
+
+  /* Derived System Tokens */
+  --foreground: var(--sd-ink);
+  --card: var(--sd-card);
+  --card-foreground: var(--sd-ink);
+  --popover: var(--sd-card);
+  --popover-foreground: var(--sd-ink);
+  --secondary: var(--accent);
+  --border: rgba(60, 86, 122, 0.14);
+  --border-strong: rgba(60, 86, 122, 0.28);
+  --input: rgba(60, 86, 122, 0.20);
+  --ring: var(--primary-foreground);
+  --destructive: #b42318;
+  --destructive-foreground: #FFFFFF;
+
+  /* Legacy Normalization */
+  --sd-page: var(--background);
+  --sd-raised: var(--sd-card);
+  --sd-soft-solar: var(--muted);
+  --sd-selected: rgba(183, 209, 234, 0.35);
+  --sd-line: var(--border);
+  --sd-text: var(--sd-text-secondary);
+  --sd-muted: var(--muted-foreground);
+}
+
 @theme {
   /* ═══════════════════════════════════════════════════════
    * MATERIAL DESIGN 3 (MATERIAL YOU) — WARM AIR & SAND
@@ -42,22 +86,22 @@
   --font-noto-sans-thai: var(--font-noto-sans-thai), sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 
-  /* Main Color Tokens mapped to Material You (MD3) */
+  /* Main Color Tokens mapped to Core Brand Palette */
   --color-rice-paper: #F0EEE9;
   --color-deep-loam: #1C1C1A;
   --color-primary: #B7D1EA;
-  --color-primary-foreground: #142533;
-  --color-secondary: #D8D2C4;
-  --color-secondary-foreground: #2E2C27;
-  --color-accent: #DCE8F5;
-  --color-accent-foreground: #0E2336;
-  --color-muted: #F7F6F3;
-  --color-muted-foreground: #4E4B44;
-  --color-border: #8E8B83;
+  --color-primary-foreground: #5089bf;
+  --color-secondary: #E6DCCD;
+  --color-secondary-foreground: #FFFFFF;
+  --color-accent: #E6DCCD;
+  --color-accent-foreground: #3c567a;
+  --color-muted: #F0EBE5;
+  --color-muted-foreground: #608ac4;
+  --color-border: rgba(60, 86, 122, 0.14);
   --color-destructive: #B42318;
 
   --color-background: #F0EEE9;
-  --color-foreground: #1C1C1A;
+  --color-foreground: #0B051D;
 
   --color-skybase: #F0EEE9;
   --color-windbreeze: #B7D1EA;
@@ -84,19 +128,19 @@
   --color-text-main: #1C1C1A;
   --ease-spring-soft: cubic-bezier(0.2, 0, 0, 1);
   --ease-expo-out: cubic-bezier(0.2, 0, 0, 1);
-  --muted: #F7F6F3;
-  --muted-foreground: #4E4B44;
+  --muted: #F0EBE5;
+  --muted-foreground: #608ac4;
 
-  --accent: #DCE8F5;
-  --accent-foreground: #0E2336;
+  --accent: #E6DCCD;
+  --accent-foreground: #3c567a;
 
   --destructive: #B42318;
   --destructive-foreground: #FFFFFF;
 
   /* Material You Outline & Rings */
-  --border: #8E8B83;
-  --input: #8E8B83;
-  --ring: #7CA8D0;
+  --border: rgba(60, 86, 122, 0.14);
+  --input: rgba(60, 86, 122, 0.20);
+  --ring: #5089bf;
 
   --radius-xs: 0.5rem;
   --radius-sm: 0.75rem;
@@ -199,6 +243,12 @@
     scroll-behavior: smooth;
     overflow-x: clip;
     text-size-adjust: 100%;
+  }
+
+  /* Mandatory Thai Typography Clearance Rule (MASTER.md §4.1) */
+  [lang="th"], .thai-copy {
+    line-height: 1.45 !important;
+    letter-spacing: 0.01em;
   }
 
   * {
@@ -1072,6 +1122,503 @@ html body[data-solar-ui="customer"]
   }
 }
 
+/* Customer design final override. Keep this block last so legacy route
+   refinements cannot pull customer pages back into the former blue/cream UI. */
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"] {
+  --sd-page: #ffffff;
+  --sd-raised: #ffffff;
+  --sd-soft-solar: #efecff;
+  --sd-selected: #b7d1ea;
+  --sd-ink: #0b051d;
+  --sd-text: #282636;
+  --sd-muted: #615f6d;
+  --sd-line: #e2e2e7;
+  --sd-blue-600: #0b051d;
+  --sd-blue-500: #5089bf;
+  --sd-focus: #5089bf;
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #0b051d !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-route-shell.solar-summary-page {
+  --sd-page: #ffffff !important;
+  --sd-raised: #ffffff !important;
+  --sd-soft-solar: #efecff !important;
+  --sd-selected: #b7d1ea !important;
+  --sd-ink: #0b051d !important;
+  --sd-text: #282636 !important;
+  --sd-muted: #615f6d !important;
+  --sd-line: #e2e2e7 !important;
+  --solar-ui-ground: #ffffff !important;
+  --solar-ui-primary: #0b051d !important;
+  --solar-ui-primary-hover: #282636 !important;
+  --solar-ui-primary-deep: #5089bf !important;
+  --solar-ui-ink: #0b051d !important;
+  --solar-ui-muted: #615f6d !important;
+  --solar-ui-surface-soft: #efecff !important;
+  --solar-ui-line: #e2e2e7 !important;
+  --solar-ui-edge: #e2e2e7 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #0b051d !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-card, .solar-build-section, .solar-summary-overview, .solar-wizard-steps, .solar-wizard-progress, .solar-wizard-completion, .solar-summary-sidebar, .solar-build-live-sidebar, .solar-summary-loading-panel, .solar-metric-card, .solar-profile-panel, .solar-profile-identity, [data-bagui="card"], [data-bagui="panel"], [data-bagui="sidebar"]) {
+  border-color: #e2e2e7 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 2px 4px rgb(11 5 29 / 0.1) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #0b051d !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-soft-panel, .wizard-ui-panel, .solar-build-breakdown) {
+  border-color: #e2e2e7 !important;
+  background: #efecff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-card, .solar-build-section, .solar-summary-overview, .solar-wizard-steps, .solar-wizard-progress, .solar-wizard-completion, .solar-summary-sidebar, .solar-build-live-sidebar, .solar-summary-loading-panel, .solar-metric-card, .solar-profile-panel, .solar-profile-identity, [data-bagui="card"], [data-bagui="panel"], [data-bagui="sidebar"]) {
+  border-radius: 1.5rem !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-kicker) {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #5089bf !important;
+  box-shadow: none !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-primary, .solar-ui-primary, .wizard-ui-primary, .solar-auth-primary, .solar-works-button, .solar-warranty-primary) {
+  border-color: #0b051d !important;
+  border-radius: 999px !important;
+  background: #0b051d !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-secondary, .solar-ui-secondary) {
+  border-color: #e2e2e7 !important;
+  border-radius: 999px !important;
+  background: #efecff !important;
+  color: #0b051d !important;
+  box-shadow: none !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-summary-sidebar {
+  top: 1rem !important;
+  height: calc(100dvh - 2rem) !important;
+  max-height: calc(100dvh - 2rem) !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(h1, h2, h3, h4) {
+  color: #0b051d !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.sd-page-shell, .solar-route-shell) {
+  background: #ffffff !important;
+  background-image: none !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-route-atmosphere {
+  display: none !important;
+}
+
+/* -------------------------------------------------------------------------
+   Customer visual contract: DESIGN.md
+
+   The customer information architecture and interactions stay in the
+   existing route components. This final cascade gives those routes the same
+   light, editorial language as the new home while leaving operations and
+   admin surfaces outside the customer shell unchanged.
+   ------------------------------------------------------------------------- */
+
+body:has(.sd-site-shell[data-customer-design="klarna"]) {
+  background: #ffffff;
+  color: #0b051d;
+}
+
+body:has(.sd-site-shell[data-customer-design="klarna"]) .organic-paper-grain {
+  display: none;
+}
+
+.sd-site-shell[data-customer-design="klarna"] {
+  --sd-navy-950: #0b051d;
+  --sd-navy-900: #0b051d;
+  --sd-blue-700: #282636;
+  --sd-blue-600: #0b051d;
+  --sd-blue-500: #5089bf;
+  --sd-blue-300: #b7d1ea;
+  --sd-blue-100: #efecff;
+  --sd-cyan-400: #5089bf;
+  --sd-yellow-400: #b7d1ea;
+  --sd-page: #ffffff;
+  --sd-raised: #ffffff;
+  --sd-soft-solar: #efecff;
+  --sd-technical: #0b051d;
+  --sd-selected: #b7d1ea;
+  --sd-anime-highlight: #efecff;
+  --sd-ink: #0b051d;
+  --sd-text: #282636;
+  --sd-muted: #615f6d;
+  --sd-line: #e2e2e7;
+  --sd-focus: #5089bf;
+  --sd-radius-sm: 1rem;
+  --sd-radius-md: 1.5rem;
+  --sd-radius-lg: 1.5rem;
+  --sd-radius-panel: 1.5rem;
+  --sd-radius-feature: 1.5rem;
+  --sd-shadow-1: 0 2px 4px rgb(11 5 29 / 0.1);
+  --sd-shadow-2: 0 8px 24px rgb(11 5 29 / 0.1);
+  --sd-shadow-3: 0 12px 32px rgb(11 5 29 / 0.12);
+  --sd-shadow-4: 0 18px 44px rgb(11 5 29 / 0.14);
+  --solar-route-ground: #ffffff;
+  --solar-route-surface: #ffffff;
+  --solar-route-surface-soft: #efecff;
+  --solar-route-surface-muted: #f8f8fb;
+  --solar-route-ink: #0b051d;
+  --solar-route-muted: #615f6d;
+  --solar-route-line: #e2e2e7;
+  --solar-route-accent: #5089bf;
+  --solar-route-accent-soft: #b7d1ea;
+  background: #ffffff;
+  color: #0b051d;
+}
+
+.sd-site-shell[data-customer-design="klarna"] [data-site-header] {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"] #main-content {
+  background: #ffffff !important;
+  color: #0b051d;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"] {
+  background: #ffffff !important;
+  background-image: none !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.sd-page-shell, .solar-route-shell) {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #0b051d !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-route-atmosphere {
+  display: none !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-route-content {
+  padding-top: clamp(2.5rem, 6vw, 5rem) !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(h1, h2, h3, h4) {
+  color: #0b051d !important;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(p, li, dt, dd, label) {
+  color: #282636;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-card, .solar-build-section, .solar-summary-overview, .solar-wizard-steps, .solar-wizard-progress, .solar-wizard-completion, .solar-summary-sidebar, .solar-build-live-sidebar, .solar-summary-loading-panel, .solar-metric-card, .solar-profile-panel, .solar-profile-identity, [data-bagui="card"], [data-bagui="panel"], [data-bagui="sidebar"]) {
+  border-color: #e2e2e7 !important;
+  border-radius: 1.5rem !important;
+  background: #ffffff !important;
+  box-shadow: 0 2px 4px rgb(11 5 29 / 0.1) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #0b051d !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-soft-panel, .wizard-ui-panel, .solar-build-breakdown, .solar-summary-loading-panel) {
+  border-color: #e2e2e7 !important;
+  background: #efecff !important;
+  box-shadow: none !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-choice-card, .solar-wizard-option, .solar-recommendation-option, .solar-build-step, .solar-summary-feature-card) {
+  border-color: #e2e2e7 !important;
+  background: #ffffff !important;
+  box-shadow: 0 2px 4px rgb(11 5 29 / 0.1) !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-choice-card[data-selected="true"], .solar-choice-card[aria-checked="true"], .solar-wizard-option[data-selected="true"], .solar-wizard-option[aria-checked="true"], .solar-recommendation-option[data-selected="true"], .solar-recommendation-option[aria-checked="true"], .solar-build-step[data-active="true"], .solar-build-step[aria-current="step"]) {
+  border-color: #5089bf !important;
+  background: #b7d1ea !important;
+  box-shadow: 0 4px 12px rgb(80 137 191 / 0.2) !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-route-kicker {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  color: #5089bf !important;
+  box-shadow: none !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-primary, .solar-ui-primary, .wizard-ui-primary, .solar-auth-primary, .solar-works-button, .solar-warranty-primary, .solar-route-secondary, .solar-ui-secondary) {
+  min-height: 2.75rem;
+  border: 1px solid #0b051d !important;
+  border-radius: 999px !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  box-shadow: none !important;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-primary, .solar-ui-primary, .wizard-ui-primary, .solar-auth-primary, .solar-works-button, .solar-warranty-primary) {
+  background: #0b051d !important;
+  color: #ffffff !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-primary, .solar-ui-primary, .wizard-ui-primary, .solar-auth-primary, .solar-works-button, .solar-warranty-primary):hover:not(:disabled),
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-primary, .solar-ui-primary, .wizard-ui-primary, .solar-auth-primary, .solar-works-button, .solar-warranty-primary):focus-visible {
+  border-color: #282636 !important;
+  background: #282636 !important;
+  color: #ffffff !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-secondary, .solar-ui-secondary) {
+  border-color: #e2e2e7 !important;
+  background: #efecff !important;
+  color: #0b051d !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-secondary, .solar-ui-secondary):hover:not(:disabled),
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-secondary, .solar-ui-secondary):focus-visible {
+  border-color: #b7d1ea !important;
+  background: #b7d1ea !important;
+  color: #0b051d !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+  border-color: #e2e2e7 !important;
+  border-radius: 1rem !important;
+  background: #ffffff !important;
+  color: #0b051d !important;
+  box-shadow: none !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea):focus {
+  border-color: #5089bf !important;
+  outline: 3px solid rgb(80 137 191 / 0.2) !important;
+  outline-offset: 1px;
+}
+
+/* Global accessible visible focus ring per design-system/MASTER.md */
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid #5089bf !important;
+  outline-offset: 2px !important;
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+}
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+.animate-accordion-down {
+  animation: accordion-down 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.animate-accordion-up {
+  animation: accordion-up 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-summary-sidebar {
+  top: 1rem !important;
+  height: calc(100dvh - 2rem) !important;
+  max-height: calc(100dvh - 2rem) !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"] .solar-site-footer {
+  border-top: 1px solid #e2e2e7 !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+  color: #0b051d !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"] .solar-site-footer :is(a, p, span, h2, h3) {
+  color: #282636 !important;
+}
+
+.sd-site-shell[data-customer-design="klarna"] .solar-site-footer a:hover,
+.sd-site-shell[data-customer-design="klarna"] .solar-site-footer a:focus-visible {
+  color: #5089bf !important;
+}
+
+body:has(.sd-site-shell[data-customer-design="klarna"]) .solar-cookie-banner {
+  border-color: #e2e2e7 !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 44px rgb(11 5 29 / 0.14) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body:has(.sd-site-shell[data-customer-design="klarna"]) .solar-cookie-banner :is(button, a) {
+  border-radius: 999px !important;
+}
+
+body:has(.sd-site-shell[data-customer-design="klarna"]) .solar-cookie-banner .solar-cookie-manage {
+  border: 0 !important;
+  background: transparent !important;
+  color: #282636 !important;
+  box-shadow: none !important;
+}
+
+body:has(.sd-site-shell[data-customer-design="klarna"]) .solar-cookie-banner .solar-cookie-essential {
+  border: 1px solid #e2e2e7 !important;
+  background: #efecff !important;
+  color: #0b051d !important;
+  box-shadow: none !important;
+}
+
+body:has(.sd-site-shell[data-customer-design="klarna"]) .solar-cookie-banner .solar-cookie-accept {
+  border: 1px solid #0b051d !important;
+  background: #0b051d !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  .solar-cookie-banner
+  .solar-cookie-manage {
+  border: 0 !important;
+  background: transparent !important;
+  color: #282636 !important;
+  box-shadow: none !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  .solar-cookie-banner
+  .solar-cookie-essential {
+  border: 1px solid #e2e2e7 !important;
+  background: #efecff !important;
+  color: #0b051d !important;
+  box-shadow: none !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  .solar-cookie-banner
+  .solar-cookie-accept {
+  border: 1px solid #0b051d !important;
+  background: #0b051d !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sd-site-shell[data-customer-design="klarna"]
+    #main-content[data-solar-surface="atelier"]
+    :is(a, button, input, select, textarea) {
+    transition: none !important;
+  }
+}
+
 
 /* Direct fallback for wizard panels with legacy strong-fill contracts. */
 @media (prefers-reduced-transparency: reduce) {
@@ -1214,12 +1761,12 @@ html body[data-solar-ui="customer"]
 
 [data-solar-surface="atelier"] .solar-build-action-dock {
   pointer-events: auto;
-  border: 1px solid rgba(142, 139, 131, 0.25) !important;
-  border-radius: 9999px;
-  background: rgba(247, 246, 243, 0.94) !important;
-  box-shadow: 0 8px 32px -4px rgba(183, 209, 234, 0.15) !important;
-  backdrop-filter: blur(22px) saturate(128%);
-  -webkit-backdrop-filter: blur(22px) saturate(128%);
+  border: 1px solid rgba(60, 86, 122, 0.14) !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 8px 32px -4px rgba(11, 5, 29, 0.12) !important;
+  backdrop-filter: blur(16px) saturate(128%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(128%) !important;
 }
 
 /* Floating layer portals are intentionally outside the route shell. Keep
@@ -1238,12 +1785,12 @@ body[data-solar-ui="customer"] #solardream-layer-root
 body[data-solar-ui="customer"] #solardream-layer-root
   .solar-build-action-dock {
   pointer-events: auto;
-  border: 1px solid rgba(142, 139, 131, 0.25) !important;
-  border-radius: 9999px;
-  background: rgba(247, 246, 243, 0.94) !important;
-  box-shadow: 0 8px 32px -4px rgba(183, 209, 234, 0.15) !important;
-  backdrop-filter: blur(22px) saturate(128%);
-  -webkit-backdrop-filter: blur(22px) saturate(128%);
+  border: 1px solid rgba(60, 86, 122, 0.14) !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 8px 32px -4px rgba(11, 5, 29, 0.12) !important;
+  backdrop-filter: blur(16px) saturate(128%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(128%) !important;
 }
 
 [data-solar-surface="atelier"].solar-route-action-bar {
@@ -5475,16 +6022,62 @@ main[data-solar-surface="atelier"] {
 }
 
 [data-solar-surface="atelier"].solar-cookie-banner {
-  border: 1px solid var(--solar-glass-edge) !important;
-  background: var(--solar-glass-fill-strong) !important;
-  color: var(--solar-glass-ink);
-  box-shadow: 0 8px 14px rgb(15 23 42 / 0.16) !important;
-  backdrop-filter: blur(28px) saturate(125%);
-  -webkit-backdrop-filter: blur(28px) saturate(125%);
+  border: 1px solid #e2e2e7 !important;
+  background: #ffffff !important;
+  color: #0b051d !important;
+  box-shadow: 0 18px 44px rgb(11 5 29 / 0.14) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 [data-solar-surface="atelier"].solar-cookie-banner button:not([class~="border-none"]) {
-  border-color: var(--solar-glass-line);
+  border-color: #e2e2e7 !important;
+}
+
+[data-solar-surface="atelier"].solar-cookie-banner .solar-cookie-manage {
+  border: 0 !important;
+  background: transparent !important;
+  color: #282636 !important;
+  box-shadow: none !important;
+}
+
+[data-solar-surface="atelier"].solar-cookie-banner .solar-cookie-essential {
+  border: 1px solid #e2e2e7 !important;
+  background: #efecff !important;
+  color: #0b051d !important;
+  box-shadow: none !important;
+}
+
+[data-solar-surface="atelier"].solar-cookie-banner .solar-cookie-accept {
+  border: 1px solid #0b051d !important;
+  background: #0b051d !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+[data-solar-surface="atelier"].solar-cookie-banner :is(button, a) {
+  min-height: 44px !important;
+}
+
+[data-solar-surface="atelier"].solar-cookie-banner .solar-cookie-manage {
+  border: 0 !important;
+  background: transparent !important;
+  color: #282636 !important;
+  box-shadow: none !important;
+}
+
+[data-solar-surface="atelier"].solar-cookie-banner .solar-cookie-essential {
+  border: 1px solid #e2e2e7 !important;
+  background: #efecff !important;
+  color: #0b051d !important;
+  box-shadow: none !important;
+}
+
+[data-solar-surface="atelier"].solar-cookie-banner .solar-cookie-accept {
+  border: 1px solid #0b051d !important;
+  background: #0b051d !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
 }
 
 /* Works / installation archive ------------------------------------------- */
@@ -5500,7 +6093,7 @@ main[data-solar-surface="atelier"] {
 [data-solar-surface="atelier"] .solar-works-eyebrow {
   border: 1px solid rgb(18 107 255 / 0.22);
   background: var(--sd-soft-solar);
-  color: var(--sd-blue-600);
+  color: var(--sd-ink);
   box-shadow: var(--sd-shadow-1);
 }
 
@@ -6194,13 +6787,19 @@ main[data-solar-surface="atelier"] {
 [data-solar-surface="atelier"] .solar-warranty-portal .solar-warranty-status--covered {
   border-color: rgb(79 127 168 / 0.28) !important;
   background: rgb(183 209 234 / 0.48) !important;
-  color: #2f6f62 !important;
+  color: #1f513d !important;
 }
 
 [data-solar-surface="atelier"] .solar-warranty-portal .solar-warranty-status--expired {
   border-color: rgb(216 168 123 / 0.42) !important;
   background: rgb(241 214 184 / 0.48) !important;
-  color: #8b5e3c !important;
+  color: #70411f !important;
+}
+
+[data-solar-surface="atelier"] .solar-warranty-portal .solar-warranty-status--pending {
+  border-color: rgb(79 127 168 / 0.28) !important;
+  background: rgb(183 209 234 / 0.3) !important;
+  color: #334155 !important;
 }
 
 [data-solar-surface="atelier"] .solar-warranty-portal .solar-warranty-icon {
@@ -6220,6 +6819,10 @@ main[data-solar-surface="atelier"] {
 
 [data-solar-surface="atelier"] .solar-warranty-portal .solar-warranty-progress--expired {
   background: var(--solar-ui-warm);
+}
+
+[data-solar-surface="atelier"] .solar-warranty-portal .solar-warranty-progress--pending {
+  background: var(--solar-ui-primary-deep);
 }
 
 [data-solar-surface="atelier"] .solar-warranty-portal :where(.solar-warranty-primary, .solar-warranty-secondary) {
@@ -7102,6 +7705,77 @@ body[data-solar-ui="customer"] #solardream-layer-root
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+
+  html body:has(.sd-site-shell[data-customer-design="klarna"])
+    .sd-site-shell[data-customer-design="klarna"]
+    .solar-cookie-banner {
+    border-color: #e2e2e7 !important;
+    background: #ffffff !important;
+    color: #0b051d !important;
+    box-shadow: 0 18px 44px rgb(11 5 29 / 0.14) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body:has(.sd-site-shell[data-customer-design="klarna"])
+    .sd-site-shell[data-customer-design="klarna"]
+    .solar-cookie-banner
+    .solar-cookie-manage {
+    border: 0 !important;
+    background: transparent !important;
+    color: #282636 !important;
+    box-shadow: none !important;
+  }
+
+  html body:has(.sd-site-shell[data-customer-design="klarna"])
+    .sd-site-shell[data-customer-design="klarna"]
+    .solar-cookie-banner
+    .solar-cookie-essential {
+    border: 1px solid #e2e2e7 !important;
+    background: #efecff !important;
+    color: #0b051d !important;
+    box-shadow: none !important;
+  }
+
+  html body:has(.sd-site-shell[data-customer-design="klarna"])
+    .sd-site-shell[data-customer-design="klarna"]
+    .solar-cookie-banner
+    .solar-cookie-accept {
+    border: 1px solid #0b051d !important;
+    background: #0b051d !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  html body:has(.sd-site-shell[data-customer-design="klarna"])
+    .sd-site-shell[data-customer-design="klarna"]
+    .solar-cookie-banner
+    .solar-cookie-manage {
+    border: 0 !important;
+    background: transparent !important;
+    color: #282636 !important;
+    box-shadow: none !important;
+  }
+
+  html body:has(.sd-site-shell[data-customer-design="klarna"])
+    .sd-site-shell[data-customer-design="klarna"]
+    .solar-cookie-banner
+    .solar-cookie-essential {
+    border: 1px solid #e2e2e7 !important;
+    background: #efecff !important;
+    color: #0b051d !important;
+    box-shadow: none !important;
+  }
+
+  html body:has(.sd-site-shell[data-customer-design="klarna"])
+    .sd-site-shell[data-customer-design="klarna"]
+    .solar-cookie-banner
+    .solar-cookie-accept {
+    border: 1px solid #0b051d !important;
+    background: #0b051d !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+  }
 }
 
 @media (forced-colors: active) {
@@ -7191,9 +7865,9 @@ html body[data-solar-ui="customer"]
     .solar-profile-identity,
     .solar-profile-panel
   ) {
-  border: 0 !important;
+  border: 1px solid rgba(60, 86, 122, 0.14) !important;
   background: var(--sd-customer-surface) !important;
-  box-shadow: var(--sd-customer-shadow) !important;
+  box-shadow: 0 2px 8px rgba(11, 5, 29, 0.04) !important;
   color: var(--sd-customer-ink) !important;
   backdrop-filter: blur(24px) saturate(132%) !important;
   -webkit-backdrop-filter: blur(24px) saturate(132%) !important;
@@ -8856,14 +9530,13 @@ html body[data-solar-ui="customer"] #solardream-layer-root
     .solar-summary-drawer,
     .solar-summary-sidebar,
     .solar-summary-mobile-bar,
-    .solar-route-action-bar,
-    .solar-build-action-dock
+    .solar-route-action-bar
   ) {
-  border: 1px solid var(--solar-warm-outline-variant, #d8e3ef) !important;
+  border: 1px solid #e2e2e7 !important;
   border-radius: 1rem !important;
-  background: var(--solar-warm-surface, #ffffff) !important;
-  box-shadow: var(--solar-warm-shadow-md, 0 12px 28px -18px rgb(16 33 59 / 0.28)) !important;
-  color: var(--solar-warm-ink, #10213b) !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 44px rgb(11 5 29 / 0.14) !important;
+  color: #0b051d !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -8888,9 +9561,9 @@ html body[data-solar-ui="customer"] #solardream-layer-root
     button[class*="bg-[#B7D1EA]"],
     a[class*="bg-[#B7D1EA]"]
   ) {
-  border-color: #126bff !important;
+  border-color: #0b051d !important;
   border-radius: 9999px !important;
-  background: #126bff !important;
+  background: #0b051d !important;
   color: #ffffff !important;
 }
 
@@ -9086,16 +9759,16 @@ html body[data-solar-ui="customer"]
   --sd-cyan-100: #dff7ff;
   --sd-yellow-400: #ffd84d;
   --sd-white: #ffffff;
-  --sd-page: #f7faff;
-  --sd-raised: #ffffff;
-  --sd-soft-solar: #eef5ff;
-  --sd-technical: #061b3d;
-  --sd-selected: #e7f1ff;
+  --sd-page: var(--background);
+  --sd-raised: var(--sd-card);
+  --sd-soft-solar: var(--muted);
+  --sd-technical: var(--accent-foreground);
+  --sd-selected: rgba(183, 209, 234, 0.35);
   --sd-anime-highlight: #fff8d6;
-  --sd-ink: #10213b;
-  --sd-text: #24364f;
-  --sd-muted: #526477;
-  --sd-line: #d8e3ef;
+  --sd-ink: var(--foreground);
+  --sd-text: var(--sd-text-secondary);
+  --sd-muted: var(--muted-foreground);
+  --sd-line: var(--border);
   --sd-success: #157347;
   --sd-warning: #9a6700;
   --sd-danger: #b42318;
@@ -9238,7 +9911,7 @@ html body[data-solar-ui="customer"]
 }
 
 .solar-ui-choice:hover:not(:disabled) {
-  border-color: var(--sd-blue-500);
+  border-color: var(--primary-foreground);
   box-shadow: var(--sd-shadow-2);
   transform: translateY(-2px);
 }
@@ -9246,9 +9919,15 @@ html body[data-solar-ui="customer"]
 .solar-ui-choice[data-selected="true"],
 .solar-ui-choice[aria-checked="true"],
 .solar-ui-choice[aria-pressed="true"] {
-  border-color: var(--sd-blue-600);
-  background: var(--sd-selected);
-  box-shadow: 0 0 0 2px rgb(18 107 255 / 0.12), var(--sd-shadow-1);
+  border-color: var(--primary-foreground);
+  background: var(--primary);
+  color: var(--sd-ink);
+  box-shadow: 0 0 0 2px var(--primary-foreground), var(--sd-shadow-1);
+}
+
+.solar-ui-choice[data-selected="true"] .solar-ui-choice__description,
+.solar-ui-choice[aria-checked="true"] .solar-ui-choice__description {
+  color: var(--accent-foreground);
 }
 
 .solar-ui-choice:disabled {
@@ -9261,7 +9940,7 @@ html body[data-solar-ui="customer"]
 .solar-ui-secondary:focus-visible,
 .solar-ui-tertiary:focus-visible,
 .solar-ui-action-bar button:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--sd-focus) 40%, transparent);
+  outline: 3px solid var(--primary-foreground);
   outline-offset: 3px;
 }
 
@@ -9272,14 +9951,14 @@ html body[data-solar-ui="customer"]
   flex: 0 0 auto;
   place-items: center;
   border-radius: var(--sd-radius-md);
-  background: var(--sd-soft-solar);
-  color: var(--sd-blue-600);
+  background: var(--muted);
+  color: var(--accent-foreground);
 }
 
 .solar-ui-choice[data-selected="true"] .solar-ui-choice__icon,
 .solar-ui-choice[aria-checked="true"] .solar-ui-choice__icon {
-  background: var(--sd-blue-600);
-  color: var(--sd-white);
+  background: var(--primary-foreground);
+  color: var(--secondary-foreground);
 }
 
 .solar-ui-choice__copy {
@@ -9728,8 +10407,8 @@ html body[data-solar-ui="customer"]
 }
 
 .solar-ui-stepper__button[data-state="current"] {
-  border-color: var(--sd-blue-600);
-  background: var(--sd-selected);
+  border-color: var(--primary-foreground);
+  background: var(--primary);
   color: var(--sd-ink);
 }
 
@@ -9750,21 +10429,21 @@ html body[data-solar-ui="customer"]
   flex: 0 0 auto;
   place-items: center;
   border-radius: 50%;
-  background: var(--sd-soft-solar);
-  color: var(--sd-blue-600);
+  background: var(--muted);
+  color: var(--accent-foreground);
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
   font-weight: 900;
 }
 
 .solar-ui-stepper__button[data-state="current"] .solar-ui-stepper__index {
-  background: var(--sd-blue-600);
-  color: var(--sd-white);
+  background: var(--primary-foreground);
+  color: var(--secondary-foreground);
 }
 
 .solar-ui-stepper__button[data-state="complete"] .solar-ui-stepper__index {
   background: var(--sd-success);
-  color: var(--sd-white);
+  color: var(--secondary-foreground);
 }
 
 .solar-ui-stepper__copy {
@@ -10220,10 +10899,8 @@ html body[data-solar-ui="customer"]
   .sd-site-shell[data-solar-ui="customer"]
   #main-content[data-solar-surface="atelier"]
   .solar-route-shell[data-solar-surface="atelier"] {
-  background:
-    radial-gradient(circle at 8% 4%, rgb(38 140 255 / 0.14), transparent 34%),
-    radial-gradient(circle at 94% 86%, rgb(77 220 255 / 0.12), transparent 30%),
-    var(--sd-page) !important;
+  background: var(--sd-page) !important;
+  background-image: none !important;
   background-color: var(--sd-page) !important;
   color: var(--sd-ink) !important;
 }
@@ -10444,12 +11121,13 @@ html body[data-solar-ui="customer"]
   box-shadow: 0 14px 34px -24px rgb(28 28 26 / 32%) !important;
 }
 
-html body[data-solar-ui="customer"]
-  .sd-site-shell[data-solar-ui="customer"]
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
   #main-content[data-solar-surface="atelier"]
   .solar-summary-page
   .solar-summary-overview-header {
-  background: rgb(240 238 233 / 82%) !important;
+  background: #ffffff !important;
+  background-image: none !important;
 }
 
 html body[data-solar-ui="customer"]
@@ -10549,4 +11227,140 @@ html body[data-solar-ui="customer"]
     transform: none !important;
     transition: none !important;
   }
+}
+
+/* Last word for the customer surface: DESIGN.md tokens win over legacy
+   route refinements, while admin and operations do not match this selector. */
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"] {
+  --sd-page: #ffffff !important;
+  --sd-raised: #ffffff !important;
+  --sd-soft-solar: #efecff !important;
+  --sd-selected: #b7d1ea !important;
+  --sd-ink: #0b051d !important;
+  --sd-text: #282636 !important;
+  --sd-muted: #615f6d !important;
+  --sd-line: #e2e2e7 !important;
+  --sd-blue-600: #0b051d !important;
+  --sd-blue-500: #5089bf !important;
+  --sd-focus: #5089bf !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #0b051d !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-route-shell.solar-summary-page {
+  --solar-ui-ground: #ffffff !important;
+  --solar-ui-primary: #0b051d !important;
+  --solar-ui-primary-hover: #282636 !important;
+  --solar-ui-primary-deep: #5089bf !important;
+  --solar-ui-ink: #0b051d !important;
+  --solar-ui-muted: #615f6d !important;
+  --solar-ui-surface-soft: #efecff !important;
+  --solar-ui-line: #e2e2e7 !important;
+  --solar-ui-edge: #e2e2e7 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #0b051d !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-card, .solar-build-section, .solar-summary-overview, .solar-wizard-steps, .solar-wizard-progress, .solar-wizard-completion, .solar-summary-sidebar, .solar-build-live-sidebar, .solar-summary-loading-panel, .solar-metric-card, .solar-profile-panel, .solar-profile-identity, [data-bagui="card"], [data-bagui="panel"], [data-bagui="sidebar"]) {
+  border-color: #e2e2e7 !important;
+  border-radius: 1.5rem !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 2px 4px rgb(11 5 29 / 0.1) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #0b051d !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-soft-panel, .wizard-ui-panel, .solar-build-breakdown) {
+  border-color: #e2e2e7 !important;
+  background: #efecff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-kicker) {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #5089bf !important;
+  box-shadow: none !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-primary, .solar-ui-primary, .wizard-ui-primary, .solar-auth-primary, .solar-works-button, .solar-warranty-primary) {
+  border-color: #0b051d !important;
+  border-radius: 999px !important;
+  background: #0b051d !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(.solar-route-secondary, .solar-ui-secondary) {
+  border-color: #e2e2e7 !important;
+  border-radius: 999px !important;
+  background: #efecff !important;
+  color: #0b051d !important;
+  box-shadow: none !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-summary-sidebar {
+  top: 1rem !important;
+  height: calc(100dvh - 2rem) !important;
+  max-height: calc(100dvh - 2rem) !important;
+}
+
+html body:has(.sd-site-shell[data-customer-design="klarna"])
+  .sd-site-shell[data-customer-design="klarna"]
+  #main-content[data-solar-surface="atelier"]
+  :is(h1, h2, h3, h4) {
+  color: #0b051d !important;
+}
+
+.solar-service-booking-action-bar .solar-route-action-button {
+  color: var(--sd-ink) !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-support-knowledge
+  input.solar-knowledge-search:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+  border-radius: 12px !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-support-knowledge
+  input.solar-knowledge-search:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):is(:focus-visible, :focus-within) {
+  border-color: #0f172a !important;
+  outline: 2px solid #0f172a !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
 }

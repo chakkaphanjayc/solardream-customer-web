@@ -1,25 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { and, desc, eq, or } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { activityLogs, proposalRevisions, proposals, signatureAuditTrails, signatureEnvelopes } from "@/db/schema";
+import { activityLogs, proposalRevisions, proposals, quotationAcceptances, signatureAuditTrails, signatureEnvelopes } from "@/db/schema";
+import { getQuotationDocumentNo } from "@/lib/erpnext";
 import {
-  createErpnextSalesOrderFromQuotation,
-  getProjectBySalesOrder,
-  getQuotationDocumentNo,
-} from "@/lib/erpnext";
-import {
-  markErpnextQuotationAccepted,
   stampQuotationPdf,
-  updateErpnextQuotationSignatureAudit,
 } from "@/lib/pdf-signer";
 import { downloadDrivePdf, uploadSignedDrivePdf, type DrivePdfFile } from "@/lib/document-signing/drive";
 import { getSigningSecret, PORTAL_SESSION_COOKIE, validatePortalToken } from "@/lib/portalTokens";
 import { isQuotationAvailableForSignature } from "@/lib/quotationSigningEligibility";
-import { broadcastAdminEvent } from "@/lib/sse-publisher";
 import { verifyHs256Jwt } from "@/lib/signedJwt";
 import { createClient } from "@/utils/supabase/server";
 import { enqueueIntegrationEvent } from "@/lib/integrationOutbox";
@@ -27,6 +20,13 @@ import { enqueueLifecycleNotification } from "@/server/services/communications/l
 import { processOutboxBestEffort } from "@/lib/outboxProcessor";
 import { SALES_NOTIFICATION_TOPICS } from "@/lib/salesNotificationConfig";
 import { signQuotationWithDocumentService } from "@/lib/document-service/client";
+import { verifiedPdfSha256 } from "@/lib/document-service/document-hash";
+import { QUOTATION_ACCEPTED_COMMAND_TOPIC } from "@/server/services/sales/quotation-topics";
+import { recordQuotationNegotiationEvent } from "@/server/services/sales/quotation-negotiation-service";
+import {
+  isProposalRevisionCurrentForAcceptance,
+  quotationRevisionLockKey,
+} from "@/server/services/sales/domain/quotation-revision-state";
 
 
 const signQuotationSchema = z.object({
@@ -36,13 +36,15 @@ const signQuotationSchema = z.object({
 });
 
 type GoldenThreadState = {
-  status: "PROJECT_CREATED" | "SALES_ORDER_SUBMITTED" | "SYNC_FAILED";
+  status: "PROJECT_CREATED" | "SALES_ORDER_SUBMITTED" | "SALES_ORDER_PENDING" | "SYNC_FAILED";
   quotationId: string;
   salesOrderId: string | null;
   projectId: string | null;
   updatedAt: string;
   error?: string;
 };
+
+class ProposalRevisionConflictError extends Error {}
 
 function clientIp(request: NextRequest) {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
@@ -62,55 +64,6 @@ function asRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
-function getText(value: unknown) {
-  return typeof value === "string" && value.trim() ? value.trim() : "";
-}
-
-function getExistingGoldenThreadState(configurationData: unknown) {
-  const config = asRecord(configurationData);
-  const state = asRecord(config.goldenThread);
-  return {
-    salesOrderId: getText(state.salesOrderId) || null,
-    projectId: getText(state.projectId) || null,
-  };
-}
-
-async function waitForProjectBySalesOrder(salesOrderId: string) {
-  const attempts = 5;
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const project = await getProjectBySalesOrder(salesOrderId);
-    if (project) return project;
-    if (attempt < attempts - 1) {
-      await new Promise<void>((resolve) => setTimeout(resolve, 400));
-    }
-  }
-  return null;
-}
-
-async function orchestrateGoldenThread(
-  quotationId: string,
-  configurationData: unknown,
-): Promise<GoldenThreadState> {
-  const existing = getExistingGoldenThreadState(configurationData);
-  const salesOrderId = existing.salesOrderId
-    || (await createErpnextSalesOrderFromQuotation(quotationId)).salesOrderName;
-  const project = await waitForProjectBySalesOrder(salesOrderId);
-  const projectId = project ? getText(project.name) || null : null;
-  const updatedAt = new Date().toISOString();
-
-  if (projectId && existing.projectId !== projectId) {
-    broadcastAdminEvent("PROJECT_CREATED", { projectId });
-  }
-
-  return {
-    status: projectId ? "PROJECT_CREATED" : "SALES_ORDER_SUBMITTED",
-    quotationId,
-    salesOrderId,
-    projectId,
-    updatedAt,
-  };
-}
-
 function extractDriveFileId(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -127,14 +80,18 @@ function extractDriveFileId(value: unknown): string | null {
   }
 }
 
-async function getStoredQuotationPdf(proposal: {
-  id: string;
-  revisedPdfUrl: string | null;
-  pdfUrl: string | null;
+async function getStoredQuotationPdf(input: {
+  proposalId: string;
+  pdfDocumentReference: string | null;
 }): Promise<{ source: DrivePdfFile; sourceDocumentId: string | null }> {
+  const sourceFileId = extractDriveFileId(input.pdfDocumentReference);
+  if (!sourceFileId) {
+    throw new Error("The current sent revision has no canonical Google Drive PDF reference.");
+  }
+
   const finalQuotation = await db.query.quotationDeliveryDocuments.findFirst({
     where: (documents, operators) => operators.and(
-      operators.eq(documents.quotationId, proposal.id),
+      operators.eq(documents.quotationId, input.proposalId),
       operators.eq(documents.deliveryType, "FINAL_QUOTATION"),
       operators.eq(documents.status, "READY"),
     ),
@@ -145,25 +102,17 @@ async function getStoredQuotationPdf(proposal: {
       fallbackUrl: true,
     },
   });
-
-  const sourceValues = finalQuotation
+  const deliveryFileIds = finalQuotation
     ? [finalQuotation.storageFileId, finalQuotation.fileUrl, finalQuotation.fallbackUrl]
-    : [proposal.revisedPdfUrl, proposal.pdfUrl];
-  const sourceFileId = sourceValues
-    .map(extractDriveFileId)
-    .find((fileId): fileId is string => Boolean(fileId));
-
-  if (!sourceFileId) {
-    throw new Error(
-      finalQuotation
-        ? "The current final quotation must be stored as a Google Drive PDF before signing."
-        : "A stored quotation PDF is required before signing.",
-    );
-  }
+        .map(extractDriveFileId)
+    : [];
+  const sourceDocumentId = deliveryFileIds.includes(sourceFileId)
+    ? finalQuotation?.id || null
+    : null;
 
   return {
     source: await downloadDrivePdf(sourceFileId),
-    sourceDocumentId: finalQuotation?.id || null,
+    sourceDocumentId,
   };
 }
 
@@ -227,12 +176,6 @@ export async function POST(request: NextRequest) {
     const signerUserAgent = request.headers.get("user-agent") || "unknown";
     const signerName = input.signer_name || proposal.user?.fullName || proposal.user?.name || "Customer";
     const quotationVerificationUrl = verificationUrl(request, quotationId);
-    const { source: originalPdf, sourceDocumentId } = await getStoredQuotationPdf({
-      id: proposal.id,
-      revisedPdfUrl: proposal.revisedPdfUrl,
-      pdfUrl: proposal.pdfUrl,
-    });
-    const sourceDocumentHash = createHash("sha256").update(originalPdf.bytes).digest("hex");
     const currentRevision = await db.query.proposalRevisions.findFirst({
       where: eq(proposalRevisions.proposalId, proposal.id),
       orderBy: [desc(proposalRevisions.revisionNumber)],
@@ -240,6 +183,17 @@ export async function POST(request: NextRequest) {
     if (!currentRevision || (currentRevision.status !== "SENT" && currentRevision.status !== "VIEWED")) {
       return NextResponse.json({ error: "The current proposal revision is not available for signature." }, { status: 409 });
     }
+    if (!extractDriveFileId(currentRevision.pdfDocumentReference)) {
+      return NextResponse.json(
+        { error: "The current sent revision has no canonical PDF. Create and send a new revision before signing." },
+        { status: 409 },
+      );
+    }
+    const { source: originalPdf, sourceDocumentId } = await getStoredQuotationPdf({
+      proposalId: proposal.id,
+      pdfDocumentReference: currentRevision.pdfDocumentReference,
+    });
+    const sourceDocumentHash = createHash("sha256").update(originalPdf.bytes).digest("hex");
     if (!currentRevision.documentHash || currentRevision.documentHash !== sourceDocumentHash) {
       return NextResponse.json({ error: "The stored document does not match the revision that was sent. Create and send a new revision." }, { status: 409 });
     }
@@ -278,22 +232,32 @@ export async function POST(request: NextRequest) {
         signerName,
         requireSignatureAnchor: true,
       });
+    let verifiedSignedDocumentHash: string;
+    try {
+      verifiedSignedDocumentHash = verifiedPdfSha256(
+        signedDocument.pdfBytes,
+        signedDocument.sha256Hash,
+      );
+    } catch {
+      return NextResponse.json(
+        { error: "The signed PDF could not be verified." },
+        { status: 502 },
+      );
+    }
     const signedDriveDocument = await uploadSignedDrivePdf({
       source: originalPdf,
       signedPdf: Buffer.from(signedDocument.pdfBytes),
     });
     const signedPdfUrl = signedDriveDocument.fileUrl;
-    await updateErpnextQuotationSignatureAudit({
-      quotationId,
-      sha256Hash: signedDocument.sha256Hash,
-      signedAt: signedAt.toISOString(),
-      signerIpAddress,
-      signerUserAgent,
-      verificationUrl: quotationVerificationUrl,
-    });
-    await markErpnextQuotationAccepted(quotationId);
 
     const configurationData = asRecord(proposal.configurationData);
+    const pendingGoldenThread: GoldenThreadState = {
+      status: "SALES_ORDER_PENDING",
+      quotationId,
+      salesOrderId: null,
+      projectId: null,
+      updatedAt: signedAt.toISOString(),
+    };
     const signature = {
       signedAt: signedAt.toISOString(),
       signerName,
@@ -306,7 +270,7 @@ export async function POST(request: NextRequest) {
       signedSourceDocumentId: sourceDocumentId,
       signedSourceFileName: originalPdf.fileName,
       signedPdfStorage: "GOOGLE_DRIVE",
-      sha256Hash: signedDocument.sha256Hash,
+      sha256Hash: verifiedSignedDocumentHash,
       documentServiceDocumentId: documentServiceResult?.document.id || null,
       documentServiceVersionId: documentServiceResult?.document.currentVersionId || null,
       documentServiceFinalObject: documentServiceResult?.document.currentVersion.finalObject || null,
@@ -316,6 +280,23 @@ export async function POST(request: NextRequest) {
     };
 
     const [updatedProposal] = await db.transaction(async (tx) => {
+      await tx.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtext(${quotationRevisionLockKey(proposal.id)}))`,
+      );
+      const latestRevision = await tx.query.proposalRevisions.findFirst({
+        where: eq(proposalRevisions.proposalId, proposal.id),
+        orderBy: [desc(proposalRevisions.revisionNumber)],
+      });
+      if (!isProposalRevisionCurrentForAcceptance({
+        expectedRevisionId: currentRevision.id,
+        latestRevision: latestRevision ?? null,
+        sourceDocumentHash,
+      })) {
+        throw new ProposalRevisionConflictError(
+          "This quotation changed while it was being signed. Reload and review the latest version.",
+        );
+      }
+
       const [updated] = await tx.update(proposals)
         .set({
           status: "CLIENT_SIGNED_PENDING_REVIEW",
@@ -323,7 +304,19 @@ export async function POST(request: NextRequest) {
           signatureUrl: input.signature,
           signedAt,
           signedDocumentDriveUrl: signedPdfUrl,
-          configurationData: { ...configurationData, signature },
+          configurationData: {
+            ...configurationData,
+            signature,
+            goldenThread: pendingGoldenThread,
+            commercialHandoff: {
+              status: "PENDING",
+              revisionId: currentRevision.id,
+              revisionNumber: currentRevision.revisionNumber,
+              quotationId,
+              signedHash: verifiedSignedDocumentHash,
+              queuedAt: signedAt.toISOString(),
+            },
+          },
           updatedAt: signedAt,
         })
         .where(and(eq(proposals.id, proposal.id), eq(proposals.status, proposal.status)))
@@ -335,7 +328,7 @@ export async function POST(request: NextRequest) {
         signatureUrl: input.signature,
         signerIpAddress,
         signerUserAgent,
-        documentHash: signedDocument.sha256Hash,
+        documentHash: verifiedSignedDocumentHash,
       });
       const verifiedContactValue = proposalEmail || proposal.user?.phoneNumber?.trim();
       if (!verifiedContactValue) throw new Error("A verified signer contact is required.");
@@ -344,7 +337,7 @@ export async function POST(request: NextRequest) {
         : portalAccess
           ? { type: "PORTAL_TOKEN", value: verifiedContactValue }
           : { type: "VERIFIED_EMAIL", value: guestEmail || verifiedContactValue };
-      await tx.insert(signatureEnvelopes).values({
+      const [signatureEnvelope] = await tx.insert(signatureEnvelopes).values({
         revisionId: currentRevision.id,
         status: "SIGNED",
         signerIdentity: { name: signerName, proposalUserId: proposal.userId },
@@ -360,16 +353,44 @@ export async function POST(request: NextRequest) {
           userAgentHash: createHash("sha256").update(signerUserAgent).digest("hex"),
           sourceDocumentId: sourceDocumentId || undefined,
           verificationUrl: quotationVerificationUrl,
-          signedDocumentHash: signedDocument.sha256Hash,
+          signedDocumentHash: verifiedSignedDocumentHash,
           documentServiceDocumentId: documentServiceResult?.document.id || undefined,
           documentServiceVersionId: documentServiceResult?.document.currentVersionId || undefined,
           signingRuntime: documentServiceResult ? "solardream-document-service" : "legacy-customer-web",
         },
-      });
+      }).returning({ id: signatureEnvelopes.id });
+      if (!signatureEnvelope) throw new Error("The signed evidence envelope could not be recorded.");
       const [acceptedRevision] = await tx.update(proposalRevisions).set({ status: "ACCEPTED", acceptedAt: signedAt })
         .where(and(eq(proposalRevisions.id, currentRevision.id), or(eq(proposalRevisions.status, "SENT"), eq(proposalRevisions.status, "VIEWED"))))
         .returning({ id: proposalRevisions.id });
       if (!acceptedRevision) throw new Error("Proposal revision was updated before it could be accepted. Please reload and try again.");
+      await tx.insert(quotationAcceptances).values({
+        proposalId: proposal.id,
+        revisionId: currentRevision.id,
+        signatureEnvelopeId: signatureEnvelope.id,
+        revisionNumber: currentRevision.revisionNumber,
+        erpnextQuotationId: quotationId,
+        sourceDocumentHash,
+        signedDocumentHash: verifiedSignedDocumentHash,
+        signerName,
+        signerUserId: user?.id || null,
+        verificationMethod: verifiedContact.type,
+        verificationUrl: quotationVerificationUrl,
+        acceptedAt: signedAt,
+        status: "ORDER_PENDING",
+      });
+      await recordQuotationNegotiationEvent(tx, {
+        proposalId: proposal.id,
+        revisionId: currentRevision.id,
+        actorUserId: user?.id || null,
+        eventType: "ACCEPTANCE_RECORDED",
+        source: "CUSTOMER_SIGNATURE",
+        visibility: "CUSTOMER",
+        message: `${signerName} accepted quotation revision ${currentRevision.revisionNumber}.`,
+        pricingSnapshot: { signedDocumentHash: verifiedSignedDocumentHash },
+        termsSnapshot: { sourceDocumentHash },
+        idempotencyKey: `quotation-acceptance:${proposal.id}:${currentRevision.id}`,
+      });
       await tx.insert(activityLogs).values({
         entityId: proposal.id,
         entityType: "QUOTATION",
@@ -377,39 +398,29 @@ export async function POST(request: NextRequest) {
         description: `${signerName} signed ${getQuotationDocumentNo(proposal.id)}. The stored quotation PDF was stamped in its customer signature field and uploaded to Google Drive as ${signedDriveDocument.fileName}.`,
         userId: proposal.userId,
       });
+      await enqueueIntegrationEvent(tx, {
+        topic: QUOTATION_ACCEPTED_COMMAND_TOPIC,
+        aggregateType: "PROPOSAL",
+        aggregateId: proposal.id,
+        correlationId: currentRevision.id,
+        payload: {
+          proposalId: proposal.id,
+          quotationId,
+          revisionId: currentRevision.id,
+          revisionNumber: currentRevision.revisionNumber,
+          signedAt: signedAt.toISOString(),
+          signedHash: verifiedSignedDocumentHash,
+          sourceDocumentHash,
+          signerIpAddress,
+          signerUserAgent,
+          verificationUrl: quotationVerificationUrl,
+          signedPdfUrl,
+          signedDriveFileId: signedDriveDocument.fileId,
+        },
+        dedupeKey: `commercial.quotation.accepted:${proposal.id}:${currentRevision.id}`,
+      });
       return [updated];
     });
-
-    let goldenThread: GoldenThreadState;
-    try {
-      goldenThread = await orchestrateGoldenThread(quotationId, updatedProposal.configurationData);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown ERPNext orchestration error.";
-      console.error("[Quotation Sign] Golden Thread orchestration failed.", {
-        quotationId,
-        proposalId: proposal.id,
-        error: message,
-      });
-      const existing = getExistingGoldenThreadState(updatedProposal.configurationData);
-      goldenThread = {
-        status: "SYNC_FAILED",
-        quotationId,
-        salesOrderId: existing.salesOrderId,
-        projectId: existing.projectId,
-        updatedAt: new Date().toISOString(),
-        error: "ERPNext Sales Order and Project synchronization failed.",
-      };
-    }
-
-    await db.update(proposals)
-      .set({
-        configurationData: {
-          ...asRecord(updatedProposal.configurationData),
-          goldenThread,
-        },
-        updatedAt: new Date(),
-      })
-      .where(eq(proposals.id, proposal.id));
 
     await enqueueIntegrationEvent(db, {
       topic: SALES_NOTIFICATION_TOPICS.quotationAccepted,
@@ -448,11 +459,14 @@ export async function POST(request: NextRequest) {
       signed_pdf_url: signedPdfUrl,
       signed_drive_file_id: signedDriveDocument.fileId,
       verification_url: quotationVerificationUrl,
-      sha256_hash: signedDocument.sha256Hash,
-      golden_thread: goldenThread,
+      sha256_hash: verifiedSignedDocumentHash,
+      golden_thread: pendingGoldenThread,
       notification_operation_id: notificationOperationId,
     });
   } catch (error: unknown) {
+    if (error instanceof ProposalRevisionConflictError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
     console.error("[Quotation Sign] Failed to sign quotation.", error);
     const message = error instanceof Error ? error.message : "Unable to sign quotation.";
     return NextResponse.json({ error: message }, { status: 500 });

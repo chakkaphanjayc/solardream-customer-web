@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 import { getSystemConfig, getSystemSetting, type SystemConfig } from "@/app/actions/systemSettings";
 import { db } from "@/db";
-import { proposals, users } from "@/db/schema";
+import { proposalRevisions, proposals, quotationAcceptances, users } from "@/db/schema";
 import { isRequestContentLengthExceeded } from "@/lib/requestSize";
 import { hasValidHeaderSecret } from "@/lib/secretAuth";
 import { getRequestOrigin } from "@/lib/siteUrl";
+import { quotationRevisionLockKey } from "@/server/services/sales/domain/quotation-revision-state";
 
 
 const erpnextItemSchema = z
@@ -231,56 +232,115 @@ export async function POST(request: NextRequest) {
 
     const payload = parsedPayload.data;
     const customer = await upsertCustomer(payload);
-    const existingProposal = await db.query.proposals.findFirst({
-      where: eq(proposals.erpnextQuotationId, payload.quotation_id),
-    });
-
     const panelCount = inferPanelCount(payload.items);
-    const proposalId = existingProposal?.id || buildProposalSlug(payload.quotation_id, webhookSecret);
-    const configurationData = buildConfigurationData(
-      payload,
-      (existingProposal?.configurationData as Record<string, unknown>) || {},
-      config,
-    );
+    const generatedProposalId = buildProposalSlug(payload.quotation_id, webhookSecret);
+    const syncResult = await db.transaction(async (tx) => {
+      await tx.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtext(${`erpnext-quotation-sync:${payload.quotation_id}`}))`,
+      );
 
-    const [proposal] = await db
-      .insert(proposals)
-      .values({
-        id: proposalId,
-        userId: customer.id,
-        systemSizeKwp: payload.system_size_kw,
-        panelCount,
-        totalPrice: payload.grand_total,
-        monthlySavings: existingProposal?.monthlySavings ?? 0,
-        paybackPeriod: existingProposal?.paybackPeriod || "Pending consultant confirmation",
-        pdfUrl: payload.pdf_url,
-        revisedPdfUrl: payload.pdf_url,
-        status: "AWAITING_CLIENT_SIGNATURE",
-        configurationData,
-        erpnextQuotationId: payload.quotation_id,
-        fulfillmentType: existingProposal?.fulfillmentType || "INSTALLATION",
-      })
-      .onConflictDoUpdate({
-        target: proposals.erpnextQuotationId,
-        set: {
+      const firstMatch = await tx.query.proposals.findFirst({
+        where: eq(proposals.erpnextQuotationId, payload.quotation_id),
+      });
+      const firstLockId = firstMatch?.id || generatedProposalId;
+      await tx.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtext(${quotationRevisionLockKey(firstLockId)}))`,
+      );
+
+      let existingProposal = await tx.query.proposals.findFirst({
+        where: eq(proposals.erpnextQuotationId, payload.quotation_id),
+      });
+      if (existingProposal && existingProposal.id !== firstLockId) {
+        await tx.execute(
+          sql`SELECT pg_advisory_xact_lock(hashtext(${quotationRevisionLockKey(existingProposal.id)}))`,
+        );
+        existingProposal = await tx.query.proposals.findFirst({
+          where: eq(proposals.erpnextQuotationId, payload.quotation_id),
+        });
+      }
+
+      const [latestRevision, acceptance] = existingProposal
+        ? await Promise.all([
+            tx.query.proposalRevisions.findFirst({
+              where: eq(proposalRevisions.proposalId, existingProposal.id),
+              orderBy: (revisions, { desc }) => [desc(revisions.revisionNumber)],
+              columns: { status: true },
+            }),
+            tx.query.quotationAcceptances.findFirst({
+              where: eq(quotationAcceptances.proposalId, existingProposal.id),
+              columns: { id: true },
+            }),
+          ])
+        : [null, null];
+      const isImmutable = Boolean(
+        acceptance
+        || (latestRevision && ["SENT", "VIEWED", "ACCEPTED"].includes(latestRevision.status))
+        || (existingProposal && (
+          existingProposal.status !== "DRAFT"
+          || existingProposal.dispatchStatus !== "PENDING_DISPATCH"
+        )),
+      );
+
+      if (existingProposal && isImmutable) {
+        return { proposal: existingProposal, preservedPublishedProposal: true };
+      }
+
+      const existingConfigurationData = existingProposal?.configurationData as Record<string, unknown> | undefined;
+      const configurationData = buildConfigurationData(
+        payload,
+        existingConfigurationData || {},
+        config,
+      );
+      if (existingProposal) {
+        const [updatedProposal] = await tx
+          .update(proposals)
+          .set({
+            userId: customer.id,
+            systemSizeKwp: payload.system_size_kw,
+            panelCount,
+            totalPrice: payload.grand_total,
+            pdfUrl: payload.pdf_url,
+            revisedPdfUrl: payload.pdf_url,
+            configurationData,
+          })
+          .where(eq(proposals.id, existingProposal.id))
+          .returning();
+        if (!updatedProposal) throw new Error("The ERPNext quotation proposal could not be updated.");
+        return { proposal: updatedProposal, preservedPublishedProposal: false };
+      }
+
+      const [createdProposal] = await tx
+        .insert(proposals)
+        .values({
+          id: generatedProposalId,
           userId: customer.id,
           systemSizeKwp: payload.system_size_kw,
           panelCount,
           totalPrice: payload.grand_total,
+          monthlySavings: 0,
+          paybackPeriod: "Pending consultant confirmation",
           pdfUrl: payload.pdf_url,
           revisedPdfUrl: payload.pdf_url,
-          status: "AWAITING_CLIENT_SIGNATURE",
+          status: "DRAFT",
+          dispatchStatus: "PENDING_DISPATCH",
           configurationData,
-        },
-      })
-      .returning();
+          erpnextQuotationId: payload.quotation_id,
+          fulfillmentType: "INSTALLATION",
+        })
+        .returning();
+      if (!createdProposal) throw new Error("The ERPNext quotation proposal could not be created.");
+      return { proposal: createdProposal, preservedPublishedProposal: false };
+    });
+    const proposal = syncResult.proposal;
 
     const proposalUrl = `${getBaseUrl(request)}/th/proposals/${proposal.id}`;
 
     return NextResponse.json(
       {
         success: true,
-        message: "ERPNext quotation synced successfully",
+        message: syncResult.preservedPublishedProposal
+          ? "The published quotation was preserved. Create and send a new revision to publish ERPNext changes."
+          : "ERPNext quotation synced. A final PDF upload is required before customer signing can be enabled.",
         quotation_id: payload.quotation_id,
         proposalId: proposal.id,
         status: proposal.status,

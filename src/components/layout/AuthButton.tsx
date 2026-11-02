@@ -256,7 +256,7 @@ export default function AuthButton({
               type="button"
               aria-label={t("userMenuAriaLabel")}
               className={cn(
-                "group inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border border-[#CBC7BE] bg-[#F0EEE9]/90 px-3.5 py-1.5 text-xs font-semibold text-[#2E2C27] shadow-xs backdrop-blur-xl transition-all duration-200 hover:bg-[#E6E3DC] hover:border-[#7CA8D0]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B7D1EA]",
+                "group inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-[#CBC7BE] bg-[#F0EEE9]/90 px-3.5 py-1.5 text-xs font-semibold text-[#2E2C27] shadow-xs backdrop-blur-xl transition-all duration-200 hover:bg-[#E6E3DC] hover:border-[#7CA8D0]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B7D1EA]",
                 className,
               )}
             >
@@ -385,8 +385,8 @@ export default function AuthButton({
       aria-label={isGlassAppearance ? t("signIn") : undefined}
       className={cn(
         isGlassAppearance
-          ? "inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[#CBC7BE] bg-[#DCE8F5]/80 px-4 py-2 text-xs font-semibold text-[#2E2C27] shadow-sm backdrop-blur-xl transition-all duration-200 hover:bg-[#DCE8F5] hover:shadow"
-          : "inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full bg-[#B7D1EA] px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#A5C2DE] hover:shadow active:scale-95 cursor-pointer",
+          ? "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-[#CBC7BE] bg-[#DCE8F5]/80 px-4 py-2 text-xs font-semibold text-[#2E2C27] shadow-sm backdrop-blur-xl transition-all duration-200 hover:bg-[#DCE8F5] hover:shadow"
+          : "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#B7D1EA] px-5 py-2.5 text-xs font-semibold text-[#0F172A] shadow-sm transition-all hover:bg-[#A5C2DE] hover:shadow active:scale-95 cursor-pointer",
         className,
       )}
     >

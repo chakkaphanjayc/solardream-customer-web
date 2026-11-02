@@ -868,6 +868,16 @@ export default function ProposalsClient({
     setMobileDetailOpen(false);
   };
 
+  const handleProposalListTabChange = (tab: "active" | "archived") => {
+    if (tab === proposalListTab) return;
+    setProposalListTab(tab);
+    setActiveProposalId(null);
+    setMobileDetailOpen(false);
+    setSignatureBase64("");
+    setIsSignatureModalOpen(false);
+    handleCancelUpload();
+  };
+
   const activeProposals = useMemo(
     () =>
       proposals.filter(
@@ -890,8 +900,6 @@ export default function ProposalsClient({
 
   const visibleProposals =
     proposalListTab === "active" ? activeProposals : archivedProposals;
-  const displayProposals =
-    visibleProposals.length > 0 ? visibleProposals : proposals;
 
   const handleSignProposal = async (proposalId: string) => {
     if (!signatureBase64) {
@@ -1553,49 +1561,49 @@ export default function ProposalsClient({
       ref={workspaceRef}
       data-bagui="proposals-workspace"
       data-solar-surface="atelier"
+      data-solar-part="proposals-workspace"
       className="solar-route-page solar-proposals-page sd-safe-pb-26-add min-h-dvh w-full bg-[var(--sd-page)] px-4 pt-6 lg:px-6 lg:pb-24 lg:pt-8"
     >
       <div className="mx-auto flex w-full max-w-7xl flex-col">
-        <header className="relative mb-6 shrink-0 py-4 sm:py-6">
+        <header data-solar-part="proposal-header" className="relative mb-5 shrink-0 py-3 sm:mb-6 sm:py-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="relative">
-              <p className="text-xs font-black uppercase tracking-[0.15em] text-[#4F7FA8]">
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[var(--sd-muted)]">
                 {t("header.eyebrow")}
               </p>
-              <h1 className="mt-1 text-3xl font-black tracking-tight text-[#000000] sm:text-4xl">
+              <h1 className="mt-1 text-3xl font-semibold tracking-tight text-[var(--sd-ink)] sm:text-4xl">
                 {t("header.title")}
               </h1>
-              <p className="mt-2 max-w-3xl text-xs font-bold leading-6 text-slate-700">
-                ติดตามใบเสนอราคา ลายเซ็นดิจิทัล การชำระเงิน
-                และความคืบหน้างานติดตั้งได้จากที่เดียว
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--sd-muted)]">
+                {t("header.description")}
               </p>
             </div>
-            <div className="relative hidden gap-3 lg:flex">
+            <div data-solar-part="proposal-actions" className="relative hidden gap-3 lg:flex">
               <Link
                 href={`/${locale}/build`}
-                className="inline-flex min-h-12 items-center justify-center rounded-xl border-[3px] border-[#000000] bg-white px-5 py-2.5 text-xs font-black text-[#000000] shadow-[4px_4px_0_#000000] transition-all duration-200 ease-expo hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                className="solar-route-secondary inline-flex min-h-11 items-center justify-center px-5 py-2.5 text-sm font-semibold"
               >
                 {t("header.buildSystem")}
               </Link>
               <Link
                 href={`/${locale}/wizard`}
-                className="inline-flex min-h-12 items-center justify-center rounded-xl border-[3px] border-[#000000] bg-[#B7D1EA] px-5 py-2.5 text-xs font-black text-[#0F172A] shadow-[4px_4px_0_#000000] transition-all duration-200 ease-expo hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-[#CBE0F4] hover:shadow-[6px_6px_0_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                className="solar-route-primary inline-flex min-h-11 items-center justify-center px-5 py-2.5 text-sm font-semibold"
               >
                 {t("header.startWizard")}
               </Link>
             </div>
           </div>
         </header>
-        <div className="layer-sticky sticky top-[72px] -mx-4 mb-4 grid grid-cols-2 gap-2 border-y-[3px] border-[#000000] bg-[#F0EEE9] px-4 py-3 lg:hidden">
+        <div data-solar-part="proposal-actions-mobile" className="mb-5 grid grid-cols-2 gap-2 lg:hidden">
           <Link
             href={`/${locale}/build`}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border-2 border-[#000000] bg-white px-3 py-2 text-center text-xs font-black text-[#000000] shadow-[2px_2px_0_#000000] transition hover:bg-[#000000] hover:text-white"
+            className="solar-route-secondary inline-flex min-h-11 items-center justify-center px-3 py-2 text-center text-xs font-semibold"
           >
             {t("header.buildSystem")}
           </Link>
           <Link
             href={`/${locale}/wizard`}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border-2 border-[#000000] bg-[#B7D1EA] px-3 py-2 text-center text-xs font-black text-[#0F172A] shadow-[2px_2px_0_#000000] transition hover:bg-[#CBE0F4]"
+            className="solar-route-primary inline-flex min-h-11 items-center justify-center px-3 py-2 text-center text-xs font-semibold"
           >
             {t("header.startWizard")}
           </Link>
@@ -1603,27 +1611,28 @@ export default function ProposalsClient({
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
           {/* Left Column: Master List */}
           <aside
+            data-solar-part="proposal-list"
             className={cn(
-              "solar-ui-panel flex h-fit min-h-0 flex-col gap-4 rounded-2xl border-[3px] border-[#000000] bg-white p-4 shadow-[6px_6px_0_#000000] lg:sticky lg:top-24 lg:w-[320px] lg:p-5",
+              "solar-ui-panel flex h-fit min-h-0 flex-col gap-4 rounded-2xl border border-[var(--sd-line)] bg-[var(--sd-raised)] p-4 shadow-[var(--sd-shadow-soft)] lg:sticky lg:top-24 lg:w-[320px] lg:p-5",
               mobileDetailOpen ? "hidden lg:flex" : "flex",
             )}
           >
-            <div className="shrink-0 pb-2 border-b-[3px] border-[#000000]">
-              <h2 className="flex items-center gap-1.5 text-base font-black text-[#000000]">
+            <div className="shrink-0 border-b border-[var(--sd-line)] pb-3">
+              <h2 className="flex items-center gap-1.5 text-base font-semibold text-[var(--sd-ink)]">
                 {t("sidebar.titlePrefix")}{" "}
-                <span className="text-[#4F7FA8]">
+                <span className="text-[var(--sd-accent-ink)]">
                   {t("sidebar.titleHighlight")}
                 </span>
               </h2>
-              <p className="mt-1 text-xs font-bold text-slate-600">
+              <p className="mt-1 text-sm leading-5 text-[var(--sd-muted)]">
                 {t("sidebar.description")}
               </p>
             </div>
 
-            <div role="tablist" aria-label={t("sidebar.titlePrefix")} className="flex shrink-0 items-stretch gap-1.5 rounded-xl border-2 border-[#000000] bg-[#F0EEE9] p-1.5 shadow-[2px_2px_0_#000000]">
+            <div data-solar-part="proposal-tabs" role="tablist" aria-label={t("sidebar.titlePrefix")} className="flex shrink-0 items-stretch gap-1.5 rounded-xl border border-[var(--sd-line)] bg-[var(--sd-page)] p-1.5">
               <ProposalListTabButton
                 active={proposalListTab === "active"}
-                onClick={() => setProposalListTab("active")}
+                onClick={() => handleProposalListTabChange("active")}
                 id="proposals-tab-active"
                 controls="proposals-panel-active"
               >
@@ -1631,7 +1640,7 @@ export default function ProposalsClient({
               </ProposalListTabButton>
               <ProposalListTabButton
                 active={proposalListTab === "archived"}
-                onClick={() => setProposalListTab("archived")}
+                onClick={() => handleProposalListTabChange("archived")}
                 id="proposals-tab-archived"
                 controls="proposals-panel-archived"
               >
@@ -1646,12 +1655,12 @@ export default function ProposalsClient({
               tabIndex={0}
               className="min-h-0 space-y-3 pr-0 outline-none focus-visible:ring-2 focus-visible:ring-[#4F7FA8] focus-visible:ring-offset-2"
             >
-              {displayProposals.length === 0 ? (
+              {visibleProposals.length === 0 ? (
                 <SolarStatePanel
                   kind="empty"
-                  title={t("sidebar.emptyTitle")}
-                  description={t("sidebar.emptyDescription")}
-                  soliaAlt={locale === "th" ? "โซเลียกำลังรอช่วยเริ่มต้นแผนโซลาร์ของคุณ" : "Solia is ready to help start your solar plan"}
+                  title={proposalListTab === "active" ? t("sidebar.emptyTitle") : t("sidebar.archivedEmptyTitle")}
+                  description={proposalListTab === "active" ? t("sidebar.emptyDescription") : t("sidebar.archivedEmptyDescription")}
+                  soliaAlt={t("sidebar.emptyImageAlt")}
                   action={
                     <Link href={`/${locale}/wizard`} className="solar-ui-primary rounded-full px-4 py-2.5 text-xs font-bold">
                     {t("actions.openCalculator")}
@@ -1659,7 +1668,7 @@ export default function ProposalsClient({
                   }
                 />
               ) : (
-                displayProposals.map((proposal) => {
+                visibleProposals.map((proposal) => {
                   const isActiveCard = proposal.id === activeProposalId;
                   const statusUpper =
                     getEffectiveProposalStatus(proposal).toUpperCase();
@@ -1690,29 +1699,27 @@ export default function ProposalsClient({
                       onClick={() => handleSelectProposal(proposal.id)}
                       aria-pressed={isActiveCard}
                       className={cn(
-                        "w-full cursor-pointer rounded-xl border-2 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F7FA8] focus-visible:ring-offset-2",
-                        isActiveCard
-                          ? "border-[#000000] bg-[#B7D1EA] p-4 text-[#0F172A] shadow-[4px_4px_0_#000000]"
-                          : "border-[#000000] bg-white p-3.5 text-[#000000] shadow-none hover:bg-[#F0EEE9]",
+                        "proposal-list-card w-full cursor-pointer rounded-xl border p-4 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F7FA8] focus-visible:ring-offset-2",
+                        isActiveCard ? "proposal-list-card--active" : "proposal-list-card--idle",
                       )}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span
                           className={cn(
-                            "font-mono font-black text-xs flex items-center gap-1.5",
-                            isActiveCard ? "text-[#0F172A]" : "text-slate-700",
+                            "font-mono text-xs font-semibold flex items-center gap-1.5",
+                            isActiveCard ? "text-[#0F172A]" : "text-[var(--sd-muted)]",
                           )}
                         >
                           {isInReview ? (
                             <>
                               <ClipboardList className="w-3.5 h-3.5" />
-                              ใบคำขอ #
+                              {t("labels.requestNumber")} #
                               {proposal.id.substring(0, 8).toUpperCase()}
                             </>
                           ) : (
                             <>
                               <FileText className="w-3.5 h-3.5" />
-                              ใบเสนอราคา #
+                              {t("labels.proposalNumber")} #
                               {proposal.id.substring(0, 8).toUpperCase()}
                             </>
                           )}
@@ -1725,7 +1732,7 @@ export default function ProposalsClient({
                                 : t("labels.installationProposal")
                             }
                             className={cn(
-                              "inline-flex items-center gap-1 rounded-md border border-black px-2 py-0.5 text-[10px] font-black uppercase",
+                              "inline-flex items-center gap-1 rounded-full border border-[var(--sd-line)] px-2.5 py-1 text-[10px] font-semibold uppercase",
                               serviceProposal
                                 ? "bg-[#B7D1EA] text-[#0F172A]"
                                 : "bg-[#F0EEE9] text-[#0F172A]",
@@ -1738,14 +1745,14 @@ export default function ProposalsClient({
                             )}
                             {serviceProposal ? t("labels.service") : t("labels.solar")}
                           </span>
-                          <span className={cn("text-[10px] font-bold", isActiveCard ? "text-[#334155]" : "text-[#475569]") }>
+                          <span className={cn("text-[10px] font-medium", isActiveCard ? "text-[#334155]" : "text-[var(--sd-muted)]")}>
                             {formatShortDate(proposal.createdAt)}
                           </span>
                         </div>
                       </div>
 
                       <div className="space-y-1 mb-2">
-                        <div className={cn("text-xs font-bold", isActiveCard ? "text-[#0F172A]" : "text-slate-800")}>
+                        <div className={cn("text-xs font-medium", isActiveCard ? "text-[#0F172A]" : "text-slate-800")}>
                           {serviceProposal
                             ? serviceSummary(proposal.serviceItems)
                             : t("sidebar.systemSummary", {
@@ -1754,14 +1761,14 @@ export default function ProposalsClient({
                               })}
                         </div>
                         {isInReview ? (
-                          <div className={cn("inline-flex items-center rounded-md border-2 border-[#000000] px-2 py-0.5 text-[10px] font-bold", isActiveCard ? "bg-[#0F172A] text-[#B7D1EA]" : "bg-[#F0EEE9] text-[#334155]")}>
-                            กำลังประเมินสเปกโดยทีมวิศวกร
+                          <div className={cn("inline-flex items-center rounded-full border border-[var(--sd-line)] px-2.5 py-1 text-[10px] font-medium", isActiveCard ? "bg-[#0F172A] text-[#B7D1EA]" : "bg-[var(--sd-page)] text-[var(--sd-ink)]")}>
+                            {t("labels.pendingEngineeringReview")}
                           </div>
                         ) : (
                           <div className="text-base font-mono tracking-tight font-black flex items-center justify-between">
                             <span className="text-[#000000]">
                               {customServiceQuote
-                                ? "Custom quote pending"
+                                ? t("labels.pricePending")
                                 : formatCurrency(proposal.totalPrice)}
                             </span>
                             {isQuotationReady && (
@@ -1783,7 +1790,7 @@ export default function ProposalsClient({
                             tone="success"
                             className="text-[9px] uppercase tracking-[0.08em]"
                           >
-                            รอคุณลงนาม
+                            {t("labels.awaitingSignature")}
                           </StatusBadge>
                         )}
                       </div>
@@ -1797,16 +1804,17 @@ export default function ProposalsClient({
           {/* Right Column: Main Stage (Comic Page) */}
           <section
             ref={detailPaneRef}
+            data-solar-part="proposal-detail"
             className={cn(
-              "solar-ui-panel relative flex min-h-[28rem] w-full min-w-0 flex-col gap-4 rounded-2xl border-[4px] border-[#000000] bg-white p-4 shadow-[8px_8px_0_#000000] sm:p-6",
+              "solar-ui-panel relative flex min-h-[28rem] w-full min-w-0 flex-col gap-4 rounded-2xl border border-[var(--sd-line)] bg-[var(--sd-raised)] p-4 shadow-[var(--sd-shadow-soft)] sm:p-6",
               mobileDetailOpen ? "flex" : "hidden lg:flex",
             )}
           >
             {isUpdatingProposal && (
               <div className="layer-raised absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-white/95 transition-opacity duration-200 z-30">
-                <div className="flex flex-col items-center gap-3 p-6 border-2 border-black rounded-xl bg-white shadow-[4px_4px_0_#000000]">
-                  <GsapSpinner className="h-6 w-6 text-[#000000]" />
-                  <p className="text-xs font-black text-[#000000] uppercase tracking-wider">
+                <div className="flex flex-col items-center gap-3 rounded-xl border border-[var(--sd-line)] bg-[var(--sd-raised)] p-6 shadow-[var(--sd-shadow-soft)]">
+                  <GsapSpinner className="h-6 w-6 text-[var(--sd-accent-ink)]" />
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[var(--sd-ink)]">
                     {t("common.updating")}
                   </p>
                 </div>
@@ -1818,7 +1826,7 @@ export default function ProposalsClient({
                   ref={mobileBackButtonRef}
                   type="button"
                   onClick={handleMobileBack}
-                  className="inline-flex min-h-11 w-fit items-center justify-center rounded-xl border-2 border-black bg-white px-4 text-xs font-black text-black shadow-[2px_2px_0_#000000] lg:hidden"
+                  className="solar-route-secondary inline-flex min-h-11 w-fit items-center justify-center px-4 text-xs font-semibold lg:hidden"
                 >
                   ← {t("actions.backToProposals")}
                 </button>
@@ -1834,10 +1842,10 @@ export default function ProposalsClient({
                 kind="empty"
                 title={t("emptySelection.title")}
                 description={t("emptySelection.description")}
-                soliaAlt={locale === "th" ? "โซเลียกำลังรอให้คุณเลือกใบเสนอราคา" : "Solia is waiting for you to select a proposal"}
+                soliaAlt={t("emptySelection.imageAlt")}
                 action={
-                  <Link href={`/${locale}/wizard`} className="solar-ui-primary rounded-full px-4 py-2.5 text-xs font-bold">
-                    {locale === "th" ? "เปิดเครื่องมือคำนวณ" : "Open calculator"}
+                  <Link href={`/${locale}/wizard`} className="solar-route-primary inline-flex min-h-11 items-center rounded-full px-4 py-2.5 text-xs font-semibold">
+                    {t("actions.openCalculator")}
                   </Link>
                 }
               />
@@ -1847,7 +1855,7 @@ export default function ProposalsClient({
 
         {/* Golden Thread Floating Sticky Price Summary Bottom Bar */}
         {activeProposal && (
-          <div className="layer-floating sd-safe-pb-3-max fixed inset-x-0 bottom-0 z-40 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-x-0 border-b-0 border-t-[3px] border-[#000000] bg-white px-3 py-3 sm:inset-x-auto sm:bottom-4 sm:left-1/2 sm:flex sm:w-[92%] sm:max-w-4xl sm:-translate-x-1/2 sm:gap-4 sm:rounded-2xl sm:border-[3.5px] sm:p-3.5 sm:shadow-[6px_6px_0_#000000] md:p-4">
+          <div data-solar-part="proposal-summary" className="layer-floating sd-safe-pb-3-max fixed inset-x-0 bottom-0 z-40 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-x-0 border-b-0 border-t border-[var(--sd-line)] bg-[var(--sd-raised)] px-3 py-3 shadow-[var(--sd-shadow-soft)] sm:inset-x-auto sm:bottom-4 sm:left-1/2 sm:flex sm:w-[92%] sm:max-w-4xl sm:-translate-x-1/2 sm:gap-4 sm:rounded-2xl sm:border sm:p-3.5 md:p-4">
             <div className="flex items-center gap-3 sm:gap-5 min-w-0">
               <div className="flex flex-col min-w-0">
                 <span className="truncate text-[10px] font-black uppercase tracking-wider text-[#475569]">
@@ -1873,7 +1881,7 @@ export default function ProposalsClient({
             <div className="flex shrink-0 items-center gap-2">
               <Link
                 href={`/${locale}/proposals/${activeProposal.id}`}
-                className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-xl border-[3px] border-[#000000] bg-[#B7D1EA] px-3 py-2 text-[11px] font-black uppercase leading-tight text-[#0F172A] shadow-[3px_3px_0_#000000] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-[#CBE0F4] hover:shadow-[5px_5px_0_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none sm:px-4 sm:text-xs"
+                className="solar-route-primary inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 px-3 py-2 text-[11px] font-semibold leading-tight sm:px-4 sm:text-xs"
               >
                 <span>
                   {activeProposal.signedDocumentDriveUrl
