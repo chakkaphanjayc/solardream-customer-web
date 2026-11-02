@@ -21,7 +21,16 @@ import {
   Wrench,
   Zap,
 } from "@/components/ui/icons";
+import { WarrantyCardSkeleton } from "@/components/portal/WarrantyCardSkeleton";
+import { getWarrantyCardErrorKind, type WarrantyCardErrorKind } from "@/lib/warrantyCardState";
 import { getWarrantyStatusPresentation, type WarrantyStatus } from "@/lib/warrantyStatus";
+
+type WarrantyCardResponse = {
+  success?: boolean;
+  card?: WarrantyCard;
+  code?: string;
+  retryable?: boolean;
+};
 
 type WarrantyEquipment = {
   id: string;
@@ -88,8 +97,10 @@ export default function WarrantyCardClient() {
   const locale = useLocale();
   const t = useTranslations("WarrantyCard");
   const [card, setCard] = useState<WarrantyCard | null>(null);
-  const [error, setError] = useState("");
+  const [errorKind, setErrorKind] = useState<WarrantyCardErrorKind | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retrying, setRetrying] = useState(false);
+  const [retryVersion, setRetryVersion] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -100,21 +111,31 @@ export default function WarrantyCardClient() {
           cache: "no-store",
           signal: controller.signal,
         });
-        const payload = await response.json() as { success?: boolean; card?: WarrantyCard; error?: string };
+        const payload = await response.json() as WarrantyCardResponse;
         if (!response.ok || !payload.success || !payload.card) {
-          throw new Error(payload.error || t("error"));
+          setErrorKind(getWarrantyCardErrorKind(payload));
+          return;
         }
         setCard(payload.card);
+        setErrorKind(null);
       } catch (caught: unknown) {
         if (caught instanceof DOMException && caught.name === "AbortError") return;
-        setError(caught instanceof Error ? caught.message : t("error"));
+        setErrorKind("retryable");
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+          setRetrying(false);
+        }
       }
     };
     void load();
     return () => controller.abort();
-  }, [t]);
+  }, [retryVersion, t]);
+
+  const retryLoad = () => {
+    setRetrying(true);
+    setRetryVersion((version) => version + 1);
+  };
 
   const serviceHref = useMemo(() => {
     if (!card) return `/${locale}/my-assets`;
@@ -131,54 +152,66 @@ export default function WarrantyCardClient() {
   }, [card, locale]);
   const statusAnnouncement = loading
     ? t("loading")
-    : !error && card
-      ? t("loaded")
-      : "";
+    : retrying
+      ? t("retrying")
+      : errorKind === "notReady"
+        ? t("notReadyTitle")
+        : errorKind === "retryable"
+          ? t("retryableTitle")
+          : card
+            ? t("loaded")
+            : "";
 
   if (loading) {
-    return (
-      <div
-        data-bagui="page"
-        data-solar-surface="atelier"
-        aria-busy="true"
-        className="solar-warranty-portal min-h-dvh px-4 py-8 md:px-8"
-      >
-        <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-          {statusAnnouncement}
-        </p>
-        <div className="mx-auto max-w-5xl animate-pulse space-y-5">
-          <div className="solar-warranty-skeleton h-5 w-32 rounded-full" />
-          <div className="solar-warranty-skeleton h-80 rounded-[1.5rem]" />
-          <div className="solar-warranty-skeleton h-56 rounded-[1.5rem]" />
-        </div>
-      </div>
-    );
+    return <WarrantyCardSkeleton loadingLabel={statusAnnouncement} />;
   }
 
-  if (error || !card) {
+  if (errorKind || !card) {
+    const isNotReady = errorKind === "notReady";
+    const isRetryable = errorKind === "retryable";
+
     return (
       <div
         data-bagui="page"
         data-solar-surface="atelier"
-        aria-busy="false"
+        aria-busy={retrying}
         className="solar-warranty-portal grid min-h-dvh place-items-center px-5 py-12"
       >
         <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
           {statusAnnouncement}
         </p>
         <section className="solar-warranty-panel w-full max-w-md p-7 text-center">
-          <TriangleAlert className="mx-auto h-9 w-9 text-amber-300" />
-          <h1 className="mt-4 text-xl font-bold">{t("unavailableTitle")}</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-300" role="alert" aria-live="assertive" aria-atomic="true">
-            {error || t("unavailableDescription")}
+          <TriangleAlert className="mx-auto h-9 w-9 text-[var(--sd-warning)]" aria-hidden="true" />
+          <h1 className="mt-4 text-xl font-bold">
+            {isNotReady ? t("notReadyTitle") : isRetryable ? t("retryableTitle") : t("unavailableTitle")}
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-[var(--sd-muted)]" role="alert" aria-live="polite" aria-atomic="true">
+            {isNotReady
+              ? t("notReadyDescription")
+              : isRetryable
+                ? t("retryableDescription")
+                : t("unavailableDescription")}
           </p>
-          <Link
-            href={`/${locale}/my-assets`}
-            className="solar-warranty-primary mt-6 inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t("backToAssets")}
-          </Link>
+          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            {isRetryable ? (
+              <button
+                type="button"
+                onClick={retryLoad}
+                disabled={retrying}
+                className="solar-warranty-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition disabled:cursor-wait disabled:opacity-70"
+              >
+                <TriangleAlert className="h-4 w-4" aria-hidden="true" />
+                {retrying ? t("retrying") : t("retry")}
+              </button>
+            ) : null}
+            <Link
+              href={`/${locale}/my-assets`}
+              className="solar-warranty-secondary inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              {t("backToAssets")}
+            </Link>
+          </div>
         </section>
       </div>
     );
@@ -312,37 +345,43 @@ export default function WarrantyCardClient() {
             <span className="text-sm font-semibold text-slate-400">{card.equipment.length} {t("components")}</span>
           </div>
 
-          <div className="mt-5 divide-y divide-white/10">
-            {card.equipment.map((item) => {
-              const Icon = equipmentIcon(item.itemName);
-              const covered = item.status === "UNDER_WARRANTY";
-              return (
-                <div key={item.id} className="flex flex-col gap-4 py-5 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="solar-warranty-icon grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.05] text-[#8de28d]"><Icon className="h-5 w-5" /></div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-white">{item.itemName}</p>
-                      <p className="mt-1 truncate font-mono text-xs text-slate-400">{item.serialNumber}</p>
-                      {item.manufacturer && <p className="mt-1 text-xs text-slate-500">{item.manufacturer}</p>}
+          {card.equipment.length === 0 ? (
+            <p className="mt-5 rounded-2xl border border-dashed border-[var(--solar-ui-edge)] bg-white/50 px-4 py-6 text-sm leading-6 text-[var(--sd-muted)]">
+              {t("noEquipment")}
+            </p>
+          ) : (
+            <div className="mt-5 divide-y divide-white/10">
+              {card.equipment.map((item) => {
+                const Icon = equipmentIcon(item.itemName);
+                const covered = item.status === "UNDER_WARRANTY";
+                return (
+                  <div key={item.id} className="flex flex-col gap-4 py-5 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="solar-warranty-icon grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.05] text-[#8de28d]"><Icon className="h-5 w-5" /></div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-white">{item.itemName}</p>
+                        <p className="mt-1 truncate font-mono text-xs text-slate-400">{item.serialNumber}</p>
+                        {item.manufacturer && <p className="mt-1 text-xs text-slate-500">{item.manufacturer}</p>}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-5 sm:justify-end">
+                      <div className="text-left sm:text-right">
+                        <p className="text-xs text-slate-400">{t("expires")}</p>
+                        <p className="mt-1 text-sm font-bold text-white">{formatDate(item.warrantyExpiryDate, locale)}</p>
+                      </div>
+                      <span className={covered
+                        ? "inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-200"
+                        : "inline-flex items-center gap-1.5 rounded-full border border-rose-300/20 bg-rose-300/10 px-3 py-1.5 text-xs font-bold text-rose-200"}
+                      >
+                        <BadgeCheck className="h-3.5 w-3.5" />
+                        {covered ? t("status.active") : t("status.expired")}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between gap-5 sm:justify-end">
-                    <div className="text-left sm:text-right">
-                      <p className="text-xs text-slate-400">{t("expires")}</p>
-                      <p className="mt-1 text-sm font-bold text-white">{formatDate(item.warrantyExpiryDate, locale)}</p>
-                    </div>
-                    <span className={covered
-                      ? "inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-200"
-                      : "inline-flex items-center gap-1.5 rounded-full border border-rose-300/20 bg-rose-300/10 px-3 py-1.5 text-xs font-bold text-rose-200"}
-                    >
-                      <BadgeCheck className="h-3.5 w-3.5" />
-                      {covered ? t("status.active") : t("status.expired")}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
