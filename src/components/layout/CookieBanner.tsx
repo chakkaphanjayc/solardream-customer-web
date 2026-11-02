@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import CookiePreferencesModal from "./CookiePreferencesModal";
 import { readJsonResponse } from "@/lib/readJsonResponse";
 import { trackProductEvent } from "@/lib/productAnalytics";
+import { buildCookieConsentPayload, buildPrivacySessionHeaders } from "@/lib/privacyConsentClient";
 
 interface CookieBannerProps {
   cookieTitle: string;
@@ -172,8 +173,8 @@ export default function CookieBanner({
 
     async function syncRemotePreferences() {
       try {
-        const response = await fetch(`/api/privacy/consent?sessionId=${encodeURIComponent(sessionId)}`, {
-          headers: { Accept: "application/json" },
+        const response = await fetch("/api/privacy/consent", {
+          headers: buildPrivacySessionHeaders(sessionId),
         });
         const payload = await readJsonResponse<ConsentApiResponse>(response);
         if (!isMounted || !response.ok || !payload?.success) return;
@@ -188,7 +189,7 @@ export default function CookieBanner({
           return;
         }
 
-        const latestRecord = payload.records?.[0];
+        const latestRecord = payload.records?.find((record) => record.consentType === "COOKIE");
         const remotePreferences = preferencesFromRecord(
           latestRecord?.preferences,
           latestRecord?.policyVersion || serverVersion
@@ -236,54 +237,24 @@ export default function CookieBanner({
     let savedVersion = policyVersion;
 
     try {
-      const records = [
-        {
-          consentType: "essential",
-          granted: true,
-          purposes: ["Security", "Session Management"],
-          preferences: { essential: true, analytics: prefs.analytics, marketing: prefs.marketing },
+      const response = await fetch("/api/privacy/consent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-        {
-          consentType: "analytics",
-          granted: prefs.analytics,
-          purposes: ["Performance", "Traffic Analysis"],
-          preferences: { essential: true, analytics: prefs.analytics, marketing: prefs.marketing },
-        },
-        {
-          consentType: "marketing",
-          granted: prefs.marketing,
-          purposes: ["Targeting", "Campaign Tracking"],
-          preferences: { essential: true, analytics: prefs.analytics, marketing: prefs.marketing },
-        },
-      ];
-
-      const responses = await Promise.all(
-        records.map((record) =>
-          fetch("/api/privacy/consent", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            body: JSON.stringify({
-              sessionId,
-              consentType: record.consentType,
-              granted: record.granted,
-              policyVersion: savedVersion || undefined,
-              purposes: record.purposes,
-              preferences: record.preferences,
-            }),
-          }).then(async (response) => ({
-            response,
-            payload: await readJsonResponse<ConsentApiResponse>(response),
-          }))
-        )
-      );
-
-      const confirmedVersion = responses.find(({ response, payload }) => (
-        response.ok && payload?.success && payload.policyVersion
-      ))?.payload?.policyVersion;
-      if (confirmedVersion) savedVersion = confirmedVersion;
+        body: JSON.stringify(buildCookieConsentPayload({
+          sessionId,
+          source,
+          analytics: prefs.analytics,
+          marketing: prefs.marketing,
+          policyVersion: savedVersion,
+        })),
+      });
+      const payload = await readJsonResponse<ConsentApiResponse>(response);
+      if (response.ok && payload?.success && payload.policyVersion) {
+        savedVersion = payload.policyVersion;
+      }
     } catch {
       // The local choice remains authoritative for client-side tracking when sync is unavailable.
     } finally {

@@ -147,6 +147,77 @@ body:has(.sd-site-shell[data-customer-design="solar-atelier"]) {
   transform: translateY(-1px);
 }
 
+/* Nantucket Breeze is a light fill; primary labels and state chips need dark
+   copy across shared and legacy customer route components. */
+.sd-site-shell[data-customer-design="solar-atelier"]
+  [class~="bg-[#B7D1EA]"][class~="text-white"],
+.sd-site-shell[data-customer-design="solar-atelier"]
+  [class~="bg-[var(--sd-blue-600)]"][class~="text-white"] {
+  border-color: #7eaed4 !important;
+  background-color: #b7d1ea !important;
+  color: #0f172a !important;
+}
+
+/* Override the later legacy customer action rule, which otherwise changes
+   Nantucket buttons back to electric blue with white copy. */
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-customer-design="solar-atelier"]
+  #main-content[data-solar-surface="atelier"]
+  :is(button, a, [role="button"])[class*="bg-[#B7D1EA]"][class*="text-white"]:not(:disabled):not([aria-disabled="true"]),
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-customer-design="solar-atelier"]
+  #main-content[data-solar-surface="atelier"]
+  :is(button, a, [role="button"])[class*="bg-[var(--sd-blue-600)]"][class*="text-white"]:not(:disabled):not([aria-disabled="true"]) {
+  border-color: #7eaed4 !important;
+  background: #b7d1ea !important;
+  color: #0f172a !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-customer-design="solar-atelier"]
+  #main-content[data-solar-surface="atelier"]
+  :is(button, a, [role="button"])[class*="bg-[#B7D1EA]"][class*="text-white"]:is(:hover, :focus-visible):not(:disabled):not([aria-disabled="true"]),
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-customer-design="solar-atelier"]
+  #main-content[data-solar-surface="atelier"]
+  :is(button, a, [role="button"])[class*="bg-[var(--sd-blue-600)]"][class*="text-white"]:is(:hover, :focus-visible):not(:disabled):not([aria-disabled="true"]) {
+  background: #a5c2de !important;
+  color: #0f172a !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"]
+  :is(button, a, [role="button"])[class~="bg-[#B7D1EA]"][class~="text-white"]:is(:hover, :focus-visible):not(:disabled):not([aria-disabled="true"]),
+.sd-site-shell[data-customer-design="solar-atelier"]
+  :is(button, a, [role="button"])[class~="bg-[var(--sd-blue-600)]"][class~="text-white"]:is(:hover, :focus-visible):not(:disabled):not([aria-disabled="true"]) {
+  background-color: #a5c2de !important;
+  color: #0f172a !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"]
+  :is(.solar-warranty-portal .solar-warranty-primary) {
+  border-color: #7eaed4 !important;
+  background: #b7d1ea !important;
+  color: #0f172a !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"]
+  .solar-warranty-portal .solar-warranty-primary:is(:hover, :focus-visible) {
+  background: #a5c2de !important;
+  color: #0f172a !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"]
+  [class~="bg-[var(--sd-selected)]"][class~="text-[var(--sd-blue-600)]"] {
+  color: #0f172a !important;
+}
+
+.sd-site-shell[data-customer-design="solar-atelier"]
+  [class~="bg-[#B7D1EA]"] :is(svg, [class~="text-white"]),
+.sd-site-shell[data-customer-design="solar-atelier"]
+  [class~="bg-[var(--sd-blue-600)]"] :is(svg, [class~="text-white"]) {
+  color: #0f172a !important;
+}
+
 .sd-site-shell[data-customer-design="solar-atelier"] #main-content[data-solar-surface="atelier"]
   :is(.solar-route-secondary, .solar-ui-secondary) {
   border-color: #e2e8f0 !important;

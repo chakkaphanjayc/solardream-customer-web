@@ -10,3 +10,5 @@ alwaysApply: true
 - After each queued task, run `npm run typecheck`, `npm run lint`, and `npm run test`. Fix failures up to three times; then revert only the task-owned files or hunks and document the failure in `REVIEW_INBOX.md`.
 - Never use a broad restore command in a dirty worktree. Preserve pre-existing staged, unstaged, and untracked work.
 - Commit only the task-owned changes. Update `STATE.md` after each task and use the exact review-card format in `REVIEW_INBOX.md` for important changes.
+- For customer UI work, maintain route-family coverage in `STATE.md`, follow PRODUCT.md, DESIGN.md, BagUI, and current WCAG 2.2 guidance, and complete one testable UI task per run.
+- Review the diff and CI, commit and push task-owned changes, and create or update a PR when authentication is available. Never self-approve, bypass required reviews/checks, merge a feature branch, or deploy production directly; Cloudflare production deploys from its configured branch after an authorized merge.
