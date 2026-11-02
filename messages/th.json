@@ -2472,6 +2472,9 @@
     "pdfDocument": "เอกสาร PDF",
     "closeImageAriaLabel": "ปิดรูปภาพ",
     "documentPreview": "ตัวอย่างลิงก์เอกสาร",
+    "previewDialogTitle": "ตัวอย่างหลักฐาน",
+    "openPreview": "เปิดหลักฐานรายการที่ {count} เพื่อดูตัวอย่าง",
+    "surveyAssetAlt": "ภาพสำรวจหน้างาน {count}",
     "openDocument": "เปิดเอกสารในแท็บใหม่",
     "surveyPreviewAlt": "ตัวอย่างภาพสำรวจ",
     "openOriginal": "เปิดขนาดต้นฉบับ"

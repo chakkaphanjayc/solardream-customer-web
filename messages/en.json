@@ -2472,6 +2472,9 @@
     "pdfDocument": "PDF Document",
     "closeImageAriaLabel": "Close image",
     "documentPreview": "Document URL Preview",
+    "previewDialogTitle": "Evidence preview",
+    "openPreview": "Open evidence item {count} in preview",
+    "surveyAssetAlt": "Survey photo {count}",
     "openDocument": "Open Document in New Tab",
     "surveyPreviewAlt": "Survey Preview",
     "openOriginal": "Open original size"
