@@ -177,6 +177,10 @@ export default function ProductCTA({
         type="button"
         variant="secondary"
         onClick={handleClick}
+        aria-label={t("actionForProduct", {
+          action: buttonConfig.label,
+          productName,
+        })}
         data-product-cta={ctaType}
         data-product-cta-context={context}
         data-product-sku={sku}

@@ -2746,7 +2746,8 @@
       "showing": "กำลังแสดง {count} อุปกรณ์"
     },
     "productCard": {
-      "details": "ดูรายละเอียด"
+      "details": "ดูรายละเอียด",
+      "detailsForProduct": "ดูรายละเอียด {productName}"
     },
     "detail": {
       "previewImageUnavailable": "ไม่พร้อมแสดงภาพตัวอย่าง",
@@ -4031,6 +4032,7 @@
     "added": "เพิ่ม {productName} ลงในตะกร้าใบเสนอราคาแล้ว",
     "addedDescription": "พร้อมนำไปจัดทำใบเสนอราคา",
     "openingSales": "กำลังเปิดช่องทางติดต่อฝ่ายขาย",
+    "actionForProduct": "{action} {productName}",
     "quote": "ขอใบเสนอราคา",
     "quoteWithCount": "ขอใบเสนอราคา ({count})",
     "checkStock": "สอบถามสต็อก",

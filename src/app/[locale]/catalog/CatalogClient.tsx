@@ -339,7 +339,7 @@ function ProductDetailDialog({
   onImageError: (url: string) => void;
   imageError: Record<string, boolean>;
 }) {
-  const t = useTranslations("CatalogFilters");
+  const t = useTranslations("CatalogPage");
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (!product) return null;
@@ -682,6 +682,7 @@ export default function CatalogClient({
 
     products.forEach((product, index) => {
       const cat = product.category;
+      const productName = generatePublicProductName(product);
 
       if (!categoryId && cat.id !== lastCategoryId) {
         lastCategoryId = cat.id;
@@ -785,7 +786,7 @@ export default function CatalogClient({
 
                 {/* 2. Product Name — line-clamped to prevent height misalignment */}
                 <h2 className={[titleClass, "mb-0.5 min-h-[24px] truncate"].join(" ")}>
-                  {generatePublicProductName(product)}
+                  {productName}
                 </h2>
                 <div className="text-[10px] text-[#4E4B44] font-mono mb-2">
                   SKU: {product.erpnextItemCode || product.id}
@@ -844,6 +845,7 @@ export default function CatalogClient({
                   <button
                     type="button"
                     onClick={() => openProduct(product.id)}
+                    aria-label={t("productCard.detailsForProduct", { productName })}
                     className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[#8E8B83] bg-transparent px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-[#4F7FA8] transition-all hover:bg-[#A5C2DE]/10 active:scale-95"
                   >
                     {t("productCard.details")}
@@ -855,7 +857,7 @@ export default function CatalogClient({
                     reference={{
                       type: "PRODUCT",
                       id: product.id,
-                      title: generatePublicProductName(product),
+                      title: productName,
                       subtitle: formatPrice(product.price),
                     }}
                     className="min-h-11 w-full rounded-full animate-none active:scale-95"

@@ -2746,7 +2746,8 @@
       "showing": "Showing {count} {count, plural, =1 {Component} other {Components}}"
     },
     "productCard": {
-      "details": "Details"
+      "details": "Details",
+      "detailsForProduct": "Details for {productName}"
     },
     "detail": {
       "previewImageUnavailable": "Preview image unavailable",
@@ -4031,6 +4032,7 @@
     "added": "Added {productName} to your quote cart",
     "addedDescription": "Ready to include in your quotation.",
     "openingSales": "Opening the sales contact channel",
+    "actionForProduct": "{action} for {productName}",
     "quote": "Request a quote",
     "quoteWithCount": "Request a quote ({count})",
     "checkStock": "Check stock",
