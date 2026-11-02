@@ -17,6 +17,8 @@ interface CookieBannerProps {
   essentialButtonText: string;
   acceptAllButtonText: string;
   managePreferencesText: string;
+  privacyPolicyText: string;
+  privacyPolicyHref: string;
 }
 
 type CookiePreferences = {
@@ -138,6 +140,8 @@ export default function CookieBanner({
   essentialButtonText,
   acceptAllButtonText,
   managePreferencesText,
+  privacyPolicyText,
+  privacyPolicyHref,
 }: CookieBannerProps) {
   const mounted = useSyncExternalStore(subscribeMounted, getMountedSnapshot, getMountedServerSnapshot);
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
@@ -301,10 +305,27 @@ export default function CookieBanner({
             <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[#CBC7BE] bg-[#DCE8F5] text-[#4F7FA8]">
               <ShieldCheck className="size-5 text-[#4F7FA8]" />
             </div>
-            <div className="space-y-1">
-              <h2 className="font-sans text-sm font-bold text-[#2E2C27]">
-                {cookieTitle}
-              </h2>
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="solar-cookie-banner__heading-row flex min-w-0 items-center justify-between gap-2">
+                <h2 className="min-w-0 font-sans text-sm font-bold text-[#2E2C27]">
+                  {cookieTitle}
+                </h2>
+                <div className="solar-cookie-banner__secondary-actions flex shrink-0 items-center gap-1">
+                  <Link
+                    href={privacyPolicyHref}
+                    className="inline-flex min-h-11 shrink-0 items-center truncate px-1 font-sans text-[11px] text-[#4E4B44] underline underline-offset-4 transition-colors hover:text-[#3E6685]"
+                  >
+                    {privacyPolicyText}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setIsPreferencesOpen(true)}
+                    className="solar-cookie-manage inline-flex min-h-11 shrink-0 cursor-pointer items-center whitespace-nowrap border-none bg-transparent px-1 py-0 text-[11px] font-sans underline underline-offset-4 transition-colors"
+                  >
+                    {managePreferencesText}
+                  </button>
+                </div>
+              </div>
               <p className="font-sans text-xs font-normal leading-relaxed text-[#4E4B44]">
                 {cookieBannerText}
               </p>
@@ -312,23 +333,7 @@ export default function CookieBanner({
           </div>
 
           <div className="mt-4 flex flex-col gap-3.5 border-t border-[#F7F6F3] pt-3.5">
-            <div className="flex min-w-0 flex-col gap-2 text-xs font-semibold sm:grid sm:grid-cols-2 sm:items-center">
-              <Link
-                href="/privacy"
-                className="min-w-0 truncate font-sans text-[#4E4B44] underline underline-offset-4 transition-colors hover:text-[#3E6685]"
-              >
-                Privacy Policy
-              </Link>
-              <button
-                type="button"
-                onClick={() => setIsPreferencesOpen(true)}
-                className="solar-cookie-manage inline-flex min-h-11 min-w-0 cursor-pointer items-center truncate border-none bg-transparent p-2 text-left font-sans underline underline-offset-4 transition-colors sm:justify-end sm:text-right"
-              >
-                {managePreferencesText}
-              </button>
-            </div>
-
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <div className="solar-cookie-banner__choices flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
               <button
                 type="button"
                 onClick={handleDeclineAll}

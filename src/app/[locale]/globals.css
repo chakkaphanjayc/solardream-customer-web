@@ -11345,3 +11345,22 @@ html body:has(.sd-site-shell[data-customer-design="klarna"])
 .solar-service-booking-action-bar .solar-route-action-button {
   color: var(--sd-ink) !important;
 }
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-support-knowledge
+  input.solar-knowledge-search:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+  border-radius: 12px !important;
+}
+
+html body[data-solar-ui="customer"]
+  .sd-site-shell[data-solar-ui="customer"]
+  #main-content[data-solar-surface="atelier"]
+  .solar-support-knowledge
+  input.solar-knowledge-search:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):is(:focus-visible, :focus-within) {
+  border-color: #0f172a !important;
+  outline: 2px solid #0f172a !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}

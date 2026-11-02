@@ -1,11 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 import type { WebsiteSettings } from "@/lib/websiteSettingsTypes";
+import { resolveCookieBannerCopy } from "@/lib/cookieConsentPresentation";
 import { getCustomerRoutePolicy } from "@/lib/customerRoutePolicy";
 import type { GlobalBannerData } from "../GlobalBanner";
 
@@ -49,6 +51,20 @@ export default function SiteChrome({
 }: SiteChromeProps & { children: React.ReactNode }) {
   const pathname = usePathname();
   const routePolicy = getCustomerRoutePolicy(pathname);
+  const locale = routePolicy.locale ?? "en";
+  const cookieT = useTranslations("CookiePreferences");
+  const cookieBannerCopy = resolveCookieBannerCopy(
+    websiteSettings.cookieConsent,
+    locale,
+    {
+      title: cookieT("title"),
+      description: cookieT("bannerDescription"),
+      privacyPolicy: cookieT("bannerPrivacyPolicy"),
+      essentialOnly: cookieT("essentialOnly"),
+      acceptAll: cookieT("acceptAll"),
+      managePreferences: cookieT("managePreferences"),
+    },
+  );
   useEffect(() => {
     document.body.dataset.solarUi = routePolicy.isAdmin
       ? "operations"
@@ -119,22 +135,18 @@ export default function SiteChrome({
       {routePolicy.showCustomerTools && <GlobalSummaryDrawer />}
       {routePolicy.showCookieBanner && (
         <CookieBanner
-          cookieTitle={websiteSettings.cookieConsent.cookieTitle}
+          cookieTitle={cookieBannerCopy.cookieTitle}
           cookieBannerText={
-            websiteSettings.cookieConsent.cookieMessage ||
+            cookieBannerCopy.cookieMessage ||
             complianceSettings?.cookieBannerText ||
             "เราใช้คุกกี้เพื่อพัฒนาประสิทธิภาพ และประสบการณ์ที่ดีในการใช้เว็บไซต์ของคุณ ทั้งนี้ ท่านสามารถศึกษารายละเอียดการใช้คุกกี้ได้ที่ นโยบายความเป็นส่วนตัว"
           }
           cookieBannerEnabled={complianceSettings?.cookieBannerEnabled ?? true}
-          essentialButtonText={
-            websiteSettings.cookieConsent.essentialButtonText
-          }
-          acceptAllButtonText={
-            websiteSettings.cookieConsent.acceptAllButtonText
-          }
-          managePreferencesText={
-            websiteSettings.cookieConsent.managePreferencesText
-          }
+          essentialButtonText={cookieBannerCopy.essentialButtonText}
+          acceptAllButtonText={cookieBannerCopy.acceptAllButtonText}
+          managePreferencesText={cookieBannerCopy.managePreferencesText}
+          privacyPolicyText={cookieBannerCopy.privacyPolicyText}
+          privacyPolicyHref={`/${locale}/privacy`}
         />
       )}
       <Toaster position="top-center" richColors />

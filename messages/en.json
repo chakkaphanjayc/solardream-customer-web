@@ -5437,10 +5437,21 @@
     "tutorialEyebrow": "Video tutorials",
     "tutorialTitle": "Video guides",
     "videoGuide": "Video guide",
+    "youtubeSearchResults": "YouTube search results",
+    "youtubeSearchNote": "These links open YouTube search results. Choose a video that matches your system and question.",
+    "opensInNewTab": "Opens in a new tab.",
     "faqs": {
       "inverter": {
         "question": "What should I do when the inverter shows a red light?",
         "answer": "Record the error code and take a photo. Check whether the AC/DC breakers are ON. If the red light remains, do not open the unit; shut the system down according to its guide and submit a service request."
+      },
+      "battery": {
+        "question": "How do I care for battery storage during extended rain or a power outage?",
+        "answer": "Set the battery's minimum state-of-charge (SOC) to 20% in the SolarDream App during rainy weeks to protect battery life and preserve emergency reserve power."
+      },
+      "warranty": {
+        "question": "How does the 25-year panel performance warranty claim process work?",
+        "answer": "SolarDream coordinates manufacturer warranty claims directly. Submit an inquiry through the Support Hub or LINE, and our field team will arrange an on-site thermal diagnostic."
       },
       "bill": {
         "question": "How do I read a PEA bill to understand savings?",
@@ -5463,22 +5474,26 @@
       "inverter": {
         "title": "Check inverter status lights",
         "description": "Understand warning lights and what to document for your technician.",
-        "duration": "4 min"
+        "duration": "4 min",
+        "searchTerm": "solar inverter red light troubleshooting"
       },
       "bill": {
         "title": "Read your PEA electricity bill",
         "description": "Review units, billing periods, and savings comparisons.",
-        "duration": "6 min"
+        "duration": "6 min",
+        "searchTerm": "PEA electricity bill solar savings"
       },
       "production": {
         "title": "Read a production graph",
         "description": "Separate normal variation from a potential issue.",
-        "duration": "5 min"
+        "duration": "5 min",
+        "searchTerm": "solar production graph troubleshooting"
       },
       "cleaning": {
         "title": "Prepare before panel cleaning",
         "description": "Safety considerations and the right time for panel care.",
-        "duration": "5 min"
+        "duration": "5 min",
+        "searchTerm": "solar panel cleaning safety"
       }
     }
   },
@@ -5757,6 +5772,10 @@
   "CookiePreferences": {
     "title": "Cookie preferences",
     "subtitle": "Manage how we use cookies on this site",
+    "bannerDescription": "We use essential cookies to keep SolarDream secure. Analytics and marketing cookies are optional and help us improve the experience.",
+    "bannerPrivacyPolicy": "Privacy Policy",
+    "essentialOnly": "Essential only",
+    "managePreferences": "Manage preferences",
     "close": "Close settings",
     "essentialTitle": "Strictly necessary cookies",
     "required": "Required",
