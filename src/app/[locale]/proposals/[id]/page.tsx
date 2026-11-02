@@ -27,6 +27,7 @@ import {
   hasPublishedCustomerQuotation,
   redactUnpublishedCustomerProposal,
 } from "@/lib/proposalPortalExposure";
+import { getTrustedInvoicePdfUrl } from "@/lib/trustedInvoiceUrl";
 import type {
   ClientDocumentRequest,
   ClientDeliveryDocument,
@@ -300,7 +301,7 @@ async function getPortalBillingData(proposalId: string): Promise<{
       erpnextInvoiceId: row.erpnextInvoiceId,
       status: row.status,
       amount: String(row.amount),
-      pdfUrl: row.pdfUrl,
+      pdfUrl: getTrustedInvoicePdfUrl(row.pdfUrl, process.env.ERPNEXT_BASE_URL),
       slipUrl: row.slipUrl,
       createdAt: row.createdAt.toISOString(),
     })),
@@ -441,6 +442,7 @@ export default async function ProposalReviewPage({
           initialDocumentRequests={documentRequests}
           initialDeliveryDocuments={customerDeliveryDocuments}
           initialPaymentRequests={billingData.paymentRequests}
+          initialInvoices={billingData.invoices}
           paymentInstructions={billingData.paymentInstructions}
           quotationReadModel={customerQuotationReadModel}
           initialNegotiationEvents={negotiationEvents}
@@ -497,6 +499,7 @@ export default async function ProposalReviewPage({
         initialDocumentRequests={documentRequests}
         initialDeliveryDocuments={customerDeliveryDocuments}
         initialPaymentRequests={billingData.paymentRequests}
+        initialInvoices={billingData.invoices}
         paymentInstructions={billingData.paymentInstructions}
         quotationReadModel={customerQuotationReadModel}
         initialNegotiationEvents={negotiationEvents}

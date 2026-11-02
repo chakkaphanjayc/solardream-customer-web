@@ -10,9 +10,10 @@ import {
   UploadCloud,
 } from "@/components/ui/icons";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { formatPrice } from "@/lib/utils";
+import { getInvoiceStatusKey, type InvoiceStatusKey } from "@/lib/trustedInvoiceUrl";
 import { GsapSpinner } from "@/components/ui/GsapMotion";
 import { buildPromptPayPayload, getConfiguredPromptPayId } from "@/lib/promptpay";
 import StatusBadge, { type StatusBadgeTone } from "@/components/ui/StatusBadge";
@@ -22,6 +23,7 @@ import PaymentMilestoneProgress from "@/components/payments/PaymentMilestoneProg
 import type {
   ClientPaymentRequest,
   ClientPaymentInstructions,
+  ClientInvoice,
   ClientProposal,
 } from "@/types/proposals";
 import { readJsonResponse } from "@/lib/readJsonResponse";
@@ -39,6 +41,7 @@ type PortalRevisionAndBillingProps = {
   proposal: ClientProposal;
   magicTokenSlug?: string | null;
   initialPaymentRequests: ClientPaymentRequest[];
+  initialInvoices?: ClientInvoice[];
   paymentInstructions?: ClientPaymentInstructions;
   onRevisionRequested: (status: string, dispatchStatus?: string | null, updatedAt?: string) => void;
   onPaymentRequestsChange?: (requests: ClientPaymentRequest[]) => void;
@@ -96,16 +99,34 @@ function getPaymentStatusTone(status: ClientPaymentRequest["status"]): StatusBad
   return "warning";
 }
 
+function getInvoiceStatusTone(status: InvoiceStatusKey): StatusBadgeTone {
+  if (status === "paid") return "success";
+  if (status === "partiallyPaid") return "info";
+  if (status === "unpaid") return "warning";
+  return "neutral";
+}
+
+function getInvoiceStatusLabel(status: InvoiceStatusKey, t: (key: string) => string) {
+  switch (status) {
+    case "paid": return t("billing.invoiceStatus.paid");
+    case "partiallyPaid": return t("billing.invoiceStatus.partiallyPaid");
+    case "unpaid": return t("billing.invoiceStatus.unpaid");
+    case "unknown": return t("billing.invoiceStatus.unknown");
+  }
+}
+
 export function PortalRevisionAndBilling({
   proposal,
   magicTokenSlug,
   initialPaymentRequests,
+  initialInvoices = [],
   paymentInstructions,
   onRevisionRequested,
   onPaymentRequestsChange,
   section = "all",
 }: PortalRevisionAndBillingProps) {
   const t = useTranslations("PortalRevisionAndBilling");
+  const locale = useLocale();
   const [isRevisionOpen, setRevisionOpen] = useState(false);
   const [revisionMessage, setRevisionMessage] = useState("");
   const [activePaymentRequest, setActivePaymentRequest] = useState<ClientPaymentRequest | null>(null);
@@ -355,6 +376,65 @@ export function PortalRevisionAndBilling({
               </div>
             )}
           </div>
+
+          {initialInvoices.length > 0 ? (
+            <section className="mt-7 border-t border-[var(--sd-line)] pt-6" aria-labelledby="proposal-invoices-title">
+              <div className="mb-4">
+                <h3 id="proposal-invoices-title" className="text-base font-bold text-[var(--sd-ink)]">
+                  {t("billing.invoicesTitle")}
+                </h3>
+                <p className="mt-1 text-sm leading-6 text-[var(--sd-muted)]">
+                  {t("billing.invoicesDescription")}
+                </p>
+              </div>
+              <ul className="space-y-3">
+                {initialInvoices.map((invoice) => {
+                  const status = getInvoiceStatusKey(invoice.status);
+                  const amount = toPositiveNumber(invoice.amount);
+                  const issuedDate = new Intl.DateTimeFormat(locale, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  }).format(new Date(invoice.createdAt));
+
+                  return (
+                    <li key={invoice.id} className="flex flex-col gap-3 rounded-[var(--sd-radius-lg)] border border-[var(--sd-line)] bg-[var(--sd-soft-solar)] p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--sd-radius-md)] bg-[var(--sd-selected)] text-[var(--sd-blue-600)]">
+                          <FileText className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                        <div className="min-w-0">
+                          <h4 className="truncate text-sm font-semibold text-[var(--sd-ink)]">{invoice.erpnextInvoiceId}</h4>
+                          <p className="mt-1 text-xs text-[var(--sd-muted)]">
+                            {t("billing.invoiceIssued", { date: issuedDate })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                        <StatusBadge tone={getInvoiceStatusTone(status)}>
+                          {getInvoiceStatusLabel(status, t)}
+                        </StatusBadge>
+                        <span className="text-sm font-semibold text-[var(--sd-ink)]">
+                          {amount === null ? t("billing.amountPending") : formatPrice(amount)}
+                        </span>
+                        {invoice.pdfUrl ? (
+                          <a
+                            href={invoice.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex min-h-11 items-center gap-2 rounded-[var(--sd-radius-md)] border border-[var(--sd-line)] bg-[var(--sd-raised)] px-4 text-xs font-semibold text-[var(--sd-ink)] transition hover:border-[var(--sd-blue-600)] hover:bg-[var(--sd-selected)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sd-blue-600)] focus-visible:ring-offset-2"
+                          >
+                            {t("billing.viewInvoice")}
+                            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                          </a>
+                        ) : null}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ) : null}
 
         </div>
       ) : null}

@@ -22,6 +22,7 @@ import {
 import type {
   ClientDeliveryDocument,
   ClientDocumentRequest,
+  ClientInvoice,
   ClientPaymentInstructions,
   ClientPaymentRequest,
   ClientProposal,
@@ -84,6 +85,7 @@ export default function GuestProposalSignView({
   initialDocumentRequests = [],
   initialDeliveryDocuments = [],
   initialPaymentRequests = [],
+  initialInvoices = [],
   quotationReadModel: initialQuotationReadModel = null,
   initialNegotiationEvents = [],
   acceptance: initialAcceptance = null,
@@ -96,6 +98,7 @@ export default function GuestProposalSignView({
   initialDocumentRequests?: ClientDocumentRequest[];
   initialDeliveryDocuments?: ClientDeliveryDocument[];
   initialPaymentRequests?: ClientPaymentRequest[];
+  initialInvoices?: ClientInvoice[];
   quotationReadModel?: ProposalQuotationReadModelDto | null;
   initialNegotiationEvents?: ProposalNegotiationEventDto[];
   acceptance?: ProposalAcceptanceDto | null;
@@ -109,6 +112,8 @@ export default function GuestProposalSignView({
   const [documentRequests, setDocumentRequests] = useState(initialDocumentRequests);
   const [deliveryDocuments, setDeliveryDocuments] = useState(initialDeliveryDocuments);
   const [paymentRequests, setPaymentRequests] = useState(initialPaymentRequests);
+  const [snapshotRefreshFailed, setSnapshotRefreshFailed] = useState(false);
+  const [snapshotRefreshing, setSnapshotRefreshing] = useState(false);
   const [quotationReadModel, setQuotationReadModel] = useState(initialQuotationReadModel);
   const [negotiationEvents, setNegotiationEvents] = useState(initialNegotiationEvents);
   const [acceptance, setAcceptance] = useState(initialAcceptance);
@@ -160,7 +165,9 @@ export default function GuestProposalSignView({
         },
       );
       const payload = (await response.json()) as ProposalPortalSnapshotResponseDto;
-      if (!response.ok || !payload.success || !payload.snapshot) return;
+      if (!response.ok || !payload.success || !payload.snapshot) {
+        throw new Error("Proposal snapshot is unavailable.");
+      }
       const snapshot = payload.snapshot;
       setCurrentProposal((current) => ({
         ...current,
@@ -177,10 +184,20 @@ export default function GuestProposalSignView({
       setNegotiationEvents(snapshot.negotiationEvents);
       setAcceptance(snapshot.acceptance);
       setInstallation(snapshot.installation);
+      setSnapshotRefreshFailed(false);
+    } catch {
+      setSnapshotRefreshFailed(true);
     } finally {
       snapshotRequestInFlight.current = false;
+      setSnapshotRefreshing(false);
     }
   }, [proposal.id]);
+
+  const retrySnapshotRefresh = () => {
+    if (document.visibilityState === "hidden" || snapshotRequestInFlight.current) return;
+    setSnapshotRefreshing(true);
+    void refreshSnapshot();
+  };
 
   const handleSignComplete = useCallback(
     (payload?: { status?: string; signed_pdf_url?: string }) => {
@@ -209,10 +226,11 @@ export default function GuestProposalSignView({
       if (document.visibilityState === "visible") void refreshSnapshot();
     };
     const intervalId = window.setInterval(refreshWhenVisible, 15_000);
-    void refreshSnapshot();
+    const initialRefreshId = window.setTimeout(() => void refreshSnapshot(), 0);
     window.addEventListener("focus", refreshWhenVisible);
     document.addEventListener("visibilitychange", refreshWhenVisible);
     return () => {
+      window.clearTimeout(initialRefreshId);
       window.clearInterval(intervalId);
       window.removeEventListener("focus", refreshWhenVisible);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
@@ -319,6 +337,20 @@ export default function GuestProposalSignView({
           : "min-h-dvh bg-[var(--sd-page)] px-4 pb-12 pt-8 text-[var(--sd-ink)] md:pt-10"
       }
     >
+      {snapshotRefreshFailed ? (
+        <div className="mx-auto mb-5 flex w-full max-w-7xl flex-col gap-3 rounded-[var(--sd-radius-md)] border border-amber-300 bg-amber-50 p-4 text-amber-950 sm:flex-row sm:items-center sm:justify-between" role="alert" aria-live="polite">
+          <p className="text-sm leading-6">{t("snapshot.refreshFailed")}</p>
+          <button
+            type="button"
+            onClick={retrySnapshotRefresh}
+            disabled={snapshotRefreshing}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-[var(--sd-radius-md)] border border-amber-700 bg-white px-4 text-sm font-semibold text-amber-950 transition hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-70"
+          >
+            {snapshotRefreshing ? t("snapshot.refreshing") : t("snapshot.retry")}
+          </button>
+        </div>
+      ) : null}
+
       {showAccountCta && (
         <section className="solar-route-card mx-auto mb-6 flex max-w-7xl flex-col items-center justify-between gap-4 bg-[var(--sd-soft-solar)] p-6 sm:flex-row">
           <div className="space-y-1 text-center sm:text-left">
@@ -530,6 +562,7 @@ export default function GuestProposalSignView({
               proposal={currentProposal}
               magicTokenSlug={magicTokenSlug}
               initialPaymentRequests={paymentRequests}
+              initialInvoices={initialInvoices}
               paymentInstructions={paymentInstructions}
               onRevisionRequested={(status, dispatchStatus, updatedAt) => {
                 setCurrentProposal((current) => ({

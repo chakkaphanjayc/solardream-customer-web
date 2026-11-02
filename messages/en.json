@@ -5630,6 +5630,11 @@
     }
   },
   "GuestProposalSign": {
+    "snapshot": {
+      "refreshFailed": "We couldn't refresh this proposal's latest payment and project updates. Some information may be out of date.",
+      "retry": "Retry update",
+      "refreshing": "Updating…"
+    },
     "saveTitle": "Save this proposal for later",
     "saveDescription": "Create a free SolarDream account to track installation and manage your warranty in one place.",
     "createAccount": "Create account & save",
@@ -5898,6 +5903,16 @@
       "title": "Payment installments",
       "description": "Review the installments activated by our team, then pay or attach transfer proof from the current list.",
       "activeUnpaid": "{count} active unpaid",
+      "invoicesTitle": "Issued invoices",
+      "invoicesDescription": "Invoices issued for this proposal, with their current payment status.",
+      "invoiceIssued": "Issued {date}",
+      "invoiceStatus": {
+        "paid": "Paid",
+        "partiallyPaid": "Partially paid",
+        "unpaid": "Unpaid",
+        "unknown": "Status unavailable"
+      },
+      "viewInvoice": "View invoice",
       "paymentRequest": "Payment request",
       "payNowUploadSlip": "Pay now / upload slip",
       "openProof": "Open proof",
