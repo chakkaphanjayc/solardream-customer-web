@@ -9,12 +9,33 @@ export type BlogArticleDefinition = {
   isFeatured?: boolean;
 };
 
+export function getBlogArticleListing<T extends Pick<BlogArticleDefinition, "slug" | "categoryKey" | "isFeatured">>(
+  articles: readonly T[],
+  activeCategory: BlogCategory,
+) {
+  const featuredArticle = articles.find((article) => article.isFeatured) ?? articles[0];
+  const matchingArticles = articles.filter((article) =>
+    activeCategory === "all" || article.categoryKey === activeCategory,
+  );
+  const visibleFeaturedArticle = matchingArticles.find(
+    (article) => article.slug === featuredArticle?.slug,
+  );
+
+  return {
+    featuredArticle: visibleFeaturedArticle,
+    gridArticles: matchingArticles.filter(
+      (article) => article.slug !== visibleFeaturedArticle?.slug,
+    ),
+    articleCount: matchingArticles.length,
+  };
+}
+
 export const BLOG_ARTICLE_DEFINITIONS: readonly BlogArticleDefinition[] = [
   {
     slug: "homepage-feel-expensive",
     date: "2026-05-14",
     categoryKey: "solar-tips",
-    coverImage: "https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "/asset/home-editorial/hero-rooftop.webp",
     estimatedWords: 850,
     isFeatured: true,
   },
@@ -22,7 +43,7 @@ export const BLOG_ARTICLE_DEFINITIONS: readonly BlogArticleDefinition[] = [
     slug: "brand-system-vs-assets",
     date: "2026-04-28",
     categoryKey: "case-studies",
-    coverImage: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "/asset/home-editorial/lifestyle-home.webp",
     estimatedWords: 680,
     isFeatured: false,
   },
@@ -30,7 +51,7 @@ export const BLOG_ARTICLE_DEFINITIONS: readonly BlogArticleDefinition[] = [
     slug: "pre-launch-checks",
     date: "2026-03-09",
     categoryKey: "solar-tips",
-    coverImage: "https://images.unsplash.com/photo-1613665813446-82a78c468a1d?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "/asset/home-editorial/roof-detail.webp",
     estimatedWords: 720,
     isFeatured: false,
   },
@@ -38,7 +59,7 @@ export const BLOG_ARTICLE_DEFINITIONS: readonly BlogArticleDefinition[] = [
     slug: "motion-that-clarifies",
     date: "2026-02-18",
     categoryKey: "news",
-    coverImage: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "/asset/home-editorial/roof-before.webp",
     estimatedWords: 590,
     isFeatured: false,
   },

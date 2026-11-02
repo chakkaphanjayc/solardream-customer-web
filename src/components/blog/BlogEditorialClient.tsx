@@ -10,8 +10,8 @@ import {
   Star,
   SunMedium,
 } from "@/components/ui/icons";
+import { getBlogArticleListing, type BlogCategory } from "@/lib/blogArticles";
 import { cn } from "@/lib/utils";
-import type { BlogCategory } from "@/lib/blogArticles";
 
 export type BlogArticleItem = {
   slug: string;
@@ -120,25 +120,27 @@ export default function BlogEditorialClient({
     { id: "solar-tips", label: translations.categories.solarTips },
     { id: "case-studies", label: translations.categories.caseStudies },
   ];
+  const activeCategoryLabel =
+    categoryFilters.find((filter) => filter.id === activeCategory)?.label ??
+    translations.categories.all;
 
-  // Pick the featured article (either marked isFeatured or the most recent)
-  const featuredArticle = useMemo(
-    () => articles.find((a) => a.isFeatured) || articles[0],
-    [articles],
+  const { featuredArticle, gridArticles, articleCount } = useMemo(
+    () => getBlogArticleListing(articles, activeCategory),
+    [activeCategory, articles],
   );
-
-  // Filtered articles list for the 2-column grid
-  const gridArticles = useMemo(() => {
-    return articles.filter((article) => {
-      if (activeCategory === "all") return true;
-      return article.categoryKey === activeCategory;
-    });
-  }, [activeCategory, articles]);
 
   const calcReadTime = (words: number) => {
     const mins = Math.max(1, Math.ceil(words / 200));
     return `${mins} ${translations.minRead}`;
   };
+
+  const articleCountLabel = isTh
+    ? activeCategory === "all"
+      ? `แสดง ${articleCount} บทความ`
+      : `แสดง ${articleCount} บทความในหมวด${activeCategoryLabel}`
+    : `Showing ${articleCount} ${articleCount === 1 ? "article" : "articles"}${
+        activeCategory === "all" ? "" : ` in ${activeCategoryLabel}`
+      }`;
 
   return (
     <div className="w-full space-y-12">
@@ -236,10 +238,8 @@ export default function BlogEditorialClient({
           })}
         </div>
 
-        <span className="text-xs font-bold text-[var(--muted-foreground)]">
-          {isTh
-            ? `แสดง ${gridArticles.length} บทความ`
-            : `Showing ${gridArticles.length} articles`}
+        <span aria-live="polite" className="text-xs font-bold text-[var(--muted-foreground)]">
+          {articleCountLabel}
         </span>
       </section>
 
