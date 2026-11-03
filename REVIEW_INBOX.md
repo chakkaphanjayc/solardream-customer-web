@@ -1,5 +1,14 @@
 # Review Inbox
 
+### 🔔 [SDUX-013] Accessible tracking-gallery previews
+- **Why you need to see this**: Tracking evidence can now be opened from keyboard-operable, labeled gallery buttons, and its preview uses the shared dialog focus and dismissal behavior.
+- **Files Changed**: `src/app/[locale]/my-proposal/[id]/tracking/TrackingGallery.tsx`, `messages/en.json`, `messages/th.json` (`1e342eb`)
+- **Verification**: Passed (`npm run typecheck`, `npm run lint` with zero errors and existing warnings, `npm run test` with 30/30 passing, `npm run i18n:check`, `git diff --check`, Next MCP tracking-route compilation with no issues).
+- **Key Decision / Risk**:
+  - Gallery buttons have localized, numbered names (including PDF type), visible focus, and reduced-motion-safe hover feedback. The shared dialog manages focus containment, Escape/outside dismissal, and focus return; image/PDF preview and new-tab links remain unchanged.
+  - The dev server starts, but the tracking route renders the shared temporary-error page at 390x844, 768x1024, and 1280x800 because this worktree lacks `DATABASE_URL` and `NEXT_PUBLIC_SUPABASE_URL`. Gallery and dialog interactions were not verified in the browser.
+  - PR #1 is open for this branch and will be updated by its push. `.github/workflows` contains only the CI workflow, and `gh` has no authenticated session, so no reviewer request was available.
+
 ### 🔔 [SDUX-012] Keyboard-accessible payment-slip uploads
 - **Why you need to see this**: All three payment-slip picker variants are now reachable by keyboard and expose visible focus on the upload surface. Payment validation, APIs, and settlement behavior are unchanged.
 - **Files Changed**: `src/app/[locale]/checkout/[id]/payment/OrderPaymentClient.tsx` (`5fb0b50`)
