@@ -46,7 +46,7 @@ export function ProposalSignatureModal({
   const handleSubmitSignature = async (signatureDataUrl: string) => {
     if (!signerName.trim()) {
       toast.error(t("enterName"));
-      return;
+      throw new Error(t("enterName"));
     }
     setIsSubmitting(true);
     try {
@@ -75,6 +75,7 @@ export function ProposalSignatureModal({
       onClose();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : t("signFailed"));
+      throw err;
     } finally {
       setIsSubmitting(false);
     }
@@ -90,10 +91,10 @@ export function ProposalSignatureModal({
       closeLabel={t("close")}
       className="max-w-2xl"
     >
-      <DialogContent className="overflow-hidden rounded-[28px] border border-[#8E8B83]/20 bg-[#F0EEE9] shadow-xl">
+      <DialogContent className="overflow-hidden rounded-[24px] border border-[#8E8B83]/20 bg-[#F0EEE9] shadow-xl">
         <DialogHeader
           showClose={!isSubmitting}
-          className="border-b border-[#8E8B83]/15 bg-[#F0EEE9] px-6 py-5"
+          className="border-b border-[#8E8B83]/15 bg-[#F0EEE9] px-4 py-4 sm:px-6 sm:py-5"
         >
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[#DCE8F5] text-[#4F7FA8]">
@@ -108,7 +109,7 @@ export function ProposalSignatureModal({
           </div>
         </DialogHeader>
 
-        <DialogBody className="bg-[#F0EEE9] px-6 py-5">
+        <DialogBody className="bg-[#F0EEE9] px-4 py-4 sm:px-6 sm:py-5">
           <div className="space-y-5">
           <div>
             <label htmlFor="proposal-signer-name" className="mb-1 block text-xs font-medium text-[#1C1C1A]">
@@ -117,10 +118,11 @@ export function ProposalSignatureModal({
             <input
               id="proposal-signer-name"
               type="text"
+              autoComplete="name"
               value={signerName}
               onChange={(e) => setSignerName(e.target.value)}
               placeholder={t("namePlaceholder")}
-              className="w-full rounded-t-xl rounded-b-none border-b-2 border-[#8E8B83] bg-[#F7F6F3] px-4 py-3 text-sm font-medium text-[#1C1C1A] outline-none transition placeholder:text-[#4E4B44]/50 focus:border-[#7CA8D0] focus:bg-[#F0EEE9] focus:ring-0"
+              className="w-full rounded-xl border border-[#8E8B83] bg-[#F7F6F3] px-4 py-3 text-sm font-medium text-[#1C1C1A] transition placeholder:text-[#4E4B44]/50 focus:border-[#7CA8D0] focus:bg-[#F0EEE9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315B7C] focus-visible:ring-offset-2"
               required
             />
           </div>
@@ -131,7 +133,7 @@ export function ProposalSignatureModal({
                 {t("digitalSignature")}
               </label>
             </div>
-            <SignaturePad onConfirm={handleSubmitSignature} disabled={isSubmitting} isSubmitting={isSubmitting} />
+            <SignaturePad signerName={signerName} onConfirm={handleSubmitSignature} disabled={isSubmitting} isSubmitting={isSubmitting} />
           </div>
 
           <div className="flex items-start gap-2 rounded-2xl border border-amber-200/80 bg-amber-50/70 p-3.5 text-xs font-medium leading-5 text-amber-950">
@@ -159,7 +161,7 @@ export function ProposalSignatureModal({
           </div>
         </DialogBody>
 
-        <DialogFooter className="border-t border-[#8E8B83]/15 bg-[#E6E3DC] px-6 py-4">
+        <DialogFooter className="border-t border-[#8E8B83]/15 bg-[#E6E3DC] px-4 py-4 sm:px-6">
           <button
             type="button"
             onClick={requestClose}

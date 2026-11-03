@@ -3,7 +3,13 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 // Keep the customer-facing type system intentionally simple: Roboto carries
 // the Material You rhythm while Noto Sans Thai keeps Thai copy readable.
-import { Noto_Sans_Thai, Geist_Mono, Roboto } from "next/font/google";
+import {
+  IBM_Plex_Sans_Thai,
+  Noto_Sans_Thai,
+  Geist_Mono,
+  Plus_Jakarta_Sans,
+  Roboto,
+} from "next/font/google";
 import AuthProvider from "@/components/providers/AuthProvider";
 import ClarityProvider from "@/components/providers/ClarityProvider";
 import RuntimeMessageRefresh from "@/components/providers/RuntimeMessageRefresh";
@@ -57,6 +63,20 @@ const notoSansThai = Noto_Sans_Thai({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+const ibmPlexSansThai = IBM_Plex_Sans_Thai({
+  variable: "--font-ibm-plex-sans-thai",
+  subsets: ["thai", "latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -181,7 +201,12 @@ export default async function RootLayout({
   const activeLocale = isLocale(locale) ? locale : "th";
 
   return (
-    <html lang={locale} data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html
+      lang={locale}
+      className={`${plusJakartaSans.variable} ${ibmPlexSansThai.variable}`}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <body
         data-bagui="app-shell"
         className={`${notoSansThai.variable} ${geistMono.variable} ${roboto.variable} antialiased bg-[var(--sd-page)] text-[var(--sd-ink)] selection:bg-[var(--sd-selected)] selection:text-[var(--sd-navy-900)]`}

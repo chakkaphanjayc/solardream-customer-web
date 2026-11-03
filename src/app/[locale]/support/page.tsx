@@ -328,7 +328,7 @@ export default async function SupportPage({ params }: SupportPageProps) {
                   <div className="mt-6 flex flex-col gap-3">
                     <Button
                       asChild
-                      className="bg-[#06C755] text-white hover:bg-[#05B94F]"
+                      variant="line"
                     >
                       <a
                         href={contact.lineUrl}
