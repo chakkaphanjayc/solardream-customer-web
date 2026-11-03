@@ -2461,13 +2461,17 @@
     },
     "header": {
       "evidenceCount": "Field Survey Evidence ({count})",
-      "clickToEnlarge": "Click to enlarge"
+      "clickToEnlarge": "Select an item to preview"
     },
     "pdfDocument": "PDF Document",
-    "closeImageAriaLabel": "Close image",
+    "closeImageAriaLabel": "Close preview",
     "documentPreview": "Document URL Preview",
     "openDocument": "Open Document in New Tab",
     "surveyPreviewAlt": "Survey Preview",
+    "surveyAssetAlt": "Survey evidence item {number}",
+    "openSurveyAsset": "Open survey evidence item {number}",
+    "openSurveyPdf": "Open PDF document {number}",
+    "previewDialogDescription": "Preview of survey evidence item {number}. Use the link to open the original in a new tab.",
     "openOriginal": "Open original size"
   },
   "InstallerPortal": {

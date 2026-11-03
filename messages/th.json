@@ -2461,13 +2461,17 @@
     },
     "header": {
       "evidenceCount": "หลักฐานสำรวจหน้างาน ({count})",
-      "clickToEnlarge": "คลิกเพื่อขยาย"
+      "clickToEnlarge": "เลือกรายการเพื่อเปิดดูตัวอย่าง"
     },
     "pdfDocument": "เอกสาร PDF",
-    "closeImageAriaLabel": "ปิดรูปภาพ",
+    "closeImageAriaLabel": "ปิดหน้าต่างตัวอย่าง",
     "documentPreview": "ตัวอย่างลิงก์เอกสาร",
     "openDocument": "เปิดเอกสารในแท็บใหม่",
     "surveyPreviewAlt": "ตัวอย่างภาพสำรวจ",
+    "surveyAssetAlt": "หลักฐานสำรวจหน้างานรายการที่ {number}",
+    "openSurveyAsset": "เปิดดูหลักฐานสำรวจหน้างานรายการที่ {number}",
+    "openSurveyPdf": "เปิดเอกสาร PDF รายการที่ {number}",
+    "previewDialogDescription": "ตัวอย่างหลักฐานสำรวจหน้างานรายการที่ {number} ใช้ลิงก์เพื่อเปิดรายการต้นฉบับในแท็บใหม่",
     "openOriginal": "เปิดขนาดต้นฉบับ"
   },
   "InstallerPortal": {
